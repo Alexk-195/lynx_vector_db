@@ -55,10 +55,106 @@ const char* IVectorDatabase::version() {
 
 class VectorDatabase_Impl : public IVectorDatabase  {
 public:
-    explicit VectorDatabase_Impl(const Config& config) {
-        (void)config;
+    explicit VectorDatabase_Impl(const Config& config) : config_(config) {}
+
+    // -------------------------------------------------------------------------
+    // Single Vector Operations
+    // -------------------------------------------------------------------------
+
+    ErrorCode insert(std::uint64_t id, std::span<const float> vector) override {
+        (void)id;
+        (void)vector;
+        return ErrorCode::NotImplemented;
     }
-    // TODO: implement stubs for all pure virtual functions
+
+    ErrorCode remove(std::uint64_t id) override {
+        (void)id;
+        return ErrorCode::NotImplemented;
+    }
+
+    bool contains(std::uint64_t id) const override {
+        (void)id;
+        return false;
+    }
+
+    std::optional<std::vector<float>> get(std::uint64_t id) const override {
+        (void)id;
+        return std::nullopt;
+    }
+
+    // -------------------------------------------------------------------------
+    // Search Operations
+    // -------------------------------------------------------------------------
+
+    SearchResult search(std::span<const float> query, std::size_t k) const override {
+        (void)query;
+        (void)k;
+        return SearchResult{{}, 0, 0.0};
+    }
+
+    SearchResult search(std::span<const float> query, std::size_t k,
+                       const SearchParams& params) const override {
+        (void)query;
+        (void)k;
+        (void)params;
+        return SearchResult{{}, 0, 0.0};
+    }
+
+    // -------------------------------------------------------------------------
+    // Batch Operations
+    // -------------------------------------------------------------------------
+
+    ErrorCode batch_insert(std::span<const VectorRecord> records) override {
+        (void)records;
+        return ErrorCode::NotImplemented;
+    }
+
+    // -------------------------------------------------------------------------
+    // Database Properties
+    // -------------------------------------------------------------------------
+
+    std::size_t size() const override {
+        return 0;
+    }
+
+    std::size_t dimension() const override {
+        return config_.dimension;
+    }
+
+    DatabaseStats stats() const override {
+        DatabaseStats stats;
+        stats.vector_count = 0;
+        stats.dimension = config_.dimension;
+        stats.memory_usage_bytes = 0;
+        stats.index_memory_bytes = 0;
+        stats.avg_query_time_ms = 0.0;
+        stats.total_queries = 0;
+        stats.total_inserts = 0;
+        return stats;
+    }
+
+    const Config& config() const override {
+        return config_;
+    }
+
+    // -------------------------------------------------------------------------
+    // Persistence
+    // -------------------------------------------------------------------------
+
+    ErrorCode flush() override {
+        return ErrorCode::NotImplemented;
+    }
+
+    ErrorCode save() override {
+        return ErrorCode::NotImplemented;
+    }
+
+    ErrorCode load() override {
+        return ErrorCode::NotImplemented;
+    }
+
+private:
+    Config config_;
 };
 
 
