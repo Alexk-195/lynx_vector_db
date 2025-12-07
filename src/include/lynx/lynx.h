@@ -399,36 +399,31 @@ public:
      * @return ErrorCode indicating success or failure
      */
     virtual ErrorCode load() = 0;
+
+    /**
+    * @brief Get library version string.
+    * @return Version in format "major.minor.patch"
+    */
+    [[nodiscard]] static const char* version();
+
+    /**
+    * @brief Create a new vector database instance.
+    * @param config Database configuration
+    * @return Unique pointer to IVectorDatabase implementation
+    */
+    [[nodiscard]] static std::shared_ptr<IVectorDatabase> create(const Config& config);
 };
-
-// ============================================================================
-// Factory Functions
-// ============================================================================
-
-/**
- * @brief Create a new vector database instance.
- * @param config Database configuration
- * @return Unique pointer to IVectorDatabase implementation
- */
-[[nodiscard]] std::unique_ptr<IVectorDatabase> create_database(const Config& config);
-
-/**
- * @brief Create a new vector database with default configuration.
- * @param dimension Vector dimensionality
- * @return Unique pointer to IVectorDatabase implementation
- */
-[[nodiscard]] std::unique_ptr<IVectorDatabase> create_database(std::size_t dimension);
 
 // ============================================================================
 // Utility Functions
 // ============================================================================
 
-/**
+ /**
  * @brief Get string representation of an error code.
  * @param code Error code
  * @return Human-readable error message
  */
-[[nodiscard]] const char* error_string(ErrorCode code);
+ [[nodiscard]] const char* error_string(ErrorCode code);
 
 /**
  * @brief Get string representation of an index type.
@@ -444,11 +439,7 @@ public:
  */
 [[nodiscard]] const char* distance_metric_string(DistanceMetric metric);
 
-/**
- * @brief Get library version string.
- * @return Version in format "major.minor.patch"
- */
-[[nodiscard]] const char* version();
+
 
 } // namespace lynx
 

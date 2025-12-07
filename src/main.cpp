@@ -10,7 +10,7 @@
 #include <vector>
 
 int main() {
-    std::cout << "Lynx Vector Database v" << lynx::version() << "\n";
+    std::cout << "Lynx Vector Database v" << lynx::IVectorDatabase::version() << "\n";
     std::cout << "========================================\n\n";
 
     // Display available index types

@@ -48,22 +48,26 @@ const char* distance_metric_string(DistanceMetric metric) {
     }
 }
 
-const char* version() {
+const char* IVectorDatabase::version() {
     return "0.1.0";
 }
+
+
+class VectorDatabase_Impl : public IVectorDatabase  {
+public:
+    explicit VectorDatabase_Impl(const Config& config) {
+        (void)config;
+    }
+    // TODO: implement stubs for all pure virtual functions
+};
+
 
 // ============================================================================
 // Factory Function Placeholders
 // ============================================================================
 
-std::unique_ptr<IVectorDatabase> create_database(const Config& /*config*/) {
-    // TODO: Implement actual database creation in Phase 4
-    throw std::runtime_error("create_database() not yet implemented");
-}
-
-std::unique_ptr<IVectorDatabase> create_database(std::size_t /*dimension*/) {
-    // TODO: Implement actual database creation in Phase 4
-    throw std::runtime_error("create_database() not yet implemented");
+std::shared_ptr<IVectorDatabase> IVectorDatabase::create(const Config& config) {
+    return std::make_shared<VectorDatabase_Impl>(config);
 }
 
 } // namespace lynx

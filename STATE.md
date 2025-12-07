@@ -97,7 +97,7 @@ lynx_vector_db/
 ### Factory Functions
 | Function | Defined | Implemented |
 |----------|---------|-------------|
-| `create_database()` | Yes | No |
+| `create()` | Yes | No |
 
 ## Build Status
 
