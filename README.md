@@ -13,8 +13,9 @@ A high-performance vector database implemented in modern C++20 with support for 
 ## Requirements
 
 - C++20 compatible compiler (GCC 11+, Clang 14+)
-- GNU Make
+- GNU Make or CMake 3.20+
 - MPS library ([github.com/Alexk-195/mps](https://github.com/Alexk-195/mps))
+- Google Test v1.15.2 (automatically included)
 
 ## Quick Start
 
@@ -24,15 +25,22 @@ A high-performance vector database implemented in modern C++20 with support for 
 git clone https://github.com/Alexk-195/lynx_vector_db.git
 cd lynx_vector_db
 
-# Clone MPS dependency
+# Clone dependencies
 git clone https://github.com/Alexk-195/mps.git ../mps
+git clone --depth 1 --branch v1.15.2 https://github.com/google/googletest.git external/googletest
+
 export MPS_DIR=$(pwd)/../mps
 
-# Build
+# Build with Make (recommended)
 ./setup.sh
+
+# OR build with CMake
+mkdir build && cd build
+cmake ..
+cmake --build .
 ```
 
-### Build Options
+### Build Options - setup.sh (Makefile)
 
 ```bash
 ./setup.sh          # Build release version
@@ -43,12 +51,13 @@ export MPS_DIR=$(pwd)/../mps
 ./setup.sh install  # Install to system (requires sudo)
 ```
 
-### Make Options
+### Build Options - Make
 
 ```bash
-# Direct make usage
 make              # Build release
 make debug        # Build debug
+make test         # Build and run tests
+make build-tests  # Build tests only
 make clean        # Clean build
 make run          # Build and run
 make info         # Show build configuration
@@ -56,6 +65,28 @@ make info         # Show build configuration
 # With MPS library
 export MPS_DIR=/path/to/mps
 make
+```
+
+### Build Options - CMake
+
+```bash
+# Configure
+mkdir build && cd build
+cmake .. -DCMAKE_BUILD_TYPE=Release
+
+# With MPS
+cmake .. -DMPS_DIR=/path/to/mps
+
+# Build
+cmake --build . --parallel
+
+# Run tests
+ctest              # Individual test discovery
+make test          # CMake test target
+make check         # Verbose test output
+
+# Install
+sudo cmake --install .
 ```
 
 ## Usage

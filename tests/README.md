@@ -12,20 +12,41 @@ This directory contains the unit test suite for the Lynx vector database, using 
 
 ## Running Tests
 
-### Using Make
+### Using Make (Makefile)
 ```bash
 make test              # Build and run all tests
 make build-tests       # Build tests without running
 ```
 
+### Using CMake
+```bash
+# Configure
+mkdir build && cd build
+cmake ..
+
+# Build
+cmake --build .
+
+# Run tests
+ctest                  # CTest with individual test discovery
+# OR
+make test              # CMake's test target
+# OR
+make check             # Custom target with verbose output
+```
+
 ### Using setup.sh
 ```bash
-./setup.sh test        # Build and run all tests
+./setup.sh test        # Build and run all tests (uses Makefile)
 ```
 
 ### Direct Execution
 ```bash
-./build/bin/lynx_tests # Run the test executable directly
+# Makefile build
+./build/bin/lynx_tests
+
+# CMake build
+./cmake-build/bin/lynx_tests
 ```
 
 ## Test Coverage
@@ -126,7 +147,18 @@ EXPECT_STREQ(str1, str2);      // C-string equality
 
 ## Google Test Framework
 
-This project uses **Google Test v1.15.2**, located in `external/googletest/`.
+This project uses **Google Test v1.15.2**.
+
+### Build System Integration
+
+**Makefile:** Uses local Google Test from `external/googletest/` directory
+- Builds gtest from source into `build/lib/libgtest.a`
+- Fast compilation, no external downloads
+
+**CMake:** Smart Google Test integration
+- First tries to use local `external/googletest/` if available
+- Falls back to FetchContent to download from GitHub if not found
+- Uses `gtest_discover_tests()` for individual test discovery in CTest
 
 ### Resources
 
@@ -137,8 +169,8 @@ This project uses **Google Test v1.15.2**, located in `external/googletest/`.
 ## Dependencies
 
 The test suite automatically builds and links against:
-- Google Test library (built from source)
-- Lynx static library (`liblynx.a`)
+- Google Test library (v1.15.2)
+- Lynx static library (`liblynx.a` or `lynx_static`)
 
 No system-wide installation of Google Test is required.
 

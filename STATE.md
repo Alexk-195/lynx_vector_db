@@ -20,7 +20,7 @@
 
 ### Completed
 - [x] Project structure created
-- [x] CMakeLists.txt with shared lib + executable targets
+- [x] Build system (Makefile + CMakeLists.txt)
 - [x] setup.sh build script
 - [x] Documentation files (README, CLAUDE, CONCEPT, STATE)
 - [x] Interface header file (`src/include/lynx/lynx.h`)
@@ -39,7 +39,8 @@
 
 ```
 lynx_vector_db/
-├── Makefile                ✓ Created (replaced CMakeLists.txt)
+├── Makefile                ✓ Created (primary build system)
+├── CMakeLists.txt          ✓ Updated (alternative build system)
 ├── setup.sh                ✓ Created
 ├── CLAUDE.md               ✓ Created
 ├── CONCEPT.md              ✓ Created
@@ -112,7 +113,11 @@ lynx_vector_db/
 ## Build Status
 
 - **Compiles**: ✓ Yes (with stub implementations)
+  - Makefile: ✓ Working
+  - CMake: ✓ Working
 - **Tests Pass**: ✓ Yes (67/67 tests passing)
+  - make test: ✓ All passing
+  - ctest: ✓ All passing
 - **Benchmarks**: N/A (not created)
 
 ## Next Steps
@@ -132,7 +137,7 @@ None yet (project just initialized).
 | Dependency | Required Version | Status |
 |------------|-----------------|--------|
 | C++ Compiler | C++20 (GCC 11+, Clang 14+) | Required |
-| Make | Any modern version | Required |
+| Make or CMake | Make: any / CMake 3.20+ | Required |
 | MPS Library | Latest | Required (not integrated yet) |
 | Google Test | v1.15.2 | ✓ Integrated (in external/) |
 
