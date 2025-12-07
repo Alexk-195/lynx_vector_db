@@ -156,9 +156,8 @@ public:
     // Single Vector Operations
     // -------------------------------------------------------------------------
 
-    ErrorCode insert(std::uint64_t id, std::span<const float> vector) override {
-        (void)id;
-        (void)vector;
+    ErrorCode insert(const VectorRecord& record) override {
+        (void)record;
         return ErrorCode::NotImplemented;
     }
 
@@ -172,7 +171,7 @@ public:
         return false;
     }
 
-    std::optional<std::vector<float>> get(std::uint64_t id) const override {
+    std::optional<VectorRecord> get(std::uint64_t id) const override {
         (void)id;
         return std::nullopt;
     }

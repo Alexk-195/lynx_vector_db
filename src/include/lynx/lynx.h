@@ -285,11 +285,10 @@ public:
 
     /**
      * @brief Insert a single vector into the database.
-     * @param id Unique identifier for the vector
-     * @param vector Vector data (must match configured dimension)
+     * @param record Vector record containing id, vector data, and optional metadata
      * @return ErrorCode indicating success or failure
      */
-    virtual ErrorCode insert(std::uint64_t id, std::span<const float> vector) = 0;
+    virtual ErrorCode insert(const VectorRecord& record) = 0;
 
     /**
      * @brief Remove a vector from the database.
@@ -306,11 +305,11 @@ public:
     [[nodiscard]] virtual bool contains(std::uint64_t id) const = 0;
 
     /**
-     * @brief Retrieve a vector by its ID.
+     * @brief Retrieve a vector record by its ID.
      * @param id Vector identifier
-     * @return Vector data if found, empty optional otherwise
+     * @return VectorRecord if found, empty optional otherwise
      */
-    [[nodiscard]] virtual std::optional<std::vector<float>> get(
+    [[nodiscard]] virtual std::optional<VectorRecord> get(
         std::uint64_t id) const = 0;
 
     // -------------------------------------------------------------------------
