@@ -3,18 +3,17 @@
 # Lynx Vector Database - Build Setup Script
 #
 # Usage:
-#   ./setup.sh              # Configure and build (Release)
-#   ./setup.sh debug        # Configure and build (Debug)
+#   ./setup.sh              # Build release
+#   ./setup.sh debug        # Build debug
 #   ./setup.sh clean        # Clean build directory
 #   ./setup.sh rebuild      # Clean and rebuild
+#   ./setup.sh test         # Run tests
 #   ./setup.sh install      # Install to system (requires sudo)
 #
 
 set -e
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-BUILD_DIR="${PROJECT_ROOT}/build"
-BUILD_TYPE="${1:-Release}"
 
 # Colors for output
 RED='\033[0;31m'
@@ -37,14 +36,6 @@ log_error() {
 check_dependencies() {
     log_info "Checking dependencies..."
 
-    # Check CMake
-    if ! command -v cmake &> /dev/null; then
-        log_error "CMake is required but not installed."
-        exit 1
-    fi
-    cmake_version=$(cmake --version | head -n1 | awk '{print $3}')
-    log_info "CMake version: ${cmake_version}"
-
     # Check compiler
     if command -v g++ &> /dev/null; then
         gxx_version=$(g++ --version | head -n1)
@@ -57,6 +48,12 @@ check_dependencies() {
         exit 1
     fi
 
+    # Check make
+    if ! command -v make &> /dev/null; then
+        log_error "make is required but not installed."
+        exit 1
+    fi
+
     # Check for MPS library
     if [ -z "${MPS_DIR}" ]; then
         log_warn "MPS_DIR not set. Set it to point to the MPS library location."
@@ -66,111 +63,51 @@ check_dependencies() {
     fi
 }
 
-clean_build() {
-    log_info "Cleaning build directory..."
-    rm -rf "${BUILD_DIR}"
-    log_info "Clean complete."
-}
-
-configure() {
-    log_info "Configuring project (${BUILD_TYPE})..."
-
-    mkdir -p "${BUILD_DIR}"
-    cd "${BUILD_DIR}"
-
-    cmake_args=(
-        -DCMAKE_BUILD_TYPE="${BUILD_TYPE}"
-        -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
-    )
-
-    if [ -n "${MPS_DIR}" ]; then
-        cmake_args+=(-DMPS_DIR="${MPS_DIR}")
-    fi
-
-    cmake "${cmake_args[@]}" "${PROJECT_ROOT}"
-
-    # Create symlink for compile_commands.json (for IDE support)
-    if [ -f "${BUILD_DIR}/compile_commands.json" ]; then
-        ln -sf "${BUILD_DIR}/compile_commands.json" "${PROJECT_ROOT}/compile_commands.json"
-    fi
-
-    log_info "Configuration complete."
-}
-
-build() {
-    log_info "Building project..."
-
-    cd "${BUILD_DIR}"
-
-    # Detect number of CPU cores
-    if command -v nproc &> /dev/null; then
-        NPROC=$(nproc)
-    else
-        NPROC=4
-    fi
-
-    cmake --build . --parallel "${NPROC}"
-
-    log_info "Build complete."
-    log_info "Binaries located in: ${BUILD_DIR}/bin"
-    log_info "Libraries located in: ${BUILD_DIR}/lib"
-}
-
-install_project() {
-    log_info "Installing project..."
-    cd "${BUILD_DIR}"
-    sudo cmake --install .
-    log_info "Installation complete."
-}
-
-run_tests() {
-    log_info "Running tests..."
-    cd "${BUILD_DIR}"
-    ctest --output-on-failure
-    log_info "Tests complete."
-}
-
 # Main script logic
+cd "${PROJECT_ROOT}"
+
 case "${1}" in
     clean)
-        clean_build
+        log_info "Cleaning build directory..."
+        make clean
+        log_info "Clean complete."
         ;;
     rebuild)
-        clean_build
+        log_info "Rebuilding project..."
+        make clean
         check_dependencies
-        configure
-        build
+        make release
         ;;
     install)
-        if [ ! -d "${BUILD_DIR}" ]; then
-            check_dependencies
-            configure
-            build
-        fi
-        install_project
+        check_dependencies
+        make release
+        make install
         ;;
     test)
-        if [ ! -d "${BUILD_DIR}" ]; then
-            check_dependencies
-            configure
-            build
-        fi
-        run_tests
+        check_dependencies
+        make release
+        make test
         ;;
     debug)
-        BUILD_TYPE="Debug"
         check_dependencies
-        configure
-        build
+        log_info "Building debug version..."
+        make debug
         ;;
     release|"")
-        BUILD_TYPE="Release"
         check_dependencies
-        configure
-        build
+        log_info "Building release version..."
+        make release
+        ;;
+    run)
+        check_dependencies
+        make release
+        make run
+        ;;
+    info)
+        make info
         ;;
     *)
-        echo "Usage: $0 {release|debug|clean|rebuild|install|test}"
+        echo "Usage: $0 {release|debug|clean|rebuild|install|test|run|info}"
         exit 1
         ;;
 esac
