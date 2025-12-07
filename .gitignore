@@ -5,6 +5,9 @@ build/
 *.so
 *.dylib
 
+# External dependencies
+external/
+
 # IDE files
 .vscode/
 .idea/
