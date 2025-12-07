@@ -53,9 +53,28 @@ else()
     message(WARNING "MPS_DIR not specified. Set -DMPS_DIR=/path/to/mps")
 endif()
 
+# Lynx static library
+add_library(lynx_static STATIC
+        src/lib/lynx.cpp
+)
+
+target_include_directories(lynx_static PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/src/include>
+        $<INSTALL_INTERFACE:include>
+)
+
+target_link_libraries(lynx_static PUBLIC
+        Threads::Threads
+)
+
+set_target_properties(lynx_static PROPERTIES
+        OUTPUT_NAME lynx
+        PUBLIC_HEADER "src/include/lynx/lynx.h"
+)
+
 # Lynx shared library
 add_library(lynx SHARED
-        src/lib/lynx.cpp  # Placeholder until implementation begins
+        src/lib/lynx.cpp
 )
 
 target_include_directories(lynx PUBLIC
@@ -85,7 +104,7 @@ target_link_libraries(lynx_db PRIVATE
 # Installation
 include(GNUInstallDirs)
 
-install(TARGETS lynx lynx_db
+install(TARGETS lynx lynx_static lynx_db
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
@@ -100,8 +119,61 @@ install(DIRECTORY src/include/lynx
 # Testing
 if(LYNX_BUILD_TESTS)
     enable_testing()
-    # TODO: Add test subdirectory when tests are implemented
-    # add_subdirectory(tests)
+
+    # Fetch Google Test
+    include(FetchContent)
+
+    # Use local googletest if available, otherwise fetch it
+    if(EXISTS ${CMAKE_SOURCE_DIR}/external/googletest)
+        message(STATUS "Using local Google Test from external/googletest")
+        add_subdirectory(${CMAKE_SOURCE_DIR}/external/googletest EXCLUDE_FROM_ALL)
+    else()
+        message(STATUS "Fetching Google Test from GitHub")
+        FetchContent_Declare(
+            googletest
+            GIT_REPOSITORY https://github.com/google/googletest.git
+            GIT_TAG v1.15.2
+            GIT_SHALLOW TRUE
+        )
+
+        # Prevent overriding the parent project's compiler/linker settings on Windows
+        set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+
+        FetchContent_MakeAvailable(googletest)
+    endif()
+
+    # Add test executable
+    add_executable(lynx_tests
+        tests/test_main.cpp
+        tests/test_utility_functions.cpp
+        tests/test_config.cpp
+        tests/test_data_structures.cpp
+        tests/test_database.cpp
+    )
+
+    target_link_libraries(lynx_tests PRIVATE
+        lynx_static
+        gtest
+        gtest_main
+        Threads::Threads
+    )
+
+    target_include_directories(lynx_tests PRIVATE
+        ${CMAKE_SOURCE_DIR}/src/include
+    )
+
+    # Add tests to CTest
+    include(GoogleTest)
+    gtest_discover_tests(lynx_tests)
+
+    # Add custom test target for convenience
+    add_custom_target(check
+        COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
+        DEPENDS lynx_tests
+        COMMENT "Running tests..."
+    )
+
+    message(STATUS "Tests enabled - use 'make test' or 'make check' to run")
 endif()
 
 # Print configuration summary
