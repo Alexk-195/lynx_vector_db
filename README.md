@@ -13,7 +13,7 @@ A high-performance vector database implemented in modern C++20 with support for 
 ## Requirements
 
 - C++20 compatible compiler (GCC 11+, Clang 14+)
-- CMake 3.20+
+- GNU Make
 - MPS library ([github.com/Alexk-195/mps](https://github.com/Alexk-195/mps))
 
 ## Quick Start
@@ -43,14 +43,19 @@ export MPS_DIR=$(pwd)/../mps
 ./setup.sh install  # Install to system (requires sudo)
 ```
 
-### CMake Options
+### Make Options
 
 ```bash
-cmake -DLYNX_BUILD_TESTS=ON \
-      -DLYNX_BUILD_BENCHMARKS=OFF \
-      -DLYNX_USE_SIMD=ON \
-      -DMPS_DIR=/path/to/mps \
-      ..
+# Direct make usage
+make              # Build release
+make debug        # Build debug
+make clean        # Clean build
+make run          # Build and run
+make info         # Show build configuration
+
+# With MPS library
+export MPS_DIR=/path/to/mps
+make
 ```
 
 ## Usage
@@ -87,7 +92,7 @@ int main() {
 
 ```
 lynx_vector_db/
-├── CMakeLists.txt       # Build configuration
+├── Makefile             # Build configuration
 ├── setup.sh             # Build script
 ├── CLAUDE.md            # AI assistant instructions
 ├── CONCEPT.md           # Architecture and design
