@@ -33,8 +33,37 @@ log_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
+setup_mps() {
+    log_info "Checking for MPS library..."
+
+    MPS_PATH="${PROJECT_ROOT}/external/mps"
+
+    if [ ! -d "${MPS_PATH}" ]; then
+        log_warn "MPS not found in external folder. Cloning from repository..."
+        mkdir -p "${PROJECT_ROOT}/external"
+
+        if git clone https://github.com/Alexk-195/mps "${MPS_PATH}"; then
+            log_info "MPS successfully cloned to ${MPS_PATH}"
+        else
+            log_error "Failed to clone MPS repository"
+            exit 1
+        fi
+    else
+        log_info "MPS found in external folder"
+    fi
+
+    # Set MPS_DIR if not already set
+    if [ -z "${MPS_DIR}" ]; then
+        export MPS_DIR="${MPS_PATH}"
+        log_info "MPS_DIR set to: ${MPS_DIR}"
+    fi
+}
+
 check_dependencies() {
     log_info "Checking dependencies..."
+
+    # Setup MPS library
+    setup_mps
 
     # Check compiler
     if command -v g++ &> /dev/null; then
@@ -52,14 +81,6 @@ check_dependencies() {
     if ! command -v make &> /dev/null; then
         log_error "make is required but not installed."
         exit 1
-    fi
-
-    # Check for MPS library
-    if [ -z "${MPS_DIR}" ]; then
-        log_warn "MPS_DIR not set. Set it to point to the MPS library location."
-        log_warn "Example: export MPS_DIR=/path/to/mps"
-    else
-        log_info "MPS_DIR: ${MPS_DIR}"
     fi
 }
 
