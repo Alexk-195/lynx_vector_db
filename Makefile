@@ -71,6 +71,17 @@ TEST_EXECUTABLE := $(BIN_DIR)/lynx_tests
 GTEST_OBJ := $(OBJ_DIR)/gtest/gtest-all.o
 GTEST_LIB := $(LIB_OUT_DIR)/libgtest.a
 
+# MPS library
+ifdef MPS_DIR
+    MPS_SRC := $(MPS_DIR)/src/mps.cpp
+    MPS_OBJ := $(OBJ_DIR)/mps/mps.o
+    MPS_LIB := $(LIB_OUT_DIR)/libmps.a
+else
+    MPS_SRC :=
+    MPS_OBJ :=
+    MPS_LIB :=
+endif
+
 # Default target
 .PHONY: all
 all: release
@@ -89,7 +100,7 @@ debug: $(EXECUTABLE) $(LIB_STATIC) $(LIB_SHARED)
 	@echo "Build complete (debug)"
 
 # Create directories
-$(BIN_DIR) $(OBJ_DIR)/lib $(OBJ_DIR)/tests $(OBJ_DIR)/gtest $(LIB_OUT_DIR):
+$(BIN_DIR) $(OBJ_DIR)/lib $(OBJ_DIR)/tests $(OBJ_DIR)/gtest $(OBJ_DIR)/mps $(LIB_OUT_DIR):
 	@mkdir -p $@
 
 # Compile library objects
@@ -147,15 +158,32 @@ $(GTEST_LIB): $(GTEST_OBJ) | $(LIB_OUT_DIR)
 	@echo "Creating Google Test static library"
 	@ar rcs $@ $^
 
+# Build MPS library
+ifdef MPS_DIR
+$(MPS_OBJ): $(MPS_SRC) | $(OBJ_DIR)/mps
+	@echo "Building MPS library"
+	@$(CXX) $(CXXFLAGS) -c $< -o $@
+
+$(MPS_LIB): $(MPS_OBJ) | $(LIB_OUT_DIR)
+	@echo "Creating MPS static library"
+	@ar rcs $@ $^
+endif
+
 # Compile test objects
 $(OBJ_DIR)/tests/%.o: $(TEST_DIR)/%.cpp | $(OBJ_DIR)/tests
 	@echo "Compiling test $<"
 	@$(CXX) $(CXXFLAGS) -I$(GTEST_INC) -c $< -o $@
 
 # Link test executable
+ifdef MPS_DIR
+$(TEST_EXECUTABLE): $(TEST_OBJS) $(GTEST_LIB) $(MPS_LIB) $(LIB_STATIC) | $(BIN_DIR)
+	@echo "Linking test executable $@"
+	@$(CXX) $(CXXFLAGS) -o $@ $(TEST_OBJS) -L$(LIB_OUT_DIR) -lgtest -lmps -l$(LIB_NAME) $(LDFLAGS)
+else
 $(TEST_EXECUTABLE): $(TEST_OBJS) $(GTEST_LIB) $(LIB_STATIC) | $(BIN_DIR)
 	@echo "Linking test executable $@"
 	@$(CXX) $(CXXFLAGS) -o $@ $(TEST_OBJS) -L$(LIB_OUT_DIR) -lgtest -l$(LIB_NAME) $(LDFLAGS)
+endif
 
 # Build tests
 .PHONY: build-tests
