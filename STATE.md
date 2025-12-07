@@ -2,7 +2,7 @@
 
 ## Current Phase: Phase 1 - Foundation
 
-**Last Updated**: 2024-12-07
+**Last Updated**: 2025-12-07
 
 ## Overall Progress
 
@@ -26,14 +26,21 @@
 - [x] Interface header file (`src/include/lynx/lynx.h`)
 
 ### In Progress
-- [ ] Basic type implementations
-- [ ] Distance metric implementations
+- [ ] Basic vector storage and retrieval
 - [ ] Error handling infrastructure
 
 ### Completed (Phase 1)
 - [x] Unit test framework setup (Google Test v1.15.2)
-  - 67 tests passing
-  - Coverage: utility functions, config, data structures, database interface
+  - 103 tests passing
+  - Coverage: utility functions, config, data structures, database interface, distance metrics
+- [x] Distance metric implementations
+  - L2 (Euclidean) distance
+  - L2 squared distance (optimized variant)
+  - Cosine distance
+  - Dot product distance
+  - Generic calculate_distance() dispatcher
+  - 36 comprehensive unit tests
+- [x] Basic type implementations (Config, SearchParams, SearchResult, etc.)
 
 ## File Structure
 
@@ -62,7 +69,8 @@ lynx_vector_db/
 │   ├── test_utility_functions.cpp ✓ Created
 │   ├── test_config.cpp     ✓ Created
 │   ├── test_data_structures.cpp ✓ Created
-│   └── test_database.cpp   ✓ Created
+│   ├── test_database.cpp   ✓ Created
+│   └── test_distance_metrics.cpp ✓ Created
 └── external/               ✓ Created (for dependencies)
     └── googletest/         ✓ v1.15.2 installed
 ```
@@ -112,21 +120,21 @@ lynx_vector_db/
 
 ## Build Status
 
-- **Compiles**: ✓ Yes (with stub implementations)
+- **Compiles**: ✓ Yes
   - Makefile: ✓ Working
   - CMake: ✓ Working
-- **Tests Pass**: ✓ Yes (67/67 tests passing)
+- **Tests Pass**: ✓ Yes (103/103 tests passing)
   - make test: ✓ All passing
   - ctest: ✓ All passing
-- **Benchmarks**: N/A (not created)
+- **Benchmarks**: N/A (not created yet)
 
 ## Next Steps
 
 1. ✓ ~~Create placeholder implementation files so project compiles~~
 2. ✓ ~~Set up unit test framework (Google Test)~~
-3. Implement distance metrics (L2, Cosine, Dot Product) with unit tests
+3. ✓ ~~Implement distance metrics (L2, Cosine, Dot Product) with unit tests~~
 4. Implement basic vector storage and retrieval
-5. Begin HNSW index implementation
+5. Begin HNSW index implementation (Phase 2)
 
 ## Known Issues
 
@@ -143,9 +151,11 @@ None yet (project just initialized).
 
 ## Notes
 
-- Stub implementation returns ErrorCode::NotImplemented for most operations
-- Comprehensive unit test suite established (67 tests)
+- Distance metrics fully implemented and tested (103 tests passing)
+- All three core distance metrics working: L2, Cosine, Dot Product
+- Performance optimization: L2 squared variant available for when sqrt() can be avoided
+- Proper handling of edge cases: zero vectors, dimension mismatches, empty vectors
+- Database operations still return ErrorCode::NotImplemented (Phase 2)
 - Google Test framework integrated and working
-- All tests passing with proper coverage of public interfaces
 - MPS integration planned for Phase 3
-- Ready to begin actual feature implementation
+- Ready to implement vector storage and HNSW index

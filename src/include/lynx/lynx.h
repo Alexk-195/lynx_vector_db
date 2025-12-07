@@ -439,7 +439,73 @@ public:
  */
 [[nodiscard]] const char* distance_metric_string(DistanceMetric metric);
 
+// ============================================================================
+// Distance Metric Functions
+// ============================================================================
 
+/**
+ * @brief Calculate L2 (Euclidean) distance between two vectors.
+ *
+ * Computes: sqrt(sum((a[i] - b[i])^2))
+ *
+ * @param a First vector
+ * @param b Second vector (must have same length as a)
+ * @return L2 distance (always non-negative)
+ */
+[[nodiscard]] float distance_l2(std::span<const float> a, std::span<const float> b);
+
+/**
+ * @brief Calculate squared L2 distance between two vectors (faster than distance_l2).
+ *
+ * Computes: sum((a[i] - b[i])^2)
+ * Useful when only relative distances matter (avoids sqrt).
+ *
+ * @param a First vector
+ * @param b Second vector (must have same length as a)
+ * @return Squared L2 distance (always non-negative)
+ */
+[[nodiscard]] float distance_l2_squared(std::span<const float> a, std::span<const float> b);
+
+/**
+ * @brief Calculate Cosine distance between two vectors.
+ *
+ * Computes: 1 - (a·b) / (|a| * |b|)
+ * Returns 0 for identical directions, 2 for opposite directions.
+ * Commonly used for normalized vectors (e.g., text embeddings).
+ *
+ * @param a First vector
+ * @param b Second vector (must have same length as a)
+ * @return Cosine distance in range [0, 2]
+ */
+[[nodiscard]] float distance_cosine(std::span<const float> a, std::span<const float> b);
+
+/**
+ * @brief Calculate negative dot product distance between two vectors.
+ *
+ * Computes: -(a·b)
+ * Negative is used so that "smaller is more similar" (consistent with other metrics).
+ * Optimal for pre-normalized vectors.
+ *
+ * @param a First vector
+ * @param b Second vector (must have same length as a)
+ * @return Negative dot product
+ */
+[[nodiscard]] float distance_dot_product(std::span<const float> a, std::span<const float> b);
+
+/**
+ * @brief Calculate distance using the specified metric.
+ *
+ * Dispatches to the appropriate distance function based on metric type.
+ *
+ * @param a First vector
+ * @param b Second vector (must have same length as a)
+ * @param metric Distance metric to use
+ * @return Distance value (interpretation depends on metric)
+ */
+[[nodiscard]] float calculate_distance(
+    std::span<const float> a,
+    std::span<const float> b,
+    DistanceMetric metric);
 
 } // namespace lynx
 

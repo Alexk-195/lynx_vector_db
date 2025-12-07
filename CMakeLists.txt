@@ -149,6 +149,7 @@ if(LYNX_BUILD_TESTS)
         tests/test_config.cpp
         tests/test_data_structures.cpp
         tests/test_database.cpp
+        tests/test_distance_metrics.cpp
     )
 
     target_link_libraries(lynx_tests PRIVATE
