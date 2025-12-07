@@ -56,6 +56,8 @@ endif()
 # Lynx static library
 add_library(lynx_static STATIC
         src/lib/lynx.cpp
+        src/lib/vector_database_impl.cpp
+        src/lib/hnsw_index.cpp
 )
 
 target_include_directories(lynx_static PUBLIC
@@ -75,6 +77,8 @@ set_target_properties(lynx_static PROPERTIES
 # Lynx shared library
 add_library(lynx SHARED
         src/lib/lynx.cpp
+        src/lib/vector_database_impl.cpp
+        src/lib/hnsw_index.cpp
 )
 
 target_include_directories(lynx PUBLIC
@@ -150,6 +154,7 @@ if(LYNX_BUILD_TESTS)
         tests/test_data_structures.cpp
         tests/test_database.cpp
         tests/test_distance_metrics.cpp
+        tests/test_hnsw.cpp
     )
 
     target_link_libraries(lynx_tests PRIVATE
