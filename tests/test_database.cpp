@@ -95,20 +95,19 @@ TEST(VectorDatabaseTest, InsertReturnsNotImplemented) {
     config.dimension = 3;
     auto db = lynx::IVectorDatabase::create(config);
 
-    std::vector<float> vec = {1.0f, 2.0f, 3.0f};
-    auto result = db->insert(1, vec);
+    lynx::VectorRecord record{1, {1.0f, 2.0f, 3.0f}, std::nullopt};
+    auto result = db->insert(record);
 
     EXPECT_EQ(result, lynx::ErrorCode::NotImplemented);
 }
 
-TEST(VectorDatabaseTest, InsertWithSpan) {
+TEST(VectorDatabaseTest, InsertWithVectorRecord) {
     lynx::Config config;
     config.dimension = 4;
     auto db = lynx::IVectorDatabase::create(config);
 
-    float vec_array[] = {1.0f, 2.0f, 3.0f, 4.0f};
-    std::span<const float> vec_span(vec_array, 4);
-    auto result = db->insert(42, vec_span);
+    lynx::VectorRecord record{42, {1.0f, 2.0f, 3.0f, 4.0f}, std::nullopt};
+    auto result = db->insert(record);
 
     EXPECT_EQ(result, lynx::ErrorCode::NotImplemented);
 }
@@ -135,6 +134,18 @@ TEST(VectorDatabaseTest, GetReturnsNullopt) {
 
     auto result = db->get(1);
     EXPECT_FALSE(result.has_value());
+}
+
+TEST(VectorDatabaseTest, GetWithMetadata) {
+    lynx::Config config;
+    auto db = lynx::IVectorDatabase::create(config);
+
+    // Test that get returns VectorRecord (once implemented)
+    auto result = db->get(1);
+    EXPECT_FALSE(result.has_value());
+
+    // This test documents that get() should return a VectorRecord
+    // with id, vector, and optional metadata
 }
 
 // ============================================================================
