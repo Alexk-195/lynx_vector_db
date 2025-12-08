@@ -7,6 +7,7 @@
 
 #include "lynx/lynx.h"
 #include "vector_database_impl.h"
+#include "vector_database_mps.h"
 #include <stdexcept>
 #include <cmath>
 #include <algorithm>
@@ -153,7 +154,8 @@ float calculate_distance(
 // ============================================================================
 
 std::shared_ptr<IVectorDatabase> IVectorDatabase::create(const Config& config) {
-    return std::make_shared<VectorDatabase_Impl>(config);
+    // Use MPS-based implementation for thread-safety
+    return std::make_shared<VectorDatabase_MPS>(config);
 }
 
 } // namespace lynx
