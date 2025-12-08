@@ -571,8 +571,8 @@ std::size_t HNSWIndex::memory_usage() const {
         }
     }
 
-    // Fixed members
-    total += sizeof(*this);
+    // Don't include fixed object overhead (sizeof(*this))
+    // Only count dynamic allocations (vectors and graph nodes)
 
     return total;
 }
