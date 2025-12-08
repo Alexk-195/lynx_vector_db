@@ -69,8 +69,12 @@ LIB_OBJS := $(patsubst $(LIB_DIR)/%.cpp,$(OBJ_DIR)/lib/%.o,$(LIB_SRCS))
 MAIN_SRC := $(SRC_DIR)/main.cpp
 MAIN_OBJ := $(OBJ_DIR)/main.o
 
-# Executable
+MAIN_MINIMAL_SRC := $(SRC_DIR)/main_minimal.cpp
+MAIN_MINIMAL_OBJ := $(OBJ_DIR)/main_minimal.o
+
+# Executables
 EXECUTABLE := $(BIN_DIR)/lynx_db
+EXECUTABLE_MINIMAL := $(BIN_DIR)/lynx_minimal
 
 # Test files
 TEST_SRCS := $(wildcard $(TEST_DIR)/*.cpp)
@@ -99,14 +103,14 @@ all: release
 # Release build
 .PHONY: release
 release: BUILD_TYPE=release
-release: $(EXECUTABLE) $(LIB_STATIC) $(LIB_SHARED)
+release: $(EXECUTABLE) $(EXECUTABLE_MINIMAL) $(LIB_STATIC) $(LIB_SHARED)
 	@echo "Build complete (release)"
 
 # Debug build
 .PHONY: debug
 debug: BUILD_TYPE=debug
 debug: CXXFLAGS += -g -O0 -DDEBUG
-debug: $(EXECUTABLE) $(LIB_STATIC) $(LIB_SHARED)
+debug: $(EXECUTABLE) $(EXECUTABLE_MINIMAL) $(LIB_STATIC) $(LIB_SHARED)
 	@echo "Build complete (debug)"
 
 # Create directories
@@ -122,8 +126,12 @@ $(OBJ_DIR)/lib/%.o: $(LIB_DIR)/%.cpp | $(OBJ_DIR)/lib
 $(OBJ_DIR):
 	@mkdir -p $@
 
-# Compile main object
+# Compile main objects
 $(MAIN_OBJ): $(MAIN_SRC) | $(OBJ_DIR)
+	@echo "Compiling $<"
+	@$(CXX) $(CXXFLAGS) -c $< -o $@
+
+$(MAIN_MINIMAL_OBJ): $(MAIN_MINIMAL_SRC) | $(OBJ_DIR)
 	@echo "Compiling $<"
 	@$(CXX) $(CXXFLAGS) -c $< -o $@
 
@@ -137,13 +145,21 @@ $(LIB_SHARED): $(LIB_OBJS) | $(LIB_OUT_DIR)
 	@echo "Creating shared library $@"
 	@$(CXX) -shared -o $@ $^ $(LDFLAGS)
 
-# Executable
+# Executables
 ifdef MPS_LIB
 $(EXECUTABLE): $(MAIN_OBJ) $(LIB_STATIC) $(MPS_LIB) | $(BIN_DIR)
 	@echo "Linking $@"
 	@$(CXX) $(CXXFLAGS) -o $@ $< -L$(LIB_OUT_DIR) -l$(LIB_NAME) -lmps $(LDFLAGS)
+
+$(EXECUTABLE_MINIMAL): $(MAIN_MINIMAL_OBJ) $(LIB_STATIC) $(MPS_LIB) | $(BIN_DIR)
+	@echo "Linking $@"
+	@$(CXX) $(CXXFLAGS) -o $@ $< -L$(LIB_OUT_DIR) -l$(LIB_NAME) -lmps $(LDFLAGS)
 else
 $(EXECUTABLE): $(MAIN_OBJ) $(LIB_STATIC) | $(BIN_DIR)
+	@echo "Linking $@"
+	@$(CXX) $(CXXFLAGS) -o $@ $< -L$(LIB_OUT_DIR) -l$(LIB_NAME) $(LDFLAGS)
+
+$(EXECUTABLE_MINIMAL): $(MAIN_MINIMAL_OBJ) $(LIB_STATIC) | $(BIN_DIR)
 	@echo "Linking $@"
 	@$(CXX) $(CXXFLAGS) -o $@ $< -L$(LIB_OUT_DIR) -l$(LIB_NAME) $(LDFLAGS)
 endif
@@ -160,10 +176,14 @@ cleanall: clean
 	@echo "Cleaning external dependencies"
 	@rm -rf $(EXTERNAL_DIR)
 
-# Run executable
+# Run executables
 .PHONY: run
 run: $(EXECUTABLE)
-	@$(EXECUTABLE)
+	@LD_LIBRARY_PATH=$(LIB_OUT_DIR):$$LD_LIBRARY_PATH $(EXECUTABLE)
+
+.PHONY: run-minimal
+run-minimal: $(EXECUTABLE_MINIMAL)
+	@LD_LIBRARY_PATH=$(LIB_OUT_DIR):$$LD_LIBRARY_PATH $(EXECUTABLE_MINIMAL)
 
 # Build Google Test library
 $(GTEST_OBJ): | $(OBJ_DIR)/gtest
@@ -210,7 +230,7 @@ build-tests: $(TEST_EXECUTABLE)
 .PHONY: test
 test: $(TEST_EXECUTABLE)
 	@echo "Running tests..."
-	@$(TEST_EXECUTABLE)
+	@LD_LIBRARY_PATH=$(LIB_OUT_DIR):$$LD_LIBRARY_PATH $(TEST_EXECUTABLE)
 
 # Install
 .PHONY: install
@@ -248,7 +268,8 @@ info:
 	@echo "  make             - Build release"
 	@echo "  make debug       - Build debug"
 	@echo "  make clean       - Clean build"
-	@echo "  make run         - Build and run"
+	@echo "  make run         - Build and run main example"
+	@echo "  make run-minimal - Build and run minimal example"
 	@echo "  make build-tests - Build unit tests"
 	@echo "  make test        - Build and run tests"
 	@echo "  make install     - Install to system"
