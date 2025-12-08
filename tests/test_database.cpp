@@ -515,26 +515,31 @@ TEST(VectorDatabaseTest, StatsTrackMemoryUsage) {
 // Persistence Operations Tests
 // ============================================================================
 
-TEST(VectorDatabaseTest, FlushReturnsNotImplemented) {
+TEST(VectorDatabaseTest, FlushWithoutWALReturnsOk) {
     lynx::Config config;
     auto db = lynx::IVectorDatabase::create(config);
 
+    // Flush without WAL should succeed (no-op)
     auto result = db->flush();
-    EXPECT_EQ(result, lynx::ErrorCode::NotImplemented);
+    EXPECT_EQ(result, lynx::ErrorCode::Ok);
 }
 
-TEST(VectorDatabaseTest, SaveReturnsNotImplemented) {
+TEST(VectorDatabaseTest, SaveWithoutDataPathReturnsError) {
     lynx::Config config;
+    // Don't set data_path
     auto db = lynx::IVectorDatabase::create(config);
 
+    // Save without data_path should fail
     auto result = db->save();
-    EXPECT_EQ(result, lynx::ErrorCode::NotImplemented);
+    EXPECT_EQ(result, lynx::ErrorCode::InvalidParameter);
 }
 
-TEST(VectorDatabaseTest, LoadReturnsNotImplemented) {
+TEST(VectorDatabaseTest, LoadWithoutDataPathReturnsError) {
     lynx::Config config;
+    // Don't set data_path
     auto db = lynx::IVectorDatabase::create(config);
 
+    // Load without data_path should fail
     auto result = db->load();
-    EXPECT_EQ(result, lynx::ErrorCode::NotImplemented);
+    EXPECT_EQ(result, lynx::ErrorCode::InvalidParameter);
 }

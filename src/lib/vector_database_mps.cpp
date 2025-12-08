@@ -99,7 +99,7 @@ void VectorDatabase_MPS::initialize_pools() {
     maintenance_pool_ = mps::pool::create();
     maintenance_pool_->node_name("MaintenancePool");
 
-    auto maintenance_worker = std::make_shared<MaintenanceWorker>(index_);
+    auto maintenance_worker = std::make_shared<MaintenanceWorker>(index_, vectors_, config_);
     maintenance_pool_->add_worker(maintenance_worker);
 
     maintenance_pool_->start();
