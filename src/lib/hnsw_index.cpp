@@ -660,6 +660,127 @@ ErrorCode HNSWIndex::optimize_graph() {
 }
 
 // ============================================================================
+// Index Compaction
+// ============================================================================
+
+ErrorCode HNSWIndex::compact_index() {
+    std::unique_lock lock(mutex_);
+
+    // If index is empty, nothing to compact
+    if (graph_.empty() && vectors_.empty()) {
+        return ErrorCode::Ok;
+    }
+
+    // Statistics tracking
+    std::size_t dangling_refs_removed = 0;
+    std::size_t orphaned_vectors_removed = 0;
+    std::size_t orphaned_nodes_removed = 0;
+
+    // Step 1: Remove dangling references in the graph
+    // Check all neighbor references point to existing nodes
+    for (auto& [node_id, node] : graph_) {
+        for (std::size_t layer = 0; layer <= node.max_layer; ++layer) {
+            auto& neighbors = node.layers[layer];
+            std::vector<std::uint64_t> to_remove;
+
+            // Find neighbors that don't exist in the graph
+            for (auto neighbor_id : neighbors) {
+                if (graph_.find(neighbor_id) == graph_.end()) {
+                    to_remove.push_back(neighbor_id);
+                }
+            }
+
+            // Remove dangling references
+            for (auto neighbor_id : to_remove) {
+                neighbors.erase(neighbor_id);
+                dangling_refs_removed++;
+            }
+        }
+    }
+
+    // Step 2: Ensure consistency between graph_ and vectors_
+    // Remove vectors that don't have corresponding graph nodes
+    std::vector<std::uint64_t> vectors_to_remove;
+    for (const auto& [vec_id, vec] : vectors_) {
+        if (graph_.find(vec_id) == graph_.end()) {
+            vectors_to_remove.push_back(vec_id);
+        }
+    }
+    for (auto vec_id : vectors_to_remove) {
+        vectors_.erase(vec_id);
+        orphaned_vectors_removed++;
+    }
+
+    // Remove graph nodes that don't have corresponding vectors
+    std::vector<std::uint64_t> nodes_to_remove;
+    for (const auto& [node_id, node] : graph_) {
+        if (vectors_.find(node_id) == vectors_.end()) {
+            nodes_to_remove.push_back(node_id);
+        }
+    }
+    for (auto node_id : nodes_to_remove) {
+        // Remove all references to this node from other nodes
+        auto node_it = graph_.find(node_id);
+        if (node_it == graph_.end()) {
+            continue; // Already removed
+        }
+        const auto& node = node_it->second;
+        for (std::size_t layer = 0; layer <= node.max_layer; ++layer) {
+            const auto& neighbors = node.layers[layer];
+            for (auto neighbor_id : neighbors) {
+                auto neighbor_it = graph_.find(neighbor_id);
+                if (neighbor_it != graph_.end() && layer < neighbor_it->second.layers.size()) {
+                    neighbor_it->second.layers[layer].erase(node_id);
+                }
+            }
+        }
+        graph_.erase(node_id);
+        orphaned_nodes_removed++;
+    }
+
+    // Step 3: Validate and fix entry point
+    if (entry_point_ != kInvalidId) {
+        // Check if entry point exists
+        if (graph_.find(entry_point_) == graph_.end()) {
+            // Entry point is invalid, find a new one
+            entry_point_ = kInvalidId;
+            entry_point_layer_ = 0;
+
+            // Find node with highest layer
+            for (const auto& [node_id, node] : graph_) {
+                if (node.max_layer > entry_point_layer_) {
+                    entry_point_ = node_id;
+                    entry_point_layer_ = node.max_layer;
+                }
+            }
+        }
+    } else if (!graph_.empty()) {
+        // No entry point but graph is not empty, set one
+        for (const auto& [node_id, node] : graph_) {
+            if (node.max_layer > entry_point_layer_) {
+                entry_point_ = node_id;
+                entry_point_layer_ = node.max_layer;
+            }
+        }
+    }
+
+    // Step 4: If index is now empty, reset entry point
+    if (graph_.empty()) {
+        entry_point_ = kInvalidId;
+        entry_point_layer_ = 0;
+    }
+
+    // Log compaction results (for debugging/monitoring)
+    // In a production system, you might want to:
+    // - Log the statistics to a monitoring system
+    // - Emit metrics for observability
+    // - Return detailed results in a structure
+    // For now, we silently complete the compaction
+
+    return ErrorCode::Ok;
+}
+
+// ============================================================================
 // Serialization (Placeholder)
 // ============================================================================
 

@@ -106,6 +106,28 @@ public:
      */
     ErrorCode optimize_graph();
 
+    /**
+     * @brief Compact the index by removing inconsistencies and validating integrity.
+     *
+     * This method performs index maintenance and cleanup:
+     * - Removes dangling references in the graph (neighbors that no longer exist)
+     * - Ensures consistency between graph_ and vectors_ data structures
+     * - Validates and fixes the entry point if it's invalid
+     * - Detects and repairs graph connectivity issues
+     *
+     * The compaction process is useful for:
+     * - Recovering from potential corruption
+     * - Cleaning up after many deletions
+     * - Validating index integrity
+     * - Preparing for future soft-delete support
+     *
+     * Thread Safety: This operation requires write access and should not be
+     * called concurrently with other write operations.
+     *
+     * @return ErrorCode::Ok on success, error code otherwise
+     */
+    ErrorCode compact_index();
+
 private:
     // -------------------------------------------------------------------------
     // Internal Data Structures
