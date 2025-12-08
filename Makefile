@@ -24,9 +24,19 @@ TEST_DIR := tests
 EXTERNAL_DIR := external
 GTEST_DIR := $(EXTERNAL_DIR)/googletest
 
-# MPS library (optional)
+# MPS library
 ifdef MPS_DIR
-    CXXFLAGS += -I$(MPS_DIR)/src
+    MPS_INC_DIR := $(MPS_DIR)/src
+    MPS_SRC_DIR := $(MPS_DIR)/src
+else ifneq (,$(wildcard $(EXTERNAL_DIR)/mps))
+    # Use external/mps if it exists
+    MPS_INC_DIR := $(EXTERNAL_DIR)/mps/src
+    MPS_SRC_DIR := $(EXTERNAL_DIR)/mps/src
+endif
+
+# Add MPS include path if available
+ifdef MPS_INC_DIR
+    CXXFLAGS += -I$(MPS_INC_DIR)
 endif
 
 # Include paths
@@ -71,9 +81,9 @@ TEST_EXECUTABLE := $(BIN_DIR)/lynx_tests
 GTEST_OBJ := $(OBJ_DIR)/gtest/gtest-all.o
 GTEST_LIB := $(LIB_OUT_DIR)/libgtest.a
 
-# MPS library
-ifdef MPS_DIR
-    MPS_SRC := $(MPS_DIR)/src/mps.cpp
+# MPS library sources
+ifdef MPS_SRC_DIR
+    MPS_SRC := $(MPS_SRC_DIR)/mps.cpp
     MPS_OBJ := $(OBJ_DIR)/mps/mps.o
     MPS_LIB := $(LIB_OUT_DIR)/libmps.a
 else
@@ -128,9 +138,15 @@ $(LIB_SHARED): $(LIB_OBJS) | $(LIB_OUT_DIR)
 	@$(CXX) -shared -o $@ $^ $(LDFLAGS)
 
 # Executable
+ifdef MPS_LIB
+$(EXECUTABLE): $(MAIN_OBJ) $(LIB_STATIC) $(MPS_LIB) | $(BIN_DIR)
+	@echo "Linking $@"
+	@$(CXX) $(CXXFLAGS) -o $@ $< -L$(LIB_OUT_DIR) -l$(LIB_NAME) -lmps $(LDFLAGS)
+else
 $(EXECUTABLE): $(MAIN_OBJ) $(LIB_STATIC) | $(BIN_DIR)
 	@echo "Linking $@"
 	@$(CXX) $(CXXFLAGS) -o $@ $< -L$(LIB_OUT_DIR) -l$(LIB_NAME) $(LDFLAGS)
+endif
 
 # Clean
 .PHONY: clean
@@ -175,10 +191,10 @@ $(OBJ_DIR)/tests/%.o: $(TEST_DIR)/%.cpp | $(OBJ_DIR)/tests
 	@$(CXX) $(CXXFLAGS) -I$(GTEST_INC) -c $< -o $@
 
 # Link test executable
-ifdef MPS_DIR
+ifdef MPS_LIB
 $(TEST_EXECUTABLE): $(TEST_OBJS) $(GTEST_LIB) $(MPS_LIB) $(LIB_STATIC) | $(BIN_DIR)
 	@echo "Linking test executable $@"
-	@$(CXX) $(CXXFLAGS) -o $@ $(TEST_OBJS) -L$(LIB_OUT_DIR) -lgtest -lmps -l$(LIB_NAME) $(LDFLAGS)
+	@$(CXX) $(CXXFLAGS) -o $@ $(TEST_OBJS) -L$(LIB_OUT_DIR) -lgtest -l$(LIB_NAME) -lmps $(LDFLAGS)
 else
 $(TEST_EXECUTABLE): $(TEST_OBJS) $(GTEST_LIB) $(LIB_STATIC) | $(BIN_DIR)
 	@echo "Linking test executable $@"
