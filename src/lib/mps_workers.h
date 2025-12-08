@@ -35,10 +35,14 @@ public:
      * @brief Construct a query worker
      * @param index Shared pointer to HNSW index
      * @param vectors Shared pointer to vector storage
+     * @param total_queries Shared counter for total queries
+     * @param total_inserts Shared counter for total inserts
      */
     QueryWorker(std::shared_ptr<HNSWIndex> index,
-                std::shared_ptr<std::unordered_map<std::uint64_t, VectorRecord>> vectors)
-        : index_(index), vectors_(vectors) {}
+                std::shared_ptr<std::unordered_map<std::uint64_t, VectorRecord>> vectors,
+                std::shared_ptr<std::atomic<std::uint64_t>> total_queries,
+                std::shared_ptr<std::atomic<std::uint64_t>> total_inserts)
+        : index_(index), vectors_(vectors), total_queries_(total_queries), total_inserts_(total_inserts) {}
 
     void process(std::shared_ptr<const mps::message> msg) override {
         try {
@@ -75,13 +79,16 @@ public:
 private:
     void process_search(std::shared_ptr<const SearchMessage> msg) {
         try {
+            // Increment query counter
+            total_queries_->fetch_add(1, std::memory_order_relaxed);
+
             std::span<const float> query(msg->query);
             auto items = index_->search(query, msg->k, msg->params);
 
             // Create SearchResult
             SearchResult result;
             result.items = std::move(items);
-            result.total_candidates = result.items.size();
+            result.total_candidates = index_->size(); // Total vectors in database
             result.query_time_ms = 0.0; // TODO: measure actual time
 
             const_cast<SearchMessage*>(msg.get())->set_value(std::move(result));
@@ -120,8 +127,8 @@ private:
             stats.memory_usage_bytes = index_->memory_usage();
             stats.index_memory_bytes = index_->memory_usage();
             stats.avg_query_time_ms = 0.0;
-            stats.total_queries = 0;
-            stats.total_inserts = 0;
+            stats.total_queries = total_queries_->load(std::memory_order_relaxed);
+            stats.total_inserts = total_inserts_->load(std::memory_order_relaxed);
             // Other stats would be gathered here
             const_cast<StatsMessage*>(msg.get())->set_value(std::move(stats));
         } catch (...) {
@@ -131,6 +138,8 @@ private:
 
     std::shared_ptr<HNSWIndex> index_;
     std::shared_ptr<std::unordered_map<std::uint64_t, VectorRecord>> vectors_;
+    std::shared_ptr<std::atomic<std::uint64_t>> total_queries_;
+    std::shared_ptr<std::atomic<std::uint64_t>> total_inserts_;
 };
 
 // ============================================================================
@@ -152,10 +161,12 @@ public:
      * @brief Construct an index worker
      * @param index Shared pointer to HNSW index
      * @param vectors Shared pointer to vector storage
+     * @param total_inserts Shared counter for total inserts
      */
     IndexWorker(std::shared_ptr<HNSWIndex> index,
-                std::shared_ptr<std::unordered_map<std::uint64_t, VectorRecord>> vectors)
-        : index_(index), vectors_(vectors) {}
+                std::shared_ptr<std::unordered_map<std::uint64_t, VectorRecord>> vectors,
+                std::shared_ptr<std::atomic<std::uint64_t>> total_inserts)
+        : index_(index), vectors_(vectors), total_inserts_(total_inserts) {}
 
     void process(std::shared_ptr<const mps::message> msg) override {
         try {
@@ -199,6 +210,8 @@ private:
             if (result == ErrorCode::Ok) {
                 // Add/update vector storage
                 (*vectors_)[record.id] = record;
+                // Increment insert counter
+                total_inserts_->fetch_add(1, std::memory_order_relaxed);
             }
 
             const_cast<InsertMessage*>(msg.get())->set_value(result);
@@ -211,18 +224,31 @@ private:
         try {
             const auto& records = msg->records;
 
-            // Build index from batch
-            std::span<const VectorRecord> records_span(records);
-            ErrorCode result = index_->build(records_span);
+            // Process records one by one, stop at first error
+            for (const auto& record : records) {
+                // Try to add to index
+                ErrorCode result = index_->add(record.id, record.vector);
 
-            if (result == ErrorCode::Ok) {
-                // Add all to vector storage
-                for (const auto& record : records) {
-                    (*vectors_)[record.id] = record;
+                // If ID already exists, remove it first and then add
+                if (result == ErrorCode::InvalidState) {
+                    index_->remove(record.id);
+                    result = index_->add(record.id, record.vector);
                 }
+
+                if (result != ErrorCode::Ok) {
+                    // Stop at first error, return error code
+                    const_cast<BatchInsertMessage*>(msg.get())->set_value(result);
+                    return;
+                }
+
+                // Add/update vector storage
+                (*vectors_)[record.id] = record;
+                // Increment insert counter
+                total_inserts_->fetch_add(1, std::memory_order_relaxed);
             }
 
-            const_cast<BatchInsertMessage*>(msg.get())->set_value(result);
+            // All successful
+            const_cast<BatchInsertMessage*>(msg.get())->set_value(ErrorCode::Ok);
         } catch (...) {
             const_cast<BatchInsertMessage*>(msg.get())->set_exception(std::current_exception());
         }
@@ -246,6 +272,7 @@ private:
 
     std::shared_ptr<HNSWIndex> index_;
     std::shared_ptr<std::unordered_map<std::uint64_t, VectorRecord>> vectors_;
+    std::shared_ptr<std::atomic<std::uint64_t>> total_inserts_;
 };
 
 // ============================================================================

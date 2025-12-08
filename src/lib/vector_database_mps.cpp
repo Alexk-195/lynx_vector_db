@@ -15,7 +15,9 @@ namespace lynx {
 
 VectorDatabase_MPS::VectorDatabase_MPS(const Config& config)
     : config_(config),
-      vectors_(std::make_shared<std::unordered_map<std::uint64_t, VectorRecord>>()) {
+      vectors_(std::make_shared<std::unordered_map<std::uint64_t, VectorRecord>>()),
+      total_inserts_(std::make_shared<std::atomic<std::uint64_t>>(0)),
+      total_queries_(std::make_shared<std::atomic<std::uint64_t>>(0)) {
 
     // Determine thread counts
     num_query_threads_ = config_.num_query_threads > 0
@@ -57,8 +59,8 @@ void VectorDatabase_MPS::initialize_pools() {
         auto pool = mps::pool::create();
         pool->node_name("QueryPool_" + std::to_string(i));
 
-        // Add query worker to this pool
-        auto worker = std::make_shared<QueryWorker>(index_, vectors_);
+        // Add query worker to this pool with statistics counters
+        auto worker = std::make_shared<QueryWorker>(index_, vectors_, total_queries_, total_inserts_);
         pool->add_worker(worker);
 
         pool->start();
@@ -78,8 +80,8 @@ void VectorDatabase_MPS::initialize_pools() {
         auto pool = mps::pool::create();
         pool->node_name("IndexPool_" + std::to_string(i));
 
-        // Add index worker to this pool
-        auto worker = std::make_shared<IndexWorker>(index_, vectors_);
+        // Add index worker to this pool with statistics counter
+        auto worker = std::make_shared<IndexWorker>(index_, vectors_, total_inserts_);
         pool->add_worker(worker);
 
         pool->start();
@@ -244,12 +246,8 @@ SearchResult VectorDatabase_MPS::search(std::span<const float> query, std::size_
 // ============================================================================
 
 ErrorCode VectorDatabase_MPS::batch_insert(std::span<const VectorRecord> records) {
-    // Validate all records
-    for (const auto& record : records) {
-        if (record.vector.size() != config_.dimension) {
-            return ErrorCode::DimensionMismatch;
-        }
-    }
+    // Don't validate upfront - let the worker process one by one
+    // and stop at the first error (keeping previously inserted records)
 
     // Create batch insert message
     auto msg = std::make_shared<BatchInsertMessage>(records);

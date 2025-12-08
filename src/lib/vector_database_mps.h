@@ -175,6 +175,10 @@ private:
 
     // Request tracking (mutable for const methods)
     mutable std::atomic<std::uint64_t> next_request_id_{0};
+
+    // Statistics tracking (shared across all workers)
+    std::shared_ptr<std::atomic<std::uint64_t>> total_inserts_;
+    std::shared_ptr<std::atomic<std::uint64_t>> total_queries_;
 };
 
 } // namespace lynx
