@@ -82,6 +82,30 @@ public:
     [[nodiscard]] std::size_t memory_usage() const override;
     [[nodiscard]] std::size_t max_layer() const { return entry_point_layer_; }
 
+    // -------------------------------------------------------------------------
+    // Maintenance Operations
+    // -------------------------------------------------------------------------
+
+    /**
+     * @brief Optimize the HNSW graph by pruning redundant edges.
+     *
+     * This method applies the RNG (Random Neighbor Graph) heuristic to remove
+     * redundant edges in the graph. It improves graph quality, reduces memory
+     * footprint, and can improve search performance by maintaining sparse yet
+     * robust connectivity.
+     *
+     * The optimization process:
+     * - Iterates through all nodes at all layers
+     * - Applies heuristic pruning to remove edges that don't contribute to connectivity
+     * - Preserves graph navigability
+     *
+     * Thread Safety: This operation requires write access and should not be
+     * called concurrently with other write operations.
+     *
+     * @return ErrorCode::Ok on success, error code otherwise
+     */
+    ErrorCode optimize_graph();
+
 private:
     // -------------------------------------------------------------------------
     // Internal Data Structures

@@ -545,3 +545,128 @@ TEST_F(HNSWIndexTest, ZeroVectors) {
     EXPECT_EQ(results[0].id, 1);
     EXPECT_NEAR(results[0].distance, 0.0f, 1e-6);
 }
+
+// ============================================================================
+// Graph Optimization Tests
+// ============================================================================
+
+TEST_F(HNSWIndexTest, OptimizeGraphEmpty) {
+    HNSWIndex index(3, DistanceMetric::L2, params_);
+
+    // Optimizing empty index should succeed
+    ErrorCode err = index.optimize_graph();
+    EXPECT_EQ(err, ErrorCode::Ok);
+    EXPECT_EQ(index.size(), 0);
+}
+
+TEST_F(HNSWIndexTest, OptimizeGraphSmallIndex) {
+    HNSWIndex index(3, DistanceMetric::L2, params_);
+
+    // Add a few vectors
+    for (std::uint64_t i = 1; i <= 5; ++i) {
+        std::vector<float> vec = {static_cast<float>(i), 0.0f, 0.0f};
+        index.add(i, vec);
+    }
+
+    // Small index (< 10 vectors) should be skipped but return Ok
+    ErrorCode err = index.optimize_graph();
+    EXPECT_EQ(err, ErrorCode::Ok);
+    EXPECT_EQ(index.size(), 5);
+}
+
+TEST_F(HNSWIndexTest, OptimizeGraphLargeIndex) {
+    constexpr std::size_t dim = 16;
+    constexpr std::size_t num_vectors = 100;
+
+    std::mt19937 rng(42);
+    HNSWIndex index(dim, DistanceMetric::L2, params_);
+
+    // Generate and insert random vectors
+    std::vector<std::pair<std::uint64_t, std::vector<float>>> vectors;
+    for (std::uint64_t i = 0; i < num_vectors; ++i) {
+        auto vec = generate_random_vector(dim, rng);
+        vectors.push_back({i, vec});
+        index.add(i, vec);
+    }
+
+    // Get memory usage before optimization
+    std::size_t memory_before = index.memory_usage();
+
+    // Optimize the graph
+    ErrorCode err = index.optimize_graph();
+    EXPECT_EQ(err, ErrorCode::Ok);
+
+    // Index should still have all vectors
+    EXPECT_EQ(index.size(), num_vectors);
+
+    // All vectors should still be searchable
+    for (std::uint64_t i = 0; i < num_vectors; ++i) {
+        EXPECT_TRUE(index.contains(i));
+    }
+
+    // Search quality should be maintained after optimization
+    constexpr std::size_t k = 10;
+    std::size_t total_recall = 0;
+    constexpr std::size_t num_queries = 10;
+
+    for (std::size_t q = 0; q < num_queries; ++q) {
+        auto query = generate_random_vector(dim, rng);
+
+        // HNSW search after optimization
+        SearchParams search_params;
+        auto hnsw_results = index.search(query, k, search_params);
+
+        // Brute force search (ground truth)
+        auto true_results = brute_force_search(query, vectors, k);
+
+        // Calculate recall
+        std::unordered_set<std::uint64_t> true_ids;
+        for (const auto& item : true_results) {
+            true_ids.insert(item.id);
+        }
+
+        for (const auto& item : hnsw_results) {
+            if (true_ids.count(item.id)) {
+                total_recall++;
+            }
+        }
+    }
+
+    // Recall should still be good after optimization (> 80%)
+    double recall = static_cast<double>(total_recall) / (num_queries * k);
+    EXPECT_GT(recall, 0.80);
+}
+
+TEST_F(HNSWIndexTest, OptimizeGraphPreservesSearchability) {
+    constexpr std::size_t dim = 8;
+    constexpr std::size_t num_vectors = 50;
+
+    std::mt19937 rng(123);
+    HNSWIndex index(dim, DistanceMetric::L2, params_);
+
+    // Insert vectors
+    for (std::uint64_t i = 0; i < num_vectors; ++i) {
+        auto vec = generate_random_vector(dim, rng);
+        index.add(i, vec);
+    }
+
+    // Perform a search before optimization
+    auto query = generate_random_vector(dim, rng);
+    SearchParams search_params;
+    auto results_before = index.search(query, 10, search_params);
+
+    // Optimize the graph
+    ErrorCode err = index.optimize_graph();
+    EXPECT_EQ(err, ErrorCode::Ok);
+
+    // Perform the same search after optimization
+    auto results_after = index.search(query, 10, search_params);
+
+    // Results should be similar (allow for some variation due to edge pruning)
+    // At minimum, the top result should be the same or very close
+    EXPECT_EQ(results_before.size(), results_after.size());
+    if (!results_before.empty() && !results_after.empty()) {
+        // The nearest neighbor should be the same
+        EXPECT_EQ(results_before[0].id, results_after[0].id);
+    }
+}

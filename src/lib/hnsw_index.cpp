@@ -589,6 +589,77 @@ ErrorCode HNSWIndex::build(std::span<const VectorRecord> vectors) {
 }
 
 // ============================================================================
+// Graph Optimization
+// ============================================================================
+
+ErrorCode HNSWIndex::optimize_graph() {
+    std::unique_lock lock(mutex_);
+
+    // If index is empty or too small, no optimization needed
+    if (graph_.empty() || graph_.size() < 10) {
+        return ErrorCode::Ok;
+    }
+
+    // Statistics tracking
+    std::size_t total_edges_before = 0;
+    std::size_t total_edges_after = 0;
+
+    // Count edges before optimization
+    for (const auto& [id, node] : graph_) {
+        for (std::size_t layer = 0; layer <= node.max_layer; ++layer) {
+            total_edges_before += node.layers[layer].size();
+        }
+    }
+
+    // Iterate through all nodes and prune connections at each layer
+    // We use a copy of node IDs to avoid iterator invalidation
+    std::vector<std::uint64_t> node_ids;
+    node_ids.reserve(graph_.size());
+    for (const auto& [id, _] : graph_) {
+        node_ids.push_back(id);
+    }
+
+    for (auto node_id : node_ids) {
+        auto node_it = graph_.find(node_id);
+        if (node_it == graph_.end()) {
+            continue; // Node might have been removed
+        }
+
+        const Node& node = node_it->second;
+
+        // Prune connections at each layer
+        for (std::size_t layer = 0; layer <= node.max_layer; ++layer) {
+            // Determine max connections for this layer
+            // Layer 0 allows 2*M connections, other layers allow M connections
+            const std::size_t max_connections = (layer == 0) ? (2 * params_.m) : params_.m;
+
+            // Only prune if we have more than the minimum threshold
+            // We use M/2 as a threshold to avoid pruning well-connected nodes
+            const std::size_t min_threshold = params_.m / 2;
+            const auto& neighbors = node.layers[layer];
+
+            // Only optimize if node has significantly more connections than needed
+            if (neighbors.size() > max_connections || neighbors.size() < min_threshold) {
+                prune_connections(node_id, layer, max_connections);
+            }
+        }
+    }
+
+    // Count edges after optimization
+    for (const auto& [id, node] : graph_) {
+        for (std::size_t layer = 0; layer <= node.max_layer; ++layer) {
+            total_edges_after += node.layers[layer].size();
+        }
+    }
+
+    // Log optimization results (optional - can be removed if no logging infrastructure)
+    // For now, we just silently complete the optimization
+    // In production, you might want to track these statistics
+
+    return ErrorCode::Ok;
+}
+
+// ============================================================================
 // Serialization (Placeholder)
 // ============================================================================
 
