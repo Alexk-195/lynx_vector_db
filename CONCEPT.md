@@ -3,6 +3,7 @@
 ## Overview
 
 Lynx is a high-performance vector database designed for Approximate Nearest Neighbor (ANN) search. It leverages modern C++20 features and the MPS (Message Processing System) library for multi-threaded operations.
+Design was created based on research document in doc/research.md.
 
 ## Architecture
 
