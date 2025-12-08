@@ -592,25 +592,180 @@ ErrorCode HNSWIndex::build(std::span<const VectorRecord> vectors) {
 // Serialization (Placeholder)
 // ============================================================================
 
-ErrorCode HNSWIndex::serialize([[maybe_unused]] std::ostream& out) const {
+ErrorCode HNSWIndex::serialize(std::ostream& out) const {
     std::shared_lock lock(mutex_);
 
-    // TODO: Implement serialization
-    // Format:
-    // - dimension, metric, params
-    // - number of vectors
-    // - for each vector: id, layer, vector data
-    // - for each layer: connections
+    try {
+        // Write magic number and version for file format verification
+        constexpr uint32_t kMagicNumber = 0x484E5357; // "HNSW" in hex
+        constexpr uint32_t kVersion = 1;
 
-    return ErrorCode::NotImplemented;
+        out.write(reinterpret_cast<const char*>(&kMagicNumber), sizeof(kMagicNumber));
+        out.write(reinterpret_cast<const char*>(&kVersion), sizeof(kVersion));
+
+        // Write configuration
+        out.write(reinterpret_cast<const char*>(&dimension_), sizeof(dimension_));
+
+        uint8_t metric_value = static_cast<uint8_t>(metric_);
+        out.write(reinterpret_cast<const char*>(&metric_value), sizeof(metric_value));
+
+        out.write(reinterpret_cast<const char*>(&params_.m), sizeof(params_.m));
+        out.write(reinterpret_cast<const char*>(&params_.ef_construction), sizeof(params_.ef_construction));
+        out.write(reinterpret_cast<const char*>(&params_.ef_search), sizeof(params_.ef_search));
+        out.write(reinterpret_cast<const char*>(&params_.max_elements), sizeof(params_.max_elements));
+
+        // Write entry point information
+        out.write(reinterpret_cast<const char*>(&entry_point_), sizeof(entry_point_));
+        out.write(reinterpret_cast<const char*>(&entry_point_layer_), sizeof(entry_point_layer_));
+
+        // Write number of vectors
+        size_t num_vectors = vectors_.size();
+        out.write(reinterpret_cast<const char*>(&num_vectors), sizeof(num_vectors));
+
+        // Write each vector and its graph structure
+        for (const auto& [id, vector] : vectors_) {
+            // Write vector ID
+            out.write(reinterpret_cast<const char*>(&id), sizeof(id));
+
+            // Write vector data
+            out.write(reinterpret_cast<const char*>(vector.data()),
+                     vector.size() * sizeof(float));
+
+            // Write node information
+            auto node_it = graph_.find(id);
+            if (node_it == graph_.end()) {
+                return ErrorCode::InvalidState;
+            }
+
+            const Node& node = node_it->second;
+            out.write(reinterpret_cast<const char*>(&node.max_layer), sizeof(node.max_layer));
+
+            // Write neighbors for each layer
+            for (size_t layer = 0; layer <= node.max_layer; ++layer) {
+                const auto& neighbors = node.layers[layer];
+                size_t num_neighbors = neighbors.size();
+                out.write(reinterpret_cast<const char*>(&num_neighbors), sizeof(num_neighbors));
+
+                for (uint64_t neighbor_id : neighbors) {
+                    out.write(reinterpret_cast<const char*>(&neighbor_id), sizeof(neighbor_id));
+                }
+            }
+        }
+
+        if (!out.good()) {
+            return ErrorCode::IOError;
+        }
+
+        return ErrorCode::Ok;
+
+    } catch (const std::exception&) {
+        return ErrorCode::IOError;
+    }
 }
 
-ErrorCode HNSWIndex::deserialize([[maybe_unused]] std::istream& in) {
+ErrorCode HNSWIndex::deserialize(std::istream& in) {
     std::unique_lock lock(mutex_);
 
-    // TODO: Implement deserialization
+    try {
+        // Read and verify magic number
+        constexpr uint32_t kExpectedMagic = 0x484E5357; // "HNSW"
+        uint32_t magic_number;
+        in.read(reinterpret_cast<char*>(&magic_number), sizeof(magic_number));
+        if (magic_number != kExpectedMagic) {
+            return ErrorCode::IOError; // Invalid file format
+        }
 
-    return ErrorCode::NotImplemented;
+        // Read and verify version
+        uint32_t version;
+        in.read(reinterpret_cast<char*>(&version), sizeof(version));
+        if (version != 1) {
+            return ErrorCode::IOError; // Unsupported version
+        }
+
+        // Read configuration
+        size_t dimension;
+        in.read(reinterpret_cast<char*>(&dimension), sizeof(dimension));
+        if (dimension != dimension_) {
+            return ErrorCode::DimensionMismatch;
+        }
+
+        uint8_t metric_value;
+        in.read(reinterpret_cast<char*>(&metric_value), sizeof(metric_value));
+        metric_ = static_cast<DistanceMetric>(metric_value);
+
+        in.read(reinterpret_cast<char*>(&params_.m), sizeof(params_.m));
+        in.read(reinterpret_cast<char*>(&params_.ef_construction), sizeof(params_.ef_construction));
+        in.read(reinterpret_cast<char*>(&params_.ef_search), sizeof(params_.ef_search));
+        in.read(reinterpret_cast<char*>(&params_.max_elements), sizeof(params_.max_elements));
+
+        // Recalculate ml_ based on loaded params
+        ml_ = 1.0 / std::log(params_.m);
+
+        // Read entry point information
+        in.read(reinterpret_cast<char*>(&entry_point_), sizeof(entry_point_));
+        in.read(reinterpret_cast<char*>(&entry_point_layer_), sizeof(entry_point_layer_));
+
+        // Read number of vectors
+        size_t num_vectors;
+        in.read(reinterpret_cast<char*>(&num_vectors), sizeof(num_vectors));
+
+        // Clear existing data
+        vectors_.clear();
+        graph_.clear();
+
+        // Read each vector and its graph structure
+        for (size_t i = 0; i < num_vectors; ++i) {
+            // Read vector ID
+            uint64_t id;
+            in.read(reinterpret_cast<char*>(&id), sizeof(id));
+
+            // Read vector data
+            std::vector<float> vector(dimension);
+            in.read(reinterpret_cast<char*>(vector.data()),
+                   vector.size() * sizeof(float));
+            vectors_[id] = std::move(vector);
+
+            // Read node information
+            size_t max_layer;
+            in.read(reinterpret_cast<char*>(&max_layer), sizeof(max_layer));
+
+            // Create node
+            Node node(id, max_layer);
+
+            // Read neighbors for each layer
+            for (size_t layer = 0; layer <= max_layer; ++layer) {
+                size_t num_neighbors;
+                in.read(reinterpret_cast<char*>(&num_neighbors), sizeof(num_neighbors));
+
+                for (size_t j = 0; j < num_neighbors; ++j) {
+                    uint64_t neighbor_id;
+                    in.read(reinterpret_cast<char*>(&neighbor_id), sizeof(neighbor_id));
+                    node.layers[layer].insert(neighbor_id);
+                }
+            }
+
+            graph_.emplace(id, std::move(node));
+        }
+
+        if (!in.good()) {
+            // Restore to empty state on error
+            vectors_.clear();
+            graph_.clear();
+            entry_point_ = kInvalidId;
+            entry_point_layer_ = 0;
+            return ErrorCode::IOError;
+        }
+
+        return ErrorCode::Ok;
+
+    } catch (const std::exception&) {
+        // Restore to empty state on exception
+        vectors_.clear();
+        graph_.clear();
+        entry_point_ = kInvalidId;
+        entry_point_layer_ = 0;
+        return ErrorCode::IOError;
+    }
 }
 
 } // namespace lynx
