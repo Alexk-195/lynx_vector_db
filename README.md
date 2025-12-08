@@ -14,8 +14,16 @@ A high-performance vector database implemented in modern C++20 with support for 
 
 - C++20 compatible compiler (GCC 11+, Clang 14+)
 - GNU Make or CMake 3.20+
-- MPS library ([github.com/Alexk-195/mps](https://github.com/Alexk-195/mps))
-- Google Test v1.15.2 (automatically included)
+- Git (for automatic dependency cloning)
+
+### Dependencies (Auto-managed)
+
+The following dependencies are **automatically handled** by the build scripts:
+
+- **MPS library** ([github.com/Alexk-195/mps](https://github.com/Alexk-195/mps))
+  - Checked in order: `MPS_PATH` env var → `MPS_DIR` env var → `external/mps` → auto-clone
+- **Google Test v1.15.2** ([github.com/google/googletest](https://github.com/google/googletest))
+  - Automatically cloned to `external/googletest` or fetched by CMake
 
 ## Quick Start
 
@@ -25,19 +33,30 @@ A high-performance vector database implemented in modern C++20 with support for 
 git clone https://github.com/Alexk-195/lynx_vector_db.git
 cd lynx_vector_db
 
-# Clone dependencies
-git clone https://github.com/Alexk-195/mps.git ../mps
-git clone --depth 1 --branch v1.15.2 https://github.com/google/googletest.git external/googletest
-
-export MPS_DIR=$(pwd)/../mps
-
-# Build with Make (recommended)
+# Build with setup.sh (recommended - handles all dependencies automatically)
 ./setup.sh
 
-# OR build with CMake
+# OR build with CMake (dependencies auto-detected or fetched)
 mkdir build && cd build
 cmake ..
 cmake --build .
+```
+
+### Custom Dependency Locations
+
+If you have MPS installed elsewhere, set the environment variable:
+
+```bash
+# Option 1: Use MPS_PATH
+export MPS_PATH=/path/to/mps
+./setup.sh
+
+# Option 2: Use MPS_DIR (legacy)
+export MPS_DIR=/path/to/mps
+./setup.sh
+
+# Option 3: Let setup.sh auto-clone to external/mps (no env var needed)
+./setup.sh
 ```
 
 ### Build Options - setup.sh (Makefile)
@@ -62,19 +81,22 @@ make clean        # Clean build
 make run          # Build and run
 make info         # Show build configuration
 
-# With MPS library
-export MPS_DIR=/path/to/mps
+# Note: MPS_DIR is automatically set by setup.sh
+# If using make directly, set MPS_PATH or MPS_DIR manually
+export MPS_PATH=/path/to/mps
 make
 ```
 
 ### Build Options - CMake
 
 ```bash
-# Configure
+# Configure (dependencies auto-detected)
 mkdir build && cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release
 
-# With MPS
+# With custom MPS location (if needed)
+cmake .. -DMPS_PATH=/path/to/mps
+# OR
 cmake .. -DMPS_DIR=/path/to/mps
 
 # Build

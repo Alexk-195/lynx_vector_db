@@ -44,13 +44,48 @@ include_directories(${CMAKE_SOURCE_DIR}/src/include)
 find_package(Threads REQUIRED)
 
 # MPS library (Message Processing System)
-# TODO: Add proper find module or fetch content for MPS
-# For now, assume MPS is installed in system or specified via MPS_DIR
-if(DEFINED MPS_DIR)
+# Check multiple locations in order of priority:
+# 1. MPS_PATH environment variable or CMake variable
+# 2. MPS_DIR environment variable or CMake variable
+# 3. external/mps directory in project root
+
+set(MPS_FOUND FALSE)
+
+# Check MPS_PATH first (environment or CMake variable)
+if(DEFINED ENV{MPS_PATH} AND EXISTS "$ENV{MPS_PATH}/src")
+    set(MPS_DIR "$ENV{MPS_PATH}")
+    set(MPS_FOUND TRUE)
+    message(STATUS "Using MPS from MPS_PATH: ${MPS_DIR}")
+elseif(DEFINED MPS_PATH AND EXISTS "${MPS_PATH}/src")
+    set(MPS_DIR "${MPS_PATH}")
+    set(MPS_FOUND TRUE)
+    message(STATUS "Using MPS from MPS_PATH: ${MPS_DIR}")
+# Check MPS_DIR (environment or CMake variable)
+elseif(DEFINED ENV{MPS_DIR} AND EXISTS "$ENV{MPS_DIR}/src")
+    set(MPS_DIR "$ENV{MPS_DIR}")
+    set(MPS_FOUND TRUE)
+    message(STATUS "Using MPS from MPS_DIR: ${MPS_DIR}")
+elseif(DEFINED MPS_DIR AND EXISTS "${MPS_DIR}/src")
+    set(MPS_FOUND TRUE)
+    message(STATUS "Using MPS from MPS_DIR: ${MPS_DIR}")
+# Check external/mps directory
+elseif(EXISTS "${CMAKE_SOURCE_DIR}/external/mps/src")
+    set(MPS_DIR "${CMAKE_SOURCE_DIR}/external/mps")
+    set(MPS_FOUND TRUE)
+    message(STATUS "Using MPS from external/mps")
+endif()
+
+if(MPS_FOUND)
     include_directories(${MPS_DIR}/src)
-    message(STATUS "MPS directory: ${MPS_DIR}")
 else()
-    message(WARNING "MPS_DIR not specified. Set -DMPS_DIR=/path/to/mps")
+    message(FATAL_ERROR
+        "MPS library not found!\n"
+        "Please either:\n"
+        "  1. Set MPS_PATH environment variable: export MPS_PATH=/path/to/mps\n"
+        "  2. Set MPS_DIR environment variable: export MPS_DIR=/path/to/mps\n"
+        "  3. Run ./setup.sh to automatically clone MPS to external/mps\n"
+        "  4. Manually clone MPS: git clone https://github.com/Alexk-195/mps.git external/mps"
+    )
 endif()
 
 # Lynx static library

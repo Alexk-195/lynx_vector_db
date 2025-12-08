@@ -36,26 +36,60 @@ log_error() {
 setup_mps() {
     log_info "Checking for MPS library..."
 
-    MPS_PATH="${PROJECT_ROOT}/external/mps"
-
-    if [ ! -d "${MPS_PATH}" ]; then
-        log_warn "MPS not found in external folder. Cloning from repository..."
-        mkdir -p "${PROJECT_ROOT}/external"
-
-        if git clone https://github.com/Alexk-195/mps "${MPS_PATH}"; then
-            log_info "MPS successfully cloned to ${MPS_PATH}"
-        else
-            log_error "Failed to clone MPS repository"
-            exit 1
-        fi
-    else
-        log_info "MPS found in external folder"
+    # Check for MPS_PATH environment variable first
+    if [ -n "${MPS_PATH}" ] && [ -d "${MPS_PATH}" ]; then
+        export MPS_DIR="${MPS_PATH}"
+        log_info "Using MPS from MPS_PATH: ${MPS_PATH}"
+        return 0
     fi
 
-    # Set MPS_DIR if not already set
-    if [ -z "${MPS_DIR}" ]; then
-        export MPS_DIR="${MPS_PATH}"
-        log_info "MPS_DIR set to: ${MPS_DIR}"
+    # Check for MPS_DIR environment variable
+    if [ -n "${MPS_DIR}" ] && [ -d "${MPS_DIR}" ]; then
+        log_info "Using MPS from MPS_DIR: ${MPS_DIR}"
+        return 0
+    fi
+
+    # Check if MPS exists in external/mps
+    local MPS_LOCAL="${PROJECT_ROOT}/external/mps"
+    if [ -d "${MPS_LOCAL}" ]; then
+        export MPS_DIR="${MPS_LOCAL}"
+        log_info "Using MPS from external/mps"
+        return 0
+    fi
+
+    # Auto-clone MPS to external/mps
+    log_warn "MPS not found. Cloning from repository..."
+    mkdir -p "${PROJECT_ROOT}/external"
+
+    if git clone https://github.com/Alexk-195/mps.git "${MPS_LOCAL}"; then
+        export MPS_DIR="${MPS_LOCAL}"
+        log_info "MPS successfully cloned to ${MPS_LOCAL}"
+    else
+        log_error "Failed to clone MPS repository"
+        log_error "You can manually set MPS_PATH or MPS_DIR environment variable"
+        exit 1
+    fi
+}
+
+setup_googletest() {
+    log_info "Checking for Google Test..."
+
+    local GTEST_PATH="${PROJECT_ROOT}/external/googletest"
+
+    if [ -d "${GTEST_PATH}" ]; then
+        log_info "Google Test found in external/googletest"
+        return 0
+    fi
+
+    # Auto-clone Google Test
+    log_warn "Google Test not found. Cloning from repository..."
+    mkdir -p "${PROJECT_ROOT}/external"
+
+    if git clone --depth 1 --branch v1.15.2 https://github.com/google/googletest.git "${GTEST_PATH}"; then
+        log_info "Google Test successfully cloned to ${GTEST_PATH}"
+    else
+        log_error "Failed to clone Google Test repository"
+        log_error "CMake will attempt to fetch it automatically during build"
     fi
 }
 
@@ -64,6 +98,9 @@ check_dependencies() {
 
     # Setup MPS library
     setup_mps
+
+    # Setup Google Test library
+    setup_googletest
 
     # Check compiler
     if command -v g++ &> /dev/null; then
