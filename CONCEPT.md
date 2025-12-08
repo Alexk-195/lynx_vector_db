@@ -261,3 +261,9 @@ enum class ErrorCode {
 - **Sparse Vectors**: Support for sparse embeddings
 - **Hybrid Search**: Combined vector + metadata filtering
 - **Streaming Inserts**: High-throughput ingestion pipeline
+- **IVF index implementation**: For faster indexing
+- **Product Quantization (PQ)**: Compact storage
+- **SIMD distance calculations**: Faster search and indexing
+- **Extended candidate neighbors in heuristic selection**: Write a concept for this
+- **Incremental index optimization/maintenance**: Write a concept for this
+- **Benchmarks**: Testing against other vector databases
