@@ -31,6 +31,18 @@ add_compile_options(
 option(LYNX_BUILD_TESTS "Build unit tests" ON)
 option(LYNX_BUILD_BENCHMARKS "Build benchmarks" OFF)
 option(LYNX_USE_SIMD "Enable SIMD optimizations" ON)
+option(LYNX_ENABLE_COVERAGE "Enable code coverage reporting" OFF)
+
+# Code coverage configuration
+if(LYNX_ENABLE_COVERAGE)
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+        message(STATUS "Code coverage enabled")
+        add_compile_options(--coverage -fprofile-arcs -ftest-coverage)
+        add_link_options(--coverage)
+    else()
+        message(WARNING "Code coverage not supported for compiler: ${CMAKE_CXX_COMPILER_ID}")
+    endif()
+endif()
 
 # Output directories
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -77,6 +89,12 @@ endif()
 
 if(MPS_FOUND)
     include_directories(${MPS_DIR}/src)
+
+    # Build MPS as a static library
+    add_library(mps_static STATIC ${MPS_DIR}/src/mps.cpp)
+    target_include_directories(mps_static PUBLIC ${MPS_DIR}/src)
+    target_link_libraries(mps_static PUBLIC Threads::Threads)
+    set_target_properties(mps_static PROPERTIES POSITION_INDEPENDENT_CODE ON)
 else()
     message(FATAL_ERROR
         "MPS library not found!\n"
@@ -92,6 +110,7 @@ endif()
 add_library(lynx_static STATIC
         src/lib/lynx.cpp
         src/lib/vector_database_impl.cpp
+        src/lib/vector_database_mps.cpp
         src/lib/hnsw_index.cpp
 )
 
@@ -102,6 +121,7 @@ target_include_directories(lynx_static PUBLIC
 
 target_link_libraries(lynx_static PUBLIC
         Threads::Threads
+        mps_static
 )
 
 set_target_properties(lynx_static PROPERTIES
@@ -113,6 +133,7 @@ set_target_properties(lynx_static PROPERTIES
 add_library(lynx SHARED
         src/lib/lynx.cpp
         src/lib/vector_database_impl.cpp
+        src/lib/vector_database_mps.cpp
         src/lib/hnsw_index.cpp
 )
 
@@ -123,6 +144,7 @@ target_include_directories(lynx PUBLIC
 
 target_link_libraries(lynx PUBLIC
         Threads::Threads
+        mps_static
 )
 
 set_target_properties(lynx PROPERTIES
@@ -227,4 +249,5 @@ message(STATUS "  Install prefix:   ${CMAKE_INSTALL_PREFIX}")
 message(STATUS "  Build tests:      ${LYNX_BUILD_TESTS}")
 message(STATUS "  Build benchmarks: ${LYNX_BUILD_BENCHMARKS}")
 message(STATUS "  Use SIMD:         ${LYNX_USE_SIMD}")
+message(STATUS "  Code coverage:    ${LYNX_ENABLE_COVERAGE}")
 message(STATUS "")
