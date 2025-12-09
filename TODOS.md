@@ -1,5 +1,2 @@
 ### TODOS
-- [x] Create minimalistic example: main_minimal.cpp which shows minimal database usage example.
-    Add test which verifies output of this app. Ensure that all executables and google tests are running without installation of shared lib. Set LD_LIBRARY_PATH on calling them properly.
-- [x] Collect ideas for implementing maintainance in MaintenanceWorker in file mps_workers.h and put them into STATE.md
-- [x] Update Concept.md with code coverage concept. 
+- [ ] Add tests to tests/test_hnsw.cpp to test functions compact_index, serialize and deserialize of class HNSWIndex which is implemented in src/lib/hnsw_index.h and src/lib/hnsw_index.cpp
