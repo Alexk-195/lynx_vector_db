@@ -272,6 +272,10 @@ enum class ErrorCode {
 };
 ```
 
+## Unit Testing
+
+See document tests/README.md for details.
+
 ## Code Coverage
 
 ### Overview
