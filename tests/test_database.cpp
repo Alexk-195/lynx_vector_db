@@ -543,3 +543,312 @@ TEST(VectorDatabaseTest, LoadWithoutDataPathReturnsError) {
     auto result = db->load();
     EXPECT_EQ(result, lynx::ErrorCode::InvalidParameter);
 }
+
+TEST(VectorDatabaseTest, SaveAndLoadWithDataPath) {
+    // Use a temporary directory under /tmp
+    const std::string test_path = "/tmp/lynx_test_save_load_001";
+
+    // Clean up any existing test files
+    std::system(("rm -rf " + test_path).c_str());
+
+    // Create database with data path
+    lynx::Config config;
+    config.dimension = 3;
+    config.distance_metric = lynx::DistanceMetric::L2;
+    config.data_path = test_path;
+
+    // Create, insert, and save in first scope
+    {
+        auto db1 = lynx::IVectorDatabase::create(config);
+        ASSERT_NE(db1, nullptr);
+
+        // Insert test data
+        EXPECT_EQ(db1->insert({1, {1.0f, 0.0f, 0.0f}, std::nullopt}), lynx::ErrorCode::Ok);
+        EXPECT_EQ(db1->insert({2, {0.0f, 1.0f, 0.0f}, std::nullopt}), lynx::ErrorCode::Ok);
+        EXPECT_EQ(db1->insert({3, {0.0f, 0.0f, 1.0f}, std::nullopt}), lynx::ErrorCode::Ok);
+        EXPECT_EQ(db1->size(), 3);
+
+        // Save database
+        auto save_result = db1->save();
+        EXPECT_EQ(save_result, lynx::ErrorCode::Ok);
+    }
+
+    // Load in second scope
+    {
+        auto db2 = lynx::IVectorDatabase::create(config);
+        ASSERT_NE(db2, nullptr);
+        EXPECT_EQ(db2->size(), 0); // Should be empty before load
+
+        // Load the saved database
+        auto load_result = db2->load();
+        EXPECT_EQ(load_result, lynx::ErrorCode::Ok);
+
+        // Verify loaded data
+        EXPECT_EQ(db2->size(), 3);
+        EXPECT_TRUE(db2->contains(1));
+        EXPECT_TRUE(db2->contains(2));
+        EXPECT_TRUE(db2->contains(3));
+
+        // Verify search works after load
+        std::vector<float> query = {1.0f, 0.0f, 0.0f};
+        auto search_result = db2->search(query, 3);
+        EXPECT_EQ(search_result.items.size(), 3);
+    }
+
+    // Clean up
+    std::system(("rm -rf " + test_path).c_str());
+}
+
+TEST(VectorDatabaseTest, SaveAndLoadWithMetadata) {
+    const std::string test_path = "/tmp/lynx_test_save_load_002";
+    std::system(("rm -rf " + test_path).c_str());
+
+    lynx::Config config;
+    config.dimension = 2;
+    config.data_path = test_path;
+
+    // Save with metadata
+    {
+        auto db1 = lynx::IVectorDatabase::create(config);
+
+        // Insert vectors with metadata
+        EXPECT_EQ(db1->insert({1, {1.0f, 2.0f}, "{\"name\": \"vector1\"}"}), lynx::ErrorCode::Ok);
+        EXPECT_EQ(db1->insert({2, {3.0f, 4.0f}, "{\"name\": \"vector2\"}"}), lynx::ErrorCode::Ok);
+
+        // Save
+        EXPECT_EQ(db1->save(), lynx::ErrorCode::Ok);
+    }
+
+    // Load and verify
+    {
+        auto db2 = lynx::IVectorDatabase::create(config);
+        EXPECT_EQ(db2->load(), lynx::ErrorCode::Ok);
+
+        // Verify vectors were loaded
+        EXPECT_EQ(db2->size(), 2);
+        EXPECT_TRUE(db2->contains(1));
+        EXPECT_TRUE(db2->contains(2));
+    }
+
+    std::system(("rm -rf " + test_path).c_str());
+}
+
+TEST(VectorDatabaseTest, SaveAndLoadPreservesSearchResults) {
+    const std::string test_path = "/tmp/lynx_test_save_load_003";
+    std::system(("rm -rf " + test_path).c_str());
+
+    lynx::Config config;
+    config.dimension = 2;
+    config.distance_metric = lynx::DistanceMetric::L2;
+    config.data_path = test_path;
+
+    auto db1 = lynx::IVectorDatabase::create(config);
+
+    // Insert vectors at different distances from origin
+    db1->insert({1, {0.0f, 0.0f}, std::nullopt});
+    db1->insert({2, {1.0f, 0.0f}, std::nullopt});
+    db1->insert({3, {2.0f, 0.0f}, std::nullopt});
+    db1->insert({4, {3.0f, 0.0f}, std::nullopt});
+
+    // Perform search on original database
+    std::vector<float> query = {0.0f, 0.0f};
+    auto result1 = db1->search(query, 3);
+
+    // Save
+    EXPECT_EQ(db1->save(), lynx::ErrorCode::Ok);
+
+    // Load into new database
+    auto db2 = lynx::IVectorDatabase::create(config);
+    EXPECT_EQ(db2->load(), lynx::ErrorCode::Ok);
+
+    // Perform same search on loaded database
+    auto result2 = db2->search(query, 3);
+
+    // Results should be identical
+    ASSERT_EQ(result2.items.size(), result1.items.size());
+    for (size_t i = 0; i < result1.items.size(); ++i) {
+        EXPECT_EQ(result2.items[i].id, result1.items[i].id);
+        EXPECT_FLOAT_EQ(result2.items[i].distance, result1.items[i].distance);
+    }
+
+    std::system(("rm -rf " + test_path).c_str());
+}
+
+TEST(VectorDatabaseTest, SaveAndLoadEmptyDatabase) {
+    const std::string test_path = "/tmp/lynx_test_save_load_004";
+    std::system(("rm -rf " + test_path).c_str());
+
+    lynx::Config config;
+    config.dimension = 4;
+    config.data_path = test_path;
+
+    auto db1 = lynx::IVectorDatabase::create(config);
+    EXPECT_EQ(db1->size(), 0);
+
+    // Save empty database
+    EXPECT_EQ(db1->save(), lynx::ErrorCode::Ok);
+
+    // Load into new database
+    auto db2 = lynx::IVectorDatabase::create(config);
+    EXPECT_EQ(db2->load(), lynx::ErrorCode::Ok);
+
+    // Should still be empty
+    EXPECT_EQ(db2->size(), 0);
+
+    std::system(("rm -rf " + test_path).c_str());
+}
+
+TEST(VectorDatabaseTest, SaveAndLoadWithDifferentIndexTypes) {
+    const std::string test_path = "/tmp/lynx_test_save_load_005";
+    std::system(("rm -rf " + test_path).c_str());
+
+    // Test with HNSW index
+    {
+        lynx::Config config;
+        config.dimension = 3;
+        config.index_type = lynx::IndexType::HNSW;
+        config.data_path = test_path;
+
+        auto db1 = lynx::IVectorDatabase::create(config);
+        db1->insert({1, {1.0f, 2.0f, 3.0f}, std::nullopt});
+        db1->insert({2, {4.0f, 5.0f, 6.0f}, std::nullopt});
+
+        EXPECT_EQ(db1->save(), lynx::ErrorCode::Ok);
+
+        auto db2 = lynx::IVectorDatabase::create(config);
+        EXPECT_EQ(db2->load(), lynx::ErrorCode::Ok);
+        EXPECT_EQ(db2->size(), 2);
+
+        std::system(("rm -rf " + test_path).c_str());
+    }
+
+    // Test with Flat index
+    {
+        lynx::Config config;
+        config.dimension = 3;
+        config.index_type = lynx::IndexType::Flat;
+        config.data_path = test_path;
+
+        auto db1 = lynx::IVectorDatabase::create(config);
+        db1->insert({1, {1.0f, 2.0f, 3.0f}, std::nullopt});
+        db1->insert({2, {4.0f, 5.0f, 6.0f}, std::nullopt});
+
+        EXPECT_EQ(db1->save(), lynx::ErrorCode::Ok);
+
+        auto db2 = lynx::IVectorDatabase::create(config);
+        EXPECT_EQ(db2->load(), lynx::ErrorCode::Ok);
+        EXPECT_EQ(db2->size(), 2);
+
+        std::system(("rm -rf " + test_path).c_str());
+    }
+}
+
+TEST(VectorDatabaseTest, SaveAndLoadLargeDatabase) {
+    const std::string test_path = "/tmp/lynx_test_save_load_006";
+    std::system(("rm -rf " + test_path).c_str());
+
+    lynx::Config config;
+    config.dimension = 128;
+    config.data_path = test_path;
+
+    // Save large database
+    {
+        auto db1 = lynx::IVectorDatabase::create(config);
+
+        // Insert 1000 vectors
+        for (uint64_t i = 1; i <= 1000; ++i) {
+            std::vector<float> vec(128);
+            for (size_t j = 0; j < 128; ++j) {
+                vec[j] = static_cast<float>(i * j);
+            }
+            db1->insert({i, vec, std::nullopt});
+        }
+
+        EXPECT_EQ(db1->size(), 1000);
+
+        // Save
+        EXPECT_EQ(db1->save(), lynx::ErrorCode::Ok);
+    }
+
+    // Load and verify
+    {
+        auto db2 = lynx::IVectorDatabase::create(config);
+        EXPECT_EQ(db2->load(), lynx::ErrorCode::Ok);
+        EXPECT_EQ(db2->size(), 1000);
+
+        // Verify IDs are present
+        EXPECT_TRUE(db2->contains(1));
+        EXPECT_TRUE(db2->contains(500));
+        EXPECT_TRUE(db2->contains(1000));
+
+        // Verify search works
+        std::vector<float> query(128, 1.0f);
+        auto search_result = db2->search(query, 10);
+        EXPECT_GT(search_result.items.size(), 0);
+    }
+
+    std::system(("rm -rf " + test_path).c_str());
+}
+
+TEST(VectorDatabaseTest, SaveAndLoadWithDifferentDistanceMetrics) {
+    const std::string test_path = "/tmp/lynx_test_save_load_007";
+
+    // Test with Cosine distance
+    {
+        std::system(("rm -rf " + test_path).c_str());
+
+        lynx::Config config;
+        config.dimension = 2;
+        config.distance_metric = lynx::DistanceMetric::Cosine;
+        config.data_path = test_path;
+
+        auto db1 = lynx::IVectorDatabase::create(config);
+        db1->insert({1, {1.0f, 0.0f}, std::nullopt});
+        db1->insert({2, {0.0f, 1.0f}, std::nullopt});
+
+        EXPECT_EQ(db1->save(), lynx::ErrorCode::Ok);
+
+        auto db2 = lynx::IVectorDatabase::create(config);
+        EXPECT_EQ(db2->load(), lynx::ErrorCode::Ok);
+        EXPECT_EQ(db2->size(), 2);
+
+        std::system(("rm -rf " + test_path).c_str());
+    }
+
+    // Test with DotProduct distance
+    {
+        std::system(("rm -rf " + test_path).c_str());
+
+        lynx::Config config;
+        config.dimension = 2;
+        config.distance_metric = lynx::DistanceMetric::DotProduct;
+        config.data_path = test_path;
+
+        auto db1 = lynx::IVectorDatabase::create(config);
+        db1->insert({1, {1.0f, 0.0f}, std::nullopt});
+        db1->insert({2, {2.0f, 0.0f}, std::nullopt});
+
+        EXPECT_EQ(db1->save(), lynx::ErrorCode::Ok);
+
+        auto db2 = lynx::IVectorDatabase::create(config);
+        EXPECT_EQ(db2->load(), lynx::ErrorCode::Ok);
+        EXPECT_EQ(db2->size(), 2);
+
+        std::system(("rm -rf " + test_path).c_str());
+    }
+}
+
+TEST(VectorDatabaseTest, LoadNonexistentPathReturnsError) {
+    const std::string test_path = "/tmp/lynx_test_nonexistent_path";
+    std::system(("rm -rf " + test_path).c_str());
+
+    lynx::Config config;
+    config.dimension = 3;
+    config.data_path = test_path;
+
+    auto db = lynx::IVectorDatabase::create(config);
+
+    // Try to load from non-existent path
+    auto result = db->load();
+    EXPECT_NE(result, lynx::ErrorCode::Ok);
+}
