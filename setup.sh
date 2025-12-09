@@ -8,6 +8,7 @@
 #   ./setup.sh clean        # Clean build directory
 #   ./setup.sh rebuild      # Clean and rebuild
 #   ./setup.sh test         # Run tests
+#   ./setup.sh coverage     # Build with coverage and generate report
 #   ./setup.sh install      # Install to system (requires sudo)
 #
 
@@ -146,6 +147,11 @@ case "${1}" in
         make release
         make test
         ;;
+    coverage)
+        check_dependencies
+        log_info "Building with coverage instrumentation..."
+        make coverage
+        ;;
     debug)
         check_dependencies
         log_info "Building debug version..."
@@ -165,7 +171,7 @@ case "${1}" in
         make info
         ;;
     *)
-        echo "Usage: $0 {release|debug|clean|rebuild|install|test|run|info}"
+        echo "Usage: $0 {release|debug|clean|rebuild|install|test|coverage|run|info}"
         exit 1
         ;;
 esac
