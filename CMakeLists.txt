@@ -109,6 +109,7 @@ endif()
 # Lynx static library
 add_library(lynx_static STATIC
         src/lib/lynx.cpp
+        src/lib/utils.cpp
         src/lib/vector_database_impl.cpp
         src/lib/vector_database_mps.cpp
         src/lib/hnsw_index.cpp
@@ -132,6 +133,7 @@ set_target_properties(lynx_static PROPERTIES
 # Lynx shared library
 add_library(lynx SHARED
         src/lib/lynx.cpp
+        src/lib/utils.cpp
         src/lib/vector_database_impl.cpp
         src/lib/vector_database_mps.cpp
         src/lib/hnsw_index.cpp

@@ -6,6 +6,7 @@
  */
 
 #include "hnsw_index.h"
+#include "lynx/utils.h"
 #include <algorithm>
 #include <cmath>
 #include <chrono>
@@ -16,72 +17,6 @@ namespace lynx {
 
 // Static member initialization
 const std::unordered_set<std::uint64_t> HNSWIndex::kEmptyNeighborSet;
-
-// Forward declarations for distance metric functions
-namespace {
-
-/**
- * @brief Calculate L2 (Euclidean) distance between two vectors.
- */
-float calculate_l2_distance(std::span<const float> a, std::span<const float> b) {
-    float sum = 0.0f;
-    for (std::size_t i = 0; i < a.size(); ++i) {
-        const float diff = a[i] - b[i];
-        sum += diff * diff;
-    }
-    return std::sqrt(sum);
-}
-
-/**
- * @brief Calculate cosine distance between two vectors.
- */
-float calculate_cosine_distance(std::span<const float> a, std::span<const float> b) {
-    float dot = 0.0f;
-    float norm_a = 0.0f;
-    float norm_b = 0.0f;
-
-    for (std::size_t i = 0; i < a.size(); ++i) {
-        dot += a[i] * b[i];
-        norm_a += a[i] * a[i];
-        norm_b += b[i] * b[i];
-    }
-
-    if (norm_a == 0.0f || norm_b == 0.0f) {
-        return 1.0f; // Maximum distance for zero vectors
-    }
-
-    return 1.0f - (dot / (std::sqrt(norm_a) * std::sqrt(norm_b)));
-}
-
-/**
- * @brief Calculate dot product distance between two vectors.
- */
-float calculate_dot_product_distance(std::span<const float> a, std::span<const float> b) {
-    float dot = 0.0f;
-    for (std::size_t i = 0; i < a.size(); ++i) {
-        dot += a[i] * b[i];
-    }
-    return -dot; // Negative because we want smaller values for closer vectors
-}
-
-/**
- * @brief Generic distance calculation dispatcher.
- */
-[[maybe_unused]]
-float calculate_distance(std::span<const float> a, std::span<const float> b, DistanceMetric metric) {
-    switch (metric) {
-        case DistanceMetric::L2:
-            return calculate_l2_distance(a, b);
-        case DistanceMetric::Cosine:
-            return calculate_cosine_distance(a, b);
-        case DistanceMetric::DotProduct:
-            return calculate_dot_product_distance(a, b);
-        default:
-            return calculate_l2_distance(a, b);
-    }
-}
-
-} // anonymous namespace
 
 // ============================================================================
 // Constructor
@@ -127,7 +62,7 @@ float HNSWIndex::calculate_distance(std::span<const float> query, std::uint64_t 
     if (it == vectors_.end()) {
         return std::numeric_limits<float>::max();
     }
-    return ::lynx::calculate_distance(query, it->second, metric_);
+    return utils::calculate_distance(query, it->second, metric_);
 }
 
 float HNSWIndex::calculate_distance(std::uint64_t id1, std::uint64_t id2) const {
@@ -136,7 +71,7 @@ float HNSWIndex::calculate_distance(std::uint64_t id1, std::uint64_t id2) const 
     if (it1 == vectors_.end() || it2 == vectors_.end()) {
         return std::numeric_limits<float>::max();
     }
-    return ::lynx::calculate_distance(it1->second, it2->second, metric_);
+    return utils::calculate_distance(it1->second, it2->second, metric_);
 }
 
 // ============================================================================
