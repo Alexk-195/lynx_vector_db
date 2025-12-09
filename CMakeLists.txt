@@ -37,7 +37,7 @@ option(LYNX_ENABLE_COVERAGE "Enable code coverage reporting" OFF)
 if(LYNX_ENABLE_COVERAGE)
     if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
         message(STATUS "Code coverage enabled")
-        add_compile_options(--coverage -fprofile-arcs -ftest-coverage)
+        add_compile_options(--coverage -fprofile-arcs -ftest-coverage -Wno-sign-compare)
         add_link_options(--coverage)
     else()
         message(WARNING "Code coverage not supported for compiler: ${CMAKE_CXX_COMPILER_ID}")
@@ -226,6 +226,9 @@ if(LYNX_BUILD_TESTS)
     target_include_directories(lynx_tests PRIVATE
         ${CMAKE_SOURCE_DIR}/src/include
     )
+
+    # Disable -Wsign-compare for tests (GoogleTest generates these warnings)
+    target_compile_options(lynx_tests PRIVATE -Wno-sign-compare)
 
     # Add tests to CTest
     include(GoogleTest)

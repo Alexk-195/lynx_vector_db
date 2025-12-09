@@ -126,6 +126,7 @@ struct HNSWParams {
     std::size_t ef_construction = 200;   ///< Expansion factor during construction
     std::size_t ef_search = 50;          ///< Default expansion factor during search
     std::size_t max_elements = 1000000;  ///< Maximum number of elements
+    std::optional<std::uint64_t> random_seed = std::nullopt;  ///< Random seed (nullopt = non-deterministic)
 };
 
 /**

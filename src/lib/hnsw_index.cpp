@@ -28,7 +28,7 @@ HNSWIndex::HNSWIndex(std::size_t dimension, DistanceMetric metric, const HNSWPar
     , params_(params)
     , entry_point_(kInvalidId)
     , entry_point_layer_(0)
-    , rng_(std::random_device{}())
+    , rng_(params.random_seed.has_value() ? params.random_seed.value() : std::random_device{}())
     , level_dist_(0.0, 1.0)
     , ml_(1.0 / std::log(params.m)) {
 }
