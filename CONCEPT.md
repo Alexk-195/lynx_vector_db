@@ -136,6 +136,23 @@ struct RemoveMessage : DatabaseMessage { ... };
 | Cosine | `1 - (a·b)/(|a|*|b|)` | Normalized vectors, text embeddings |
 | Dot Product | `-a·b` | When vectors are pre-normalized |
 
+### Distance Function Implementation
+
+All distance metric calculations are centralized in `utils.h` and `utils.cpp` to avoid code duplication:
+
+- **Location**: `src/include/lynx/utils.h` and `src/lib/utils.cpp`
+- **Functions**:
+  - `utils::calculate_l2_squared()` - Squared L2 distance (faster, no sqrt)
+  - `utils::calculate_l2()` - L2 (Euclidean) distance
+  - `utils::calculate_cosine()` - Cosine distance
+  - `utils::calculate_dot_product()` - Negative dot product
+  - `utils::calculate_distance()` - Generic dispatcher based on metric type
+
+These utility functions are used by:
+- **Public API** (`lynx.cpp`): Exposes distance functions to library users
+- **HNSW Index** (`hnsw_index.cpp`): Internal distance calculations for graph operations
+- **Future indices**: Any new index implementations can reuse these optimized functions
+
 ## Index Algorithms
 
 ### HNSW (Primary)
