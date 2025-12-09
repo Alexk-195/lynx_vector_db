@@ -5,7 +5,6 @@ A high-performance vector database implemented in modern C++20 with support for 
 ## Features
 
 - **HNSW Index**: Hierarchical Navigable Small World graphs for O(log N) query time
-- **IVF Index**: Inverted File Index for memory-efficient search (planned)
 - **Multi-threaded**: Built on MPS (Message Processing System) for concurrent operations
 - **Modern C++20**: Concepts, spans, ranges, and coroutines
 - **Flexible Distance Metrics**: L2 (Euclidean), Cosine, Dot Product
@@ -68,6 +67,7 @@ export MPS_DIR=/path/to/mps
 ./setup.sh rebuild  # Clean and rebuild
 ./setup.sh test     # Run unit tests
 ./setup.sh install  # Install to system (requires sudo)
+./setup.sh coverage  # Do test coverage
 ```
 
 ### Build Options - Make
@@ -113,33 +113,7 @@ sudo cmake --install .
 
 ## Usage
 
-```cpp
-#include <lynx/lynx.h>
-
-int main() {
-    // Create database configuration
-    lynx::Config config;
-    config.dimension = 128;
-    config.index_type = lynx::IndexType::HNSW;
-    config.distance_metric = lynx::DistanceMetric::L2;
-
-    // Create database instance
-    auto db = lynx::create_database(config);
-
-    // Insert vectors
-    std::vector<float> vec(128, 0.5f);
-    db->insert(1, vec);
-
-    // Search for nearest neighbors
-    auto results = db->search(vec, 10);  // k=10
-
-    for (const auto& [id, distance] : results) {
-        std::cout << "ID: " << id << ", Distance: " << distance << "\n";
-    }
-
-    return 0;
-}
-```
+For minimal example see [src/main_minimal.cpp](src/main_minimal.cpp)
 
 ## Project Structure
 
@@ -160,7 +134,7 @@ lynx_vector_db/
 │   │       └── lynx.h   # Public interface
 │   ├── lib/
 │   │   └── ...          # Implementation files
-│   └── main.cpp         # Example executable
+│   └── main_minimal.cpp         # Example of minimal database executable
 └── tests/
     └── ...              # Unit tests
 ```
@@ -170,27 +144,18 @@ lynx_vector_db/
 Lynx uses a layered architecture:
 
 1. **API Layer**: Pure virtual interface (`IVectorDatabase`)
-2. **Index Layer**: HNSW, IVF implementations
+2. **Index Layer**: HNSW implementations
 3. **Threading Layer**: MPS pools and workers
 4. **Storage Layer**: Memory-mapped persistence
 
 See [CONCEPT.md](CONCEPT.md) for detailed design documentation.
-
-## Performance
-
-| Dataset Size | Index Type | Recall@10 | Query Latency (p99) |
-|-------------|------------|-----------|---------------------|
-| 1M vectors  | HNSW       | 0.95+     | < 5ms               |
-| 10M vectors | HNSW       | 0.95+     | < 20ms              |
-| 1B vectors  | HNSW       | 0.84-0.99 | 16-32ms             |
-
-*Benchmarks based on research analysis. Actual performance may vary.*
 
 ## Documentation
 
 - [CONCEPT.md](CONCEPT.md) - Design concept and implementation phases
 - [STATE.md](STATE.md) - Current implementation state
 - [doc/research.md](doc/research.md) - ANN algorithm research
+- [tests/README.md](tests/README.md) - Infos about unit testing
 
 ## Contributing
 
@@ -203,8 +168,3 @@ See [CONCEPT.md](CONCEPT.md) for detailed design documentation.
 
 MIT License - see [LICENSE](LICENSE) for details.
 
-## Acknowledgments
-
-- MPS library by Alexk-195
-- HNSW algorithm research papers
-- Vector database community
