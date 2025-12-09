@@ -670,3 +670,369 @@ TEST_F(HNSWIndexTest, OptimizeGraphPreservesSearchability) {
         EXPECT_EQ(results_before[0].id, results_after[0].id);
     }
 }
+
+// ============================================================================
+// Index Compaction Tests
+// ============================================================================
+
+TEST_F(HNSWIndexTest, CompactIndexEmpty) {
+    HNSWIndex index(3, DistanceMetric::L2, params_);
+
+    // Compacting empty index should succeed
+    ErrorCode err = index.compact_index();
+    EXPECT_EQ(err, ErrorCode::Ok);
+    EXPECT_EQ(index.size(), 0);
+}
+
+TEST_F(HNSWIndexTest, CompactIndexNormalOperation) {
+    HNSWIndex index(3, DistanceMetric::L2, params_);
+
+    // Add some vectors
+    std::vector<float> vec1 = {1.0f, 0.0f, 0.0f};
+    std::vector<float> vec2 = {0.0f, 1.0f, 0.0f};
+    std::vector<float> vec3 = {0.0f, 0.0f, 1.0f};
+
+    index.add(1, vec1);
+    index.add(2, vec2);
+    index.add(3, vec3);
+
+    std::size_t size_before = index.size();
+
+    // Compact should succeed without removing anything
+    ErrorCode err = index.compact_index();
+    EXPECT_EQ(err, ErrorCode::Ok);
+    EXPECT_EQ(index.size(), size_before);
+
+    // All vectors should still be present
+    EXPECT_TRUE(index.contains(1));
+    EXPECT_TRUE(index.contains(2));
+    EXPECT_TRUE(index.contains(3));
+}
+
+TEST_F(HNSWIndexTest, CompactIndexAfterRemovals) {
+    constexpr std::size_t dim = 8;
+    constexpr std::size_t num_vectors = 20;
+
+    std::mt19937 rng(42);
+    HNSWIndex index(dim, DistanceMetric::L2, params_);
+
+    // Insert vectors
+    for (std::uint64_t i = 0; i < num_vectors; ++i) {
+        auto vec = generate_random_vector(dim, rng);
+        index.add(i, vec);
+    }
+
+    // Remove some vectors
+    for (std::uint64_t i = 0; i < num_vectors; i += 3) {
+        index.remove(i);
+    }
+
+    std::size_t size_after_removals = index.size();
+
+    // Compact the index
+    ErrorCode err = index.compact_index();
+    EXPECT_EQ(err, ErrorCode::Ok);
+
+    // Size should remain the same (compact doesn't remove valid data)
+    EXPECT_EQ(index.size(), size_after_removals);
+
+    // Verify remaining vectors are still searchable
+    auto query = generate_random_vector(dim, rng);
+    SearchParams search_params;
+    auto results = index.search(query, 5, search_params);
+
+    // Should get some results
+    EXPECT_GT(results.size(), 0);
+
+    // All results should be valid (not the removed ones)
+    for (const auto& result : results) {
+        EXPECT_NE(result.id % 3, 0); // Removed IDs were multiples of 3
+    }
+}
+
+TEST_F(HNSWIndexTest, CompactIndexPreservesSearchQuality) {
+    constexpr std::size_t dim = 16;
+    constexpr std::size_t num_vectors = 50;
+
+    std::mt19937 rng(123);
+    HNSWIndex index(dim, DistanceMetric::L2, params_);
+
+    // Insert vectors and keep track of them
+    std::vector<std::pair<std::uint64_t, std::vector<float>>> vectors;
+    for (std::uint64_t i = 0; i < num_vectors; ++i) {
+        auto vec = generate_random_vector(dim, rng);
+        vectors.push_back({i, vec});
+        index.add(i, vec);
+    }
+
+    // Perform search before compaction
+    auto query = generate_random_vector(dim, rng);
+    SearchParams search_params;
+    auto results_before = index.search(query, 10, search_params);
+
+    // Compact the index
+    ErrorCode err = index.compact_index();
+    EXPECT_EQ(err, ErrorCode::Ok);
+
+    // Perform same search after compaction
+    auto results_after = index.search(query, 10, search_params);
+
+    // Results should be identical (compaction shouldn't change search results)
+    EXPECT_EQ(results_before.size(), results_after.size());
+
+    // Check that the same IDs are returned
+    std::unordered_set<std::uint64_t> ids_before;
+    std::unordered_set<std::uint64_t> ids_after;
+
+    for (const auto& result : results_before) {
+        ids_before.insert(result.id);
+    }
+    for (const auto& result : results_after) {
+        ids_after.insert(result.id);
+    }
+
+    EXPECT_EQ(ids_before, ids_after);
+}
+
+// ============================================================================
+// Serialization Tests
+// ============================================================================
+
+TEST_F(HNSWIndexTest, SerializeDeserializeEmpty) {
+    HNSWIndex index1(3, DistanceMetric::L2, params_);
+
+    // Serialize empty index
+    std::stringstream ss;
+    ErrorCode err = index1.serialize(ss);
+    EXPECT_EQ(err, ErrorCode::Ok);
+
+    // Deserialize into new index
+    HNSWIndex index2(3, DistanceMetric::L2, params_);
+    err = index2.deserialize(ss);
+    EXPECT_EQ(err, ErrorCode::Ok);
+
+    // Both should be empty
+    EXPECT_EQ(index1.size(), 0);
+    EXPECT_EQ(index2.size(), 0);
+    EXPECT_EQ(index1.dimension(), index2.dimension());
+}
+
+TEST_F(HNSWIndexTest, SerializeDeserializeSimple) {
+    HNSWIndex index1(3, DistanceMetric::L2, params_);
+
+    // Add a few vectors
+    std::vector<float> vec1 = {1.0f, 0.0f, 0.0f};
+    std::vector<float> vec2 = {0.0f, 1.0f, 0.0f};
+    std::vector<float> vec3 = {0.0f, 0.0f, 1.0f};
+
+    index1.add(1, vec1);
+    index1.add(2, vec2);
+    index1.add(3, vec3);
+
+    // Serialize
+    std::stringstream ss;
+    ErrorCode err = index1.serialize(ss);
+    EXPECT_EQ(err, ErrorCode::Ok);
+
+    // Deserialize into new index
+    HNSWIndex index2(3, DistanceMetric::L2, params_);
+    err = index2.deserialize(ss);
+    EXPECT_EQ(err, ErrorCode::Ok);
+
+    // Check that both have same size and contain same vectors
+    EXPECT_EQ(index1.size(), index2.size());
+    EXPECT_EQ(index1.dimension(), index2.dimension());
+
+    EXPECT_TRUE(index2.contains(1));
+    EXPECT_TRUE(index2.contains(2));
+    EXPECT_TRUE(index2.contains(3));
+}
+
+TEST_F(HNSWIndexTest, SerializeDeserializeLarger) {
+    constexpr std::size_t dim = 16;
+    constexpr std::size_t num_vectors = 100;
+
+    std::mt19937 rng(42);
+    HNSWIndex index1(dim, DistanceMetric::L2, params_);
+
+    // Insert vectors
+    std::vector<std::pair<std::uint64_t, std::vector<float>>> vectors;
+    for (std::uint64_t i = 0; i < num_vectors; ++i) {
+        auto vec = generate_random_vector(dim, rng);
+        vectors.push_back({i, vec});
+        index1.add(i, vec);
+    }
+
+    // Serialize
+    std::stringstream ss;
+    ErrorCode err = index1.serialize(ss);
+    EXPECT_EQ(err, ErrorCode::Ok);
+
+    // Deserialize into new index
+    HNSWIndex index2(dim, DistanceMetric::L2, params_);
+    err = index2.deserialize(ss);
+    EXPECT_EQ(err, ErrorCode::Ok);
+
+    // Check that both have same size
+    EXPECT_EQ(index1.size(), index2.size());
+    EXPECT_EQ(index1.dimension(), index2.dimension());
+
+    // Check that all vectors are present
+    for (std::uint64_t i = 0; i < num_vectors; ++i) {
+        EXPECT_TRUE(index2.contains(i));
+    }
+}
+
+TEST_F(HNSWIndexTest, DeserializePreservesSearchQuality) {
+    constexpr std::size_t dim = 16;
+    constexpr std::size_t num_vectors = 100;
+    constexpr std::size_t k = 10;
+
+    std::mt19937 rng(42);
+    HNSWIndex index1(dim, DistanceMetric::L2, params_);
+
+    // Insert vectors and keep track of them
+    std::vector<std::pair<std::uint64_t, std::vector<float>>> vectors;
+    for (std::uint64_t i = 0; i < num_vectors; ++i) {
+        auto vec = generate_random_vector(dim, rng);
+        vectors.push_back({i, vec});
+        index1.add(i, vec);
+    }
+
+    // Serialize
+    std::stringstream ss;
+    ErrorCode err = index1.serialize(ss);
+    EXPECT_EQ(err, ErrorCode::Ok);
+
+    // Deserialize into new index
+    HNSWIndex index2(dim, DistanceMetric::L2, params_);
+    err = index2.deserialize(ss);
+    EXPECT_EQ(err, ErrorCode::Ok);
+
+    // Compare search results
+    std::size_t total_recall = 0;
+    constexpr std::size_t num_queries = 10;
+
+    for (std::size_t q = 0; q < num_queries; ++q) {
+        auto query = generate_random_vector(dim, rng);
+
+        SearchParams search_params;
+        auto results1 = index1.search(query, k, search_params);
+        auto results2 = index2.search(query, k, search_params);
+
+        // Results should be identical
+        EXPECT_EQ(results1.size(), results2.size());
+
+        // Check that same IDs are in the results
+        std::unordered_set<std::uint64_t> ids1;
+        for (const auto& result : results1) {
+            ids1.insert(result.id);
+        }
+
+        for (const auto& result : results2) {
+            if (ids1.count(result.id)) {
+                total_recall++;
+            }
+        }
+    }
+
+    // Should have perfect or near-perfect recall
+    double recall = static_cast<double>(total_recall) / (num_queries * k);
+    EXPECT_GT(recall, 0.95); // At least 95% recall
+}
+
+TEST_F(HNSWIndexTest, DeserializeDimensionMismatch) {
+    HNSWIndex index1(3, DistanceMetric::L2, params_);
+
+    // Add a vector
+    std::vector<float> vec = {1.0f, 2.0f, 3.0f};
+    index1.add(1, vec);
+
+    // Serialize
+    std::stringstream ss;
+    ErrorCode err = index1.serialize(ss);
+    EXPECT_EQ(err, ErrorCode::Ok);
+
+    // Try to deserialize into index with different dimension
+    HNSWIndex index2(4, DistanceMetric::L2, params_); // Different dimension!
+    err = index2.deserialize(ss);
+    EXPECT_EQ(err, ErrorCode::DimensionMismatch);
+
+    // index2 should remain empty after failed deserialization
+    EXPECT_EQ(index2.size(), 0);
+}
+
+TEST_F(HNSWIndexTest, SerializeDeserializeWithDifferentMetrics) {
+    constexpr std::size_t dim = 8;
+
+    // Test with L2 metric
+    {
+        HNSWIndex index1(dim, DistanceMetric::L2, params_);
+        std::vector<float> vec = {1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f};
+        index1.add(1, vec);
+
+        std::stringstream ss;
+        EXPECT_EQ(index1.serialize(ss), ErrorCode::Ok);
+
+        HNSWIndex index2(dim, DistanceMetric::L2, params_);
+        EXPECT_EQ(index2.deserialize(ss), ErrorCode::Ok);
+        EXPECT_TRUE(index2.contains(1));
+    }
+
+    // Test with Cosine metric
+    {
+        HNSWIndex index1(dim, DistanceMetric::Cosine, params_);
+        std::vector<float> vec = {1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f};
+        index1.add(1, vec);
+
+        std::stringstream ss;
+        EXPECT_EQ(index1.serialize(ss), ErrorCode::Ok);
+
+        HNSWIndex index2(dim, DistanceMetric::Cosine, params_);
+        EXPECT_EQ(index2.deserialize(ss), ErrorCode::Ok);
+        EXPECT_TRUE(index2.contains(1));
+    }
+
+    // Test with DotProduct metric
+    {
+        HNSWIndex index1(dim, DistanceMetric::DotProduct, params_);
+        std::vector<float> vec = {1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f};
+        index1.add(1, vec);
+
+        std::stringstream ss;
+        EXPECT_EQ(index1.serialize(ss), ErrorCode::Ok);
+
+        HNSWIndex index2(dim, DistanceMetric::DotProduct, params_);
+        EXPECT_EQ(index2.deserialize(ss), ErrorCode::Ok);
+        EXPECT_TRUE(index2.contains(1));
+    }
+}
+
+TEST_F(HNSWIndexTest, SerializeDeserializePreservesParameters) {
+    constexpr std::size_t dim = 8;
+
+    // Create index with custom parameters
+    HNSWParams custom_params;
+    custom_params.m = 32;
+    custom_params.ef_construction = 400;
+    custom_params.ef_search = 100;
+    custom_params.max_elements = 500000;
+
+    HNSWIndex index1(dim, DistanceMetric::L2, custom_params);
+
+    // Add a vector
+    std::vector<float> vec = {1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f};
+    index1.add(1, vec);
+
+    // Serialize
+    std::stringstream ss;
+    EXPECT_EQ(index1.serialize(ss), ErrorCode::Ok);
+
+    // Deserialize into new index with default parameters
+    HNSWIndex index2(dim, DistanceMetric::L2, params_);
+    EXPECT_EQ(index2.deserialize(ss), ErrorCode::Ok);
+
+    // The deserialized index should now have the custom parameters
+    EXPECT_TRUE(index2.contains(1));
+    EXPECT_EQ(index2.size(), 1);
+}
