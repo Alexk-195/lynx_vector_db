@@ -255,6 +255,191 @@ enum class ErrorCode {
 };
 ```
 
+## Code Coverage
+
+### Overview
+
+Code coverage is a critical quality metric that measures the degree to which source code is executed during testing. For Lynx, maintaining high code coverage ensures reliability, aids in refactoring, and helps identify untested edge cases in the vector database implementation.
+
+### Coverage Targets
+
+| Component | Target Coverage | Priority |
+|-----------|----------------|----------|
+| Public APIs (IVectorDatabase) | 95-100% | Critical |
+| Index Implementations (HNSW) | 90-95% | High |
+| Distance Metrics | 95-100% | High |
+| MPS Workers & Messages | 85-90% | High |
+| Storage/Persistence | 85-90% | Medium |
+| Utility Functions | 80-85% | Medium |
+
+**Overall Project Target**: 85-90% line coverage, 75-80% branch coverage
+
+### Coverage Types
+
+1. **Line Coverage**: Percentage of code lines executed
+   - Primary metric for overall code quality
+   - Easiest to achieve and interpret
+
+2. **Branch Coverage**: Percentage of decision branches taken
+   - Critical for conditional logic (if/else, switch)
+   - Ensures both true and false paths are tested
+   - Harder to achieve than line coverage
+
+3. **Function Coverage**: Percentage of functions called
+   - Ensures all public APIs are exercised
+   - Should be near 100% for public interfaces
+
+4. **Region Coverage**: LLVM-specific, tracks code regions
+   - Useful for identifying complex untested blocks
+
+### Tools and Integration
+
+#### GCC/G++ (gcov + lcov)
+
+```bash
+# Build with coverage flags
+cmake -DCMAKE_BUILD_TYPE=Debug \
+      -DCMAKE_CXX_FLAGS="--coverage -fprofile-arcs -ftest-coverage" \
+      -B build-coverage
+
+# Run tests
+./build-coverage/bin/lynx_tests
+
+# Generate coverage report
+lcov --capture --directory build-coverage --output-file coverage.info
+lcov --remove coverage.info '/usr/*' '*/external/*' '*/tests/*' --output-file coverage.info
+genhtml coverage.info --output-directory coverage_report
+```
+
+#### Clang/LLVM (llvm-cov)
+
+```bash
+# Build with coverage flags
+cmake -DCMAKE_BUILD_TYPE=Debug \
+      -DCMAKE_CXX_FLAGS="-fprofile-instr-generate -fcoverage-mapping" \
+      -B build-coverage
+
+# Run tests (generates profraw files)
+LLVM_PROFILE_FILE="lynx_%p.profraw" ./build-coverage/bin/lynx_tests
+
+# Merge profile data
+llvm-profdata merge -sparse lynx_*.profraw -o lynx.profdata
+
+# Generate HTML report
+llvm-cov show ./build-coverage/bin/lynx_tests \
+         -instr-profile=lynx.profdata \
+         -format=html -output-dir=coverage_report \
+         -ignore-filename-regex='(tests|external)'
+```
+
+### Build System Integration
+
+Add to `CMakeLists.txt`:
+
+```cmake
+option(LYNX_ENABLE_COVERAGE "Enable code coverage reporting" OFF)
+
+if(LYNX_ENABLE_COVERAGE)
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+        add_compile_options(--coverage -fprofile-arcs -ftest-coverage)
+        add_link_options(--coverage)
+    else()
+        message(WARNING "Code coverage not supported for this compiler")
+    endif()
+endif()
+```
+
+Add to `setup.sh`:
+
+```bash
+coverage)
+    check_dependencies
+    log_info "Building with coverage instrumentation..."
+    make coverage
+    ;;
+```
+
+### Coverage Exclusions
+
+Certain code should be excluded from coverage metrics:
+
+1. **Test Code**: `tests/` directory
+2. **External Dependencies**: `external/`, `/usr/include/*`
+3. **Generated Code**: Auto-generated headers/sources
+4. **Debug/Assertion Code**: Should be tested separately
+5. **Unreachable Error Paths**: Some defensive checks
+
+### Interpreting Coverage Data
+
+#### Good Coverage Indicators
+
+- All public API methods tested
+- Both success and failure paths covered
+- Edge cases (empty vectors, dimension=1, large N) tested
+- Concurrent access patterns validated
+
+#### Coverage Gaps to Investigate
+
+- **Untested Error Handling**: Exception paths, validation failures
+- **Missing Edge Cases**: Boundary conditions, empty inputs
+- **Race Conditions**: Concurrent scenarios not covered
+- **Platform-Specific Code**: SIMD fallbacks, OS differences
+
+### Coverage in CI/CD
+
+#### Pull Request Checks
+
+1. **Coverage Diff**: Ensure new code is adequately tested
+   - Fail if new code has <70% coverage
+   - Report coverage change in PR comments
+
+2. **Overall Coverage**: Track project-wide trends
+   - Warn if total coverage drops >2%
+   - Block merge if coverage drops >5%
+
+3. **Critical Path Coverage**: Must-test components
+   - IVectorDatabase interface: 100%
+   - HNSW search/insert: 95%
+   - Distance calculations: 100%
+
+#### Nightly Builds
+
+- Full coverage report generation
+- Historical coverage tracking
+- Coverage badge generation for README
+- Email/Slack notifications on significant drops
+
+### Best Practices
+
+1. **Write Tests First**: TDD approach ensures coverage
+2. **Test Public Contracts**: Focus on API behavior, not internals
+3. **Cover Error Paths**: Test validation, exceptions, edge cases
+4. **Avoid Coverage Gaming**: Don't write tests just to hit lines
+5. **Review Uncovered Code**: Regularly audit low-coverage areas
+6. **Use Coverage as Guide**: High coverage ≠ good tests, but helps identify gaps
+
+### Implementation Roadmap
+
+1. **Phase 1**: Setup tooling (gcov/lcov or llvm-cov)
+   - Add CMake options
+   - Integrate with setup.sh
+   - Generate baseline report
+
+2. **Phase 2**: Improve critical path coverage
+   - IVectorDatabase: 100%
+   - Distance metrics: 100%
+   - HNSW core algorithms: 95%
+
+3. **Phase 3**: CI/CD integration
+   - GitHub Actions workflow
+   - Coverage reporting
+   - PR diff coverage
+
+4. **Phase 4**: Maintenance
+   - Regular coverage audits
+   - Address gaps in low-coverage areas
+   - Keep targets updated as code evolves
+
 ## Future Considerations
 
 - **GPU Acceleration**: CUDA/OpenCL for distance calculations
