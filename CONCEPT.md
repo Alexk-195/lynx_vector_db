@@ -399,7 +399,7 @@ Certain code should be excluded from coverage metrics:
 
 3. **Critical Path Coverage**: Must-test components
    - IVectorDatabase interface: 100%
-   - HNSW search/insert: 95%
+   - HNSW search/insert: 100%
    - Distance calculations: 100%
 
 #### Nightly Builds
@@ -428,7 +428,7 @@ Certain code should be excluded from coverage metrics:
 2. **Phase 2**: Improve critical path coverage
    - IVectorDatabase: 100%
    - Distance metrics: 100%
-   - HNSW core algorithms: 95%
+   - HNSW core algorithms: 100%
 
 3. **Phase 3**: CI/CD integration
    - GitHub Actions workflow
