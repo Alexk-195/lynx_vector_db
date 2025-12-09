@@ -124,6 +124,7 @@ lynx_vector_db/
 ├── CLAUDE.md            # AI assistant instructions
 ├── CONCEPT.md           # Architecture and design
 ├── STATE.md             # Implementation status
+├── TODOS.md             # Current Todos to implement
 ├── README.md            # This file
 ├── LICENSE              # MIT License
 ├── doc/
