@@ -83,7 +83,7 @@ std::vector<SearchResultItem> brute_force_search(
     const std::vector<std::pair<std::uint64_t, std::vector<float>>>& vectors,
     std::size_t k,
     DistanceMetric metric = DistanceMetric::L2) {
-
+    (void)metric;
     std::vector<SearchResultItem> results;
     results.reserve(vectors.size());
 
@@ -592,7 +592,8 @@ TEST_F(HNSWIndexTest, OptimizeGraphLargeIndex) {
 
     // Get memory usage before optimization
     std::size_t memory_before = index.memory_usage();
-
+    (void)memory_before;
+    
     // Optimize the graph
     ErrorCode err = index.optimize_graph();
     EXPECT_EQ(err, ErrorCode::Ok);
