@@ -1,5 +1,6 @@
 # Build artifacts
 build/
+build-coverage/
 cmake-build/
 cmake-build-debug/
 cmake-build-release/
@@ -7,6 +8,15 @@ cmake-build-release/
 *.a
 *.so
 *.dylib
+
+# Code coverage artifacts
+coverage_report/
+coverage.info
+*.gcda
+*.gcno
+*.gcov
+*.profraw
+*.profdata
 
 # External dependencies
 external/
