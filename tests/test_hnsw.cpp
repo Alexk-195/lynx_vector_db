@@ -25,6 +25,7 @@ protected:
         params_.ef_construction = 200;
         params_.ef_search = 50;
         params_.max_elements = 1000000;
+        params_.random_seed = 42;  // Fixed seed for reproducible tests
     }
 
     HNSWParams params_;
