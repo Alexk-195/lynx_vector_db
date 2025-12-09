@@ -13,6 +13,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+    - name: setup
+      run: ./setup.sh
     - name: make
       run: make
 
