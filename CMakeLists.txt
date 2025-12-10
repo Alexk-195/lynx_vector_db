@@ -37,7 +37,7 @@ option(LYNX_ENABLE_COVERAGE "Enable code coverage reporting" OFF)
 if(LYNX_ENABLE_COVERAGE)
     if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
         message(STATUS "Code coverage enabled")
-        add_compile_options(--coverage -fprofile-arcs -ftest-coverage -Wno-sign-compare)
+        add_compile_options(--coverage -fprofile-arcs -ftest-coverage -Wno-sign-compare -fprofile-update=atomic)
         add_link_options(--coverage)
     else()
         message(WARNING "Code coverage not supported for compiler: ${CMAKE_CXX_COMPILER_ID}")
@@ -99,10 +99,10 @@ else()
     message(FATAL_ERROR
         "MPS library not found!\n"
         "Please either:\n"
-        "  1. Set MPS_PATH environment variable: export MPS_PATH=/path/to/mps\n"
-        "  2. Set MPS_DIR environment variable: export MPS_DIR=/path/to/mps\n"
-        "  3. Run ./setup.sh to automatically clone MPS to external/mps\n"
-        "  4. Manually clone MPS: git clone https://github.com/Alexk-195/mps.git external/mps"
+        "   1. Set MPS_PATH environment variable: export MPS_PATH=/path/to/mps\n"
+        "   2. Set MPS_DIR environment variable: export MPS_DIR=/path/to/mps\n"
+        "   3. Run ./setup.sh to automatically clone MPS to external/mps\n"
+        "   4. Manually clone MPS: git clone https://github.com/Alexk-195/mps.git external/mps"
     )
 endif()
 
@@ -257,6 +257,7 @@ if(LYNX_BUILD_TESTS)
         COMMAND ${CMAKE_COMMAND}
             -DSOURCE_DIR=${CMAKE_SOURCE_DIR}
             -DBINARY_DIR=${CMAKE_BINARY_DIR}
+            -DCOVERAGE_ROOT_DIR=${CMAKE_SOURCE_DIR}/src # <--- NEW: Limit coverage reporting to the 'src' directory
             -P ${CMAKE_SOURCE_DIR}/cmake/GenerateCoverage.cmake
         DEPENDS lynx_tests
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
@@ -276,21 +277,21 @@ if(LYNX_BUILD_TESTS)
 
     if(LYNX_ENABLE_COVERAGE)
         message(STATUS "Coverage reporting enabled")
-        message(STATUS "  Run tests:        make test or ctest")
-        message(STATUS "  Generate report:  make coverage-report")
-        message(STATUS "  Clean coverage:   make clean-coverage")
+        message(STATUS "   Run tests:       make test or ctest")
+        message(STATUS "   Generate report: make coverage-report")
+        message(STATUS "   Clean coverage:  make clean-coverage")
     endif()
 endif()
 
 # Print configuration summary
 message(STATUS "")
 message(STATUS "Lynx Vector Database Configuration:")
-message(STATUS "  Version:          ${PROJECT_VERSION}")
-message(STATUS "  Build type:       ${CMAKE_BUILD_TYPE}")
-message(STATUS "  C++ Standard:     ${CMAKE_CXX_STANDARD}")
-message(STATUS "  Install prefix:   ${CMAKE_INSTALL_PREFIX}")
-message(STATUS "  Build tests:      ${LYNX_BUILD_TESTS}")
-message(STATUS "  Build benchmarks: ${LYNX_BUILD_BENCHMARKS}")
-message(STATUS "  Use SIMD:         ${LYNX_USE_SIMD}")
-message(STATUS "  Code coverage:    ${LYNX_ENABLE_COVERAGE}")
+message(STATUS "   Version:           ${PROJECT_VERSION}")
+message(STATUS "   Build type:        ${CMAKE_BUILD_TYPE}")
+message(STATUS "   C++ Standard:      ${CMAKE_CXX_STANDARD}")
+message(STATUS "   Install prefix:    ${CMAKE_INSTALL_PREFIX}")
+message(STATUS "   Build tests:       ${LYNX_BUILD_TESTS}")
+message(STATUS "   Build benchmarks:  ${LYNX_BUILD_BENCHMARKS}")
+message(STATUS "   Use SIMD:          ${LYNX_USE_SIMD}")
+message(STATUS "   Code coverage:     ${LYNX_ENABLE_COVERAGE}")
 message(STATUS "")
