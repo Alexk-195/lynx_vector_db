@@ -249,6 +249,39 @@ if(LYNX_BUILD_TESTS)
     message(STATUS "Tests enabled - use 'make test' or 'make check' to run")
 endif()
 
+# Code coverage targets
+if(LYNX_BUILD_TESTS)
+    # Coverage report generation target
+    add_custom_target(coverage-report
+        COMMAND ${CMAKE_COMMAND} -E echo "Generating coverage report..."
+        COMMAND ${CMAKE_COMMAND}
+            -DSOURCE_DIR=${CMAKE_SOURCE_DIR}
+            -DBINARY_DIR=${CMAKE_BINARY_DIR}
+            -P ${CMAKE_SOURCE_DIR}/cmake/GenerateCoverage.cmake
+        DEPENDS lynx_tests
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+        COMMENT "Generating code coverage report..."
+    )
+
+    # Clean coverage artifacts
+    add_custom_target(clean-coverage
+        COMMAND ${CMAKE_COMMAND} -E echo "Cleaning coverage artifacts..."
+        COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_SOURCE_DIR}/coverage_report
+        COMMAND ${CMAKE_COMMAND} -E remove -f ${CMAKE_SOURCE_DIR}/coverage.info
+        COMMAND ${CMAKE_COMMAND} -E remove -f ${CMAKE_BINARY_DIR}/*.profraw
+        COMMAND ${CMAKE_COMMAND} -E remove -f ${CMAKE_BINARY_DIR}/*.profdata
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+        COMMENT "Cleaning coverage artifacts..."
+    )
+
+    if(LYNX_ENABLE_COVERAGE)
+        message(STATUS "Coverage reporting enabled")
+        message(STATUS "  Run tests:        make test or ctest")
+        message(STATUS "  Generate report:  make coverage-report")
+        message(STATUS "  Clean coverage:   make clean-coverage")
+    endif()
+endif()
+
 # Print configuration summary
 message(STATUS "")
 message(STATUS "Lynx Vector Database Configuration:")

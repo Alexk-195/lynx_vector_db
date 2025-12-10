@@ -150,7 +150,35 @@ case "${1}" in
     coverage)
         check_dependencies
         log_info "Building with coverage instrumentation..."
-        make coverage
+
+        # Clean previous coverage build
+        rm -rf build-coverage coverage_report coverage.info
+
+        # Create coverage build directory
+        mkdir -p build-coverage
+        cd build-coverage
+
+        # Configure with coverage enabled
+        log_info "Configuring CMake with coverage..."
+        cmake -DCMAKE_BUILD_TYPE=Debug \
+              -DLYNX_ENABLE_COVERAGE=ON \
+              -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+              ..
+
+        # Build the project
+        log_info "Building project with coverage..."
+        cmake --build . -j$(nproc 2>/dev/null || echo 4)
+
+        # Run tests with coverage
+        log_info "Running tests with coverage..."
+        ctest --output-on-failure || log_warn "Some tests failed"
+
+        # Generate coverage report
+        log_info "Generating coverage report..."
+        cmake --build . --target coverage-report
+
+        cd ..
+        log_info "Coverage build complete"
         ;;
     debug)
         check_dependencies
