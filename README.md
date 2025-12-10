@@ -128,14 +128,15 @@ lynx_vector_db/
 ├── README.md            # This file
 ├── LICENSE              # MIT License
 ├── doc/
-│   └── research.md      # ANN algorithm research
+│   └── research.md      # ANN algorithm research and other files
 ├── src/
 │   ├── include/
 │   │   └── lynx/
 │   │       └── lynx.h   # Public interface
 │   ├── lib/
 │   │   └── ...          # Implementation files
-│   └── main_minimal.cpp         # Example of minimal database executable
+│   ├── main_minimal.cpp         # Example of minimal database executable
+│   └── main.cpp         # Larger example of database usage
 └── tests/
     └── ...              # Unit tests
 ```
@@ -153,7 +154,7 @@ See [CONCEPT.md](CONCEPT.md) for detailed design documentation.
 
 ## Documentation
 
-- [CONCEPT.md](CONCEPT.md) - Design concept and implementation phases
+- [CONCEPT.md](CONCEPT.md) - Design concept 
 - [STATE.md](STATE.md) - Current implementation state
 - [doc/research.md](doc/research.md) - ANN algorithm research
 - [tests/README.md](tests/README.md) - Infos about unit testing
