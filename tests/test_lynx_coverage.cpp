@@ -160,6 +160,11 @@ public:
 // Coverage Tests
 // ============================================================================
 
+// Helper function to prevent compiler from optimizing away the base class destructor call
+static lynx::IVectorIndex* create_mock_index() {
+    return new lynx::MockVectorIndex();
+}
+
 /**
  * @brief Test to invoke IVectorIndex complete object destructor (D0Ev).
  *
@@ -169,12 +174,17 @@ public:
  */
 TEST(LynxCoverageTest, VectorIndex_D0Ev_Coverage) {
     // Allocate the derived class object on the heap
-    // and cast to base class pointer
-    lynx::IVectorIndex* raw_ptr = new lynx::MockVectorIndex();
+    // Use a function call to prevent compiler optimization
+    lynx::IVectorIndex* raw_ptr = create_mock_index();
 
     // Call delete on the base class pointer
     // This explicitly invokes the IVectorIndex::D0Ev (complete object destructor)
     delete raw_ptr;
+}
+
+// Helper function to prevent compiler from optimizing away the base class destructor call
+static lynx::IVectorDatabase* create_mock_database() {
+    return new lynx::MockVectorDatabase();
 }
 
 /**
@@ -186,8 +196,8 @@ TEST(LynxCoverageTest, VectorIndex_D0Ev_Coverage) {
  */
 TEST(LynxCoverageTest, VectorDatabase_D0Ev_Coverage) {
     // Allocate the derived class object on the heap
-    // and cast to base class pointer
-    lynx::IVectorDatabase* raw_ptr = new lynx::MockVectorDatabase();
+    // Use a function call to prevent compiler optimization
+    lynx::IVectorDatabase* raw_ptr = create_mock_database();
 
     // Call delete on the base class pointer
     // This explicitly invokes the IVectorDatabase::D0Ev (complete object destructor)

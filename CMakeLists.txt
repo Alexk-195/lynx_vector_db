@@ -214,6 +214,7 @@ if(LYNX_BUILD_TESTS)
         tests/test_database.cpp
         tests/test_distance_metrics.cpp
         tests/test_hnsw.cpp
+        tests/test_lynx_coverage.cpp
         tests/test_minimal_example.cpp
         tests/test_mps.cpp
         tests/test_persistence.cpp
