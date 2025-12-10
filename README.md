@@ -1,4 +1,4 @@
-[![Build Status](https://github.com/Alexk-195/lynx_vector_db/actions/workflows/c-cpp.yml/badge.svg)]
+![Build Status](https://github.com/Alexk-195/lynx_vector_db/actions/workflows/c-cpp.yml/badge.svg)
 
 # Lynx Vector Database
 
