@@ -13,6 +13,7 @@
 #define LYNX_HNSW_INDEX_H
 
 #include "../include/lynx/lynx.h"
+#include "lynx_intern.h"
 #include <random>
 #include <unordered_map>
 #include <unordered_set>
