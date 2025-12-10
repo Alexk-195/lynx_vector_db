@@ -3,5 +3,6 @@ Make sure you have read other md files in this directory before start implementa
 
 - [ ] Add support for coverage build and run to CMakeLists.txt. Use it from setup.sh script. Remove it from Makefile.
 
- 
+- [ ] Strip down Makefile to functionality of building lib and executables. Remove unit test build. 
+
 
