@@ -2,13 +2,12 @@
 
 This directory contains the unit test suite for the Lynx vector database, using Google Test (gtest) framework.
 
-## Test Structure
+## Test Folder Structure
 
 - `test_main.cpp` - Main test runner entry point
-- `test_utility_functions.cpp` - Tests for utility functions (error_string, index_type_string, etc.)
-- `test_config.cpp` - Tests for configuration structures and default values
-- `test_data_structures.cpp` - Tests for data structures (SearchResult, VectorRecord, etc.)
-- `test_database.cpp` - Tests for VectorDatabase interface and operations
+- `README.md` - This file
+
+Actual test implementation is done in other files starting with "test_".
 
 ## Running Tests
 
@@ -51,46 +50,7 @@ make check             # Custom target with verbose output
 
 ## Test Coverage
 
-Current test coverage (67 tests):
-
-### Utility Functions (17 tests)
-- ✓ Error code string representations
-- ✓ Index type string representations
-- ✓ Distance metric string representations
-- ✓ Version string
-
-### Configuration (24 tests)
-- ✓ Config default values
-- ✓ HNSWParams default values
-- ✓ IVFParams default values
-- ✓ SearchParams default values
-- ✓ Configuration customization
-
-### Data Structures (7 tests)
-- ✓ SearchResultItem construction
-- ✓ SearchResult creation and population
-- ✓ VectorRecord with/without metadata
-- ✓ DatabaseStats initialization and values
-
-### Database Operations (17 tests)
-- ✓ Database creation with various configs
-- ✓ Database properties (size, dimension, stats)
-- ✓ Insert operations (currently returns NotImplemented)
-- ✓ Search operations (currently returns empty results)
-- ✓ Remove operations (currently returns NotImplemented)
-- ✓ Batch operations (currently returns NotImplemented)
-- ✓ Persistence operations (currently returns NotImplemented)
-
-### Future Test Categories
-
-As implementation progresses, additional tests will be added for:
-
-- Distance metric calculations (L2, Cosine, Dot Product)
-- HNSW index operations
-- Thread safety and concurrency
-- Persistence and serialization
-- Memory management
-- Performance benchmarks
+Try to achieve overall coverage over 80% and for critical code 100%
 
 ## Writing New Tests
 
