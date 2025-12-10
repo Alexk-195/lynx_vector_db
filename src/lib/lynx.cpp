@@ -98,8 +98,13 @@ float calculate_distance(
 // ============================================================================
 
 std::shared_ptr<IVectorDatabase> IVectorDatabase::create(const Config& config) {
-    // Use MPS-based implementation for thread-safety
-    return std::make_shared<VectorDatabase_MPS>(config);
+    if (config.index_type == IndexType::Flat) {
+        return std::make_shared<VectorDatabase_Impl>(config);
+    } else if (config.index_type == IndexType::HNSW) {
+        return std::make_shared<VectorDatabase_MPS>(config);
+    }
+    else
+        throw std::runtime_error("No implemented yet");
 }
 
 } // namespace lynx

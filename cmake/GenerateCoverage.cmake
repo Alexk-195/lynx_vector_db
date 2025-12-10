@@ -1,3 +1,4 @@
+# GenerateCoverage.cmake
 # Script to generate code coverage reports
 # Supports gcovr (preferred), lcov, gcov, and llvm-cov
 
@@ -12,7 +13,7 @@ if(NOT DEFINED BINARY_DIR)
     message(FATAL_ERROR "BINARY_DIR not defined")
 endif()
 
-# NEW: Get the coverage root directory (defaults to SOURCE_DIR if not set)
+# Get the coverage root directory (defaults to SOURCE_DIR if not set)
 if(NOT DEFINED COVERAGE_ROOT_DIR)
     set(COVERAGE_ROOT_DIR ${SOURCE_DIR})
 endif()
@@ -20,7 +21,7 @@ endif()
 message(STATUS "Generating coverage report...")
 message(STATUS "  Source directory: ${SOURCE_DIR}")
 message(STATUS "  Binary directory: ${BINARY_DIR}")
-message(STATUS "  Coverage root: ${COVERAGE_ROOT_DIR}") # Display the root for clarity
+message(STATUS "  Coverage root: ${COVERAGE_ROOT_DIR}")
 
 # First, run the tests to generate coverage data
 message(STATUS "Running tests with coverage...")
@@ -35,7 +36,7 @@ if(NOT build_result EQUAL 0)
     message(WARNING "Test build had issues, continuing anyway...")
 endif()
 
-# Run tests with proper library path
+# Run tests
 execute_process(
     COMMAND ${BINARY_DIR}/bin/lynx_tests
     WORKING_DIRECTORY ${BINARY_DIR}
@@ -63,10 +64,6 @@ find_program(LLVM_PROFDATA_PATH llvm-profdata)
 if(GCOVR_PATH)
     message(STATUS "Using gcovr for coverage reporting (Strategy 0)...")
     
-    # gcovr uses the --root option to only report on files within that directory.
-    # We also use --exclude-directories to explicitly remove third-party/test code 
-    # that might still generate coverage files inside the build directory.
-
     # Remove old report directory
     execute_process(
         COMMAND ${CMAKE_COMMAND} -E remove_directory ${SOURCE_DIR}/coverage_report
@@ -75,11 +72,18 @@ if(GCOVR_PATH)
         ERROR_QUIET
     )
 
+    # Create new report directory
+    execute_process(
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${SOURCE_DIR}/coverage_report
+        RESULT_VARIABLE mkdir_result
+        OUTPUT_QUIET
+        ERROR_QUIET
+            )
+
+
     execute_process(
         COMMAND ${GCOVR_PATH}
             --root ${COVERAGE_ROOT_DIR} # Only include files under this path (e.g., .../project/src)
-            --exclude-directories '*/external/*'
-            --exclude-directories '*/tests/*'
             --html --html-details
             --output ${SOURCE_DIR}/coverage_report/index.html
         WORKING_DIRECTORY ${BINARY_DIR} # Search for coverage data (.gcda/.profdata) in the binary dir
@@ -95,7 +99,6 @@ if(GCOVR_PATH)
         message(WARNING "gcovr failed: ${gcovr_error}")
     endif()
 
-# --- Strategy 1: Try lcov (GCC) ---
 elseif(LCOV_PATH AND GENHTML_PATH)
     message(STATUS "Using lcov for coverage reporting (Strategy 1)...")
 
@@ -180,7 +183,8 @@ elseif(LCOV_PATH AND GENHTML_PATH)
         message(WARNING "HTML generation had issues")
     endif()
 
-# [cite_start]--- Strategy 2: Try gcov (basic GCC coverage) --- [cite: 7]
+# --- Strategy 2: Try gcov (basic GCC coverage) ---
+
 elseif(GCOV_PATH)
     message(STATUS "Using gcov for coverage reporting (Strategy 2)...")
 
@@ -196,12 +200,12 @@ elseif(GCOV_PATH)
         file(GLOB LIB_GCDA_FILES "${BINARY_DIR}/CMakeFiles/lynx_static.dir/src/lib/*.gcda")
 
         foreach(gcda_file ${LIB_GCDA_FILES})
-            [cite_start]get_filename_component(gcda_name ${gcda_file} NAME) [cite: 8]
+            get_filename_component(gcda_name ${gcda_file} NAME)
             execute_process(
                 COMMAND ${GCOV_PATH} ${gcda_file}
                 WORKING_DIRECTORY ${BINARY_DIR}/CMakeFiles/lynx_static.dir/src/lib
                 OUTPUT_VARIABLE gcov_output
-                [cite_start]ERROR_QUIET [cite: 9]
+                ERROR_QUIET
             )
 
             # Extract and display relevant lines
@@ -211,14 +215,14 @@ elseif(GCOV_PATH)
             if(file_line AND lines_line)
                 message(STATUS "${file_line}")
                 message(STATUS "${lines_line}")
-            [cite_start]endif() [cite: 10]
+            endif()
         endforeach()
 
         message(STATUS "")
         message(STATUS "NOTE: Install lcov for HTML reports: sudo apt-get install lcov")
         message(STATUS "Detailed coverage files (.gcov) are in ${BINARY_DIR}/CMakeFiles/lynx_static.dir/src/lib/")
     else()
-        [cite_start]message(WARNING "No .gcda files found. Coverage instrumentation may not be enabled.") [cite: 11]
+        message(WARNING "No .gcda files found. Coverage instrumentation may not be enabled.")
         message(STATUS "Make sure to build with -DLYNX_ENABLE_COVERAGE=ON")
     endif()
 
@@ -227,13 +231,13 @@ elseif(LLVM_COV_PATH AND LLVM_PROFDATA_PATH)
     message(STATUS "Using llvm-cov for coverage reporting (Strategy 3)...")
 
     # Find .profraw files
-    [cite_start]file(GLOB PROFRAW_FILES "${BINARY_DIR}/*.profraw") [cite: 16]
+    file(GLOB PROFRAW_FILES "${BINARY_DIR}/*.profraw")
 
     if(PROFRAW_FILES)
         # Merge profraw files
         execute_process(
             COMMAND ${LLVM_PROFDATA_PATH} merge -sparse
-            [cite_start]${PROFRAW_FILES} [cite: 12]
+            ${PROFRAW_FILES}
             -o ${BINARY_DIR}/lynx.profdata
             RESULT_VARIABLE profdata_result
             OUTPUT_QUIET
@@ -243,18 +247,18 @@ elseif(LLVM_COV_PATH AND LLVM_PROFDATA_PATH)
         if(profdata_result EQUAL 0 AND EXISTS "${BINARY_DIR}/lynx.profdata")
             # Generate HTML report
             execute_process(
-                [cite_start]COMMAND ${LLVM_COV_PATH} show [cite: 13]
+                COMMAND ${LLVM_COV_PATH} show
                     ${BINARY_DIR}/bin/lynx_tests
                     -instr-profile=${BINARY_DIR}/lynx.profdata
                     -format=html
-                    [cite_start]-output-dir=${SOURCE_DIR}/coverage_report [cite: 14]
-                    -ignore-filename-regex=(tests|external|/usr) # Added /usr exclusion here
+                    -output-dir=${SOURCE_DIR}/coverage_report
+                    -ignore-filename-regex=(tests|external|/usr) # Exclude tests, external, and system headers
                 RESULT_VARIABLE llvm_cov_result
             )
 
             if(llvm_cov_result EQUAL 0)
                 message(STATUS "")
-                [cite_start]message(STATUS "Coverage report generated in coverage_report/index.html") [cite: 15]
+                message(STATUS "Coverage report generated in coverage_report/index.html")
             else()
                 message(WARNING "llvm-cov show failed")
             endif()
@@ -262,7 +266,7 @@ elseif(LLVM_COV_PATH AND LLVM_PROFDATA_PATH)
             message(WARNING "Failed to merge profraw files")
         endif()
     else()
-        [cite_start]message(WARNING "No .profraw files found. Clang instrumentation may not be enabled.") [cite: 16]
+        message(WARNING "No .profraw files found. Clang instrumentation may not be enabled.")
     endif()
 
 # No coverage tools found

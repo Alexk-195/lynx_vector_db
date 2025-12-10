@@ -175,7 +175,7 @@ const Config& VectorDatabase_Impl::config() const {
 // ============================================================================
 
 ErrorCode VectorDatabase_Impl::flush() {
-    return ErrorCode::NotImplemented;
+    return ErrorCode::Ok;
 }
 
 ErrorCode VectorDatabase_Impl::save() {

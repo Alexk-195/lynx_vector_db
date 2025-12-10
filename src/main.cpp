@@ -38,7 +38,7 @@ void normalize_vector(std::vector<float>& vec) {
 }
 
 // Helper function to print search results
-void print_search_results(const lynx::SearchResult& result, size_t max_display = 5) {
+void print_search_results(const lynx::SearchResult& result, size_t max_display = 11) {
     std::cout << "  Found " << result.items.size() << " results "
               << "(evaluated " << result.total_candidates << " candidates)\n";
     std::cout << "  Query time: " << std::fixed << std::setprecision(3)
@@ -70,7 +70,7 @@ int main() {
     std::cout << "   Index Types:\n";
     std::cout << "     - " << lynx::index_type_string(lynx::IndexType::Flat) << "\n";
     std::cout << "     - " << lynx::index_type_string(lynx::IndexType::HNSW) << "\n";
-    std::cout << "     - " << lynx::index_type_string(lynx::IndexType::IVF) << "\n";
+    //std::cout << "     - " << lynx::index_type_string(lynx::IndexType::IVF) << "\n";
     std::cout << "\n   Distance Metrics:\n";
     std::cout << "     - " << lynx::distance_metric_string(lynx::DistanceMetric::L2) << "\n";
     std::cout << "     - " << lynx::distance_metric_string(lynx::DistanceMetric::Cosine) << "\n";

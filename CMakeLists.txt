@@ -257,7 +257,7 @@ if(LYNX_BUILD_TESTS)
         COMMAND ${CMAKE_COMMAND}
             -DSOURCE_DIR=${CMAKE_SOURCE_DIR}
             -DBINARY_DIR=${CMAKE_BINARY_DIR}
-            -DCOVERAGE_ROOT_DIR=${CMAKE_SOURCE_DIR}/src # <--- NEW: Limit coverage reporting to the 'src' directory
+            -DCOVERAGE_ROOT_DIR=${CMAKE_SOURCE_DIR}/src/lib 
             -P ${CMAKE_SOURCE_DIR}/cmake/GenerateCoverage.cmake
         DEPENDS lynx_tests
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
