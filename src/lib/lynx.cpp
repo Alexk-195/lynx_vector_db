@@ -31,6 +31,7 @@ const char* error_string(ErrorCode code) {
         case ErrorCode::OutOfMemory:      return "Out of memory";
         case ErrorCode::IOError:          return "I/O error";
         case ErrorCode::NotImplemented:   return "Not implemented";
+        case ErrorCode::Busy:             return "Busy (high load)";
         default:                          return "Unknown error";
     }
 }

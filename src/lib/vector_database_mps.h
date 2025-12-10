@@ -13,12 +13,15 @@
 #include "hnsw_index.h"
 #include "mps_messages.h"
 #include "mps_workers.h"
+#include "write_log.h"
 #include "mps.h"
 #include <vector>
 #include <memory>
 #include <atomic>
 #include <thread>
 #include <unordered_map>
+#include <shared_mutex>
+#include <sstream>
 
 namespace lynx {
 
@@ -135,6 +138,39 @@ public:
     ErrorCode save() override;
     ErrorCode load() override;
 
+    // -------------------------------------------------------------------------
+    // Index Maintenance (Non-blocking)
+    // -------------------------------------------------------------------------
+
+    /**
+     * @brief Optimize the index without blocking queries.
+     *
+     * This method performs index optimization using a clone-optimize-replay-swap
+     * pattern that enables non-blocking maintenance:
+     *
+     * 1. Enable write logging to capture operations during optimization
+     * 2. Clone the current index
+     * 3. Optimize the clone (queries continue on active index)
+     * 4. Replay logged writes to the optimized clone
+     * 5. Atomically swap the active index with the optimized clone
+     *
+     * Benefits:
+     * - Zero query blocking during maintenance
+     * - Consistent low latency
+     * - Handles concurrent writes correctly via ordered log replay
+     *
+     * @return ErrorCode::Ok on success
+     * @return ErrorCode::Busy if too many writes occurred during optimization
+     * @return ErrorCode::OutOfMemory if index cloning failed
+     */
+    ErrorCode optimize_index();
+
+    /**
+     * @brief Get the write log for inspection (mainly for testing)
+     * @return Const reference to the write log
+     */
+    const WriteLog& get_write_log() const { return write_log_; }
+
 private:
     /**
      * @brief Initialize MPS pools and workers
@@ -145,6 +181,13 @@ private:
      * @brief Shutdown all pools gracefully
      */
     void shutdown_pools();
+
+    /**
+     * @brief Clone the current index via serialization/deserialization
+     * @param source The source index to clone
+     * @return Shared pointer to the cloned index, nullptr on failure
+     */
+    std::shared_ptr<HNSWIndex> clone_index(std::shared_ptr<HNSWIndex> source);
 
     // Configuration
     Config config_;
@@ -179,6 +222,12 @@ private:
     // Statistics tracking (shared across all workers)
     std::shared_ptr<std::atomic<std::uint64_t>> total_inserts_;
     std::shared_ptr<std::atomic<std::uint64_t>> total_queries_;
+
+    // Write log for non-blocking maintenance
+    mutable WriteLog write_log_;
+
+    // Mutex for thread-safe index swapping during maintenance
+    mutable std::shared_mutex index_mutex_;
 };
 
 } // namespace lynx

@@ -11,9 +11,12 @@
 
 #include "mps.h"
 #include "../include/lynx/lynx.h"
+#include "hnsw_index.h"
 #include <vector>
 #include <future>
 #include <memory>
+#include <shared_mutex>
+#include <unordered_map>
 
 namespace lynx {
 
@@ -145,6 +148,41 @@ struct OptimizeIndexMessage : mps::message {
  */
 struct CompactStorageMessage : mps::message {
     CompactStorageMessage() = default;
+};
+
+// Forward declaration for WriteLog
+struct WriteLog;
+
+/**
+ * @brief Non-blocking optimize index message with write log
+ *
+ * This message triggers a non-blocking index optimization that uses
+ * a clone-optimize-replay-swap pattern. The caller provides a shared
+ * reference to the WriteLog for capturing concurrent writes during
+ * optimization, and the index/vectors pointers to allow atomic swapping.
+ */
+struct OptimizeWithLogMessage : DatabaseMessage<ErrorCode> {
+    WriteLog* write_log{nullptr};
+    std::shared_ptr<HNSWIndex>* active_index{nullptr};
+    std::shared_ptr<std::unordered_map<std::uint64_t, VectorRecord>>* vectors{nullptr};
+    std::shared_mutex* index_mutex{nullptr};
+    DistanceMetric metric{DistanceMetric::L2};
+    HNSWParams hnsw_params{};
+
+    OptimizeWithLogMessage() = default;
+    OptimizeWithLogMessage(
+        WriteLog* log,
+        std::shared_ptr<HNSWIndex>* idx,
+        std::shared_ptr<std::unordered_map<std::uint64_t, VectorRecord>>* vecs,
+        std::shared_mutex* mtx,
+        DistanceMetric m,
+        const HNSWParams& params)
+        : write_log(log)
+        , active_index(idx)
+        , vectors(vecs)
+        , index_mutex(mtx)
+        , metric(m)
+        , hnsw_params(params) {}
 };
 
 /**
