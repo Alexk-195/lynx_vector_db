@@ -248,11 +248,11 @@ coverage:
 	@echo "Generating coverage report..."
 	@if command -v lcov >/dev/null 2>&1; then \
 		echo "Using lcov for coverage reporting..."; \
-		lcov --capture --directory build-coverage --output-file coverage.info --quiet; \
-		lcov --remove coverage.info '/usr/*' '*/external/*' '*/tests/*' --output-file coverage.info --quiet; \
-		lcov --list coverage.info; \
+		lcov --capture --directory build-coverage --output-file coverage.info --quiet --rc geninfo_unexecuted_blocks=0 --ignore-errors mismatch,empty; \
+		lcov --remove coverage.info '/usr/*' '*/external/*' '*/tests/*' --output-file coverage.info --quiet --rc geninfo_unexecuted_blocks=0 --ignore-errors empty; \
+		lcov --list coverage.info --ignore-errors empty; \
 		if command -v genhtml >/dev/null 2>&1; then \
-			genhtml coverage.info --output-directory coverage_report --quiet; \
+			genhtml coverage.info --output-directory coverage_report --quiet --ignore-errors empty; \
 			echo ""; \
 			echo "Coverage report generated in coverage_report/index.html"; \
 		else \
