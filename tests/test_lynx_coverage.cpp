@@ -12,6 +12,7 @@
 
 #include <gtest/gtest.h>
 #include "lynx/lynx.h"
+#include "../src/lib/lynx_intern.h"
 
 namespace lynx {
 
