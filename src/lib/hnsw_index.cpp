@@ -409,12 +409,17 @@ std::vector<SearchResultItem> HNSWIndex::search(
 
     // Reverse and filter
     std::reverse(temp.begin(), temp.end());
-    for (std::size_t i = 0; i < std::min(k, temp.size()); ++i) {
+    for (const auto& candidate : temp) {
         // Apply filter if provided
-        if (params.filter && !(*params.filter)(temp[i].id)) {
+        if (params.filter && !(*params.filter)(candidate.id)) {
             continue;
         }
-        results.push_back({temp[i].id, temp[i].distance});
+        results.push_back({candidate.id, candidate.distance});
+
+        // Stop once we have k results
+        if (results.size() >= k) {
+            break;
+        }
     }
 
     // If filter was applied, we might have fewer than k results
