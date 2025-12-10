@@ -12,6 +12,9 @@
 #include <random>
 #include <iomanip>
 #include <cmath>
+#include <string>
+#include <algorithm>
+#include <cstring>
 
 // Helper function to generate random vectors
 std::vector<float> generate_random_vector(size_t dim, std::mt19937& gen) {
@@ -57,7 +60,72 @@ void print_search_results(const lynx::SearchResult& result, size_t max_display =
     }
 }
 
-int main() {
+// Helper function to convert string to lowercase
+std::string to_lower(const std::string& str) {
+    std::string result = str;
+    std::transform(result.begin(), result.end(), result.begin(),
+                   [](unsigned char c) { return std::tolower(c); });
+    return result;
+}
+
+// Helper function to parse index type from string
+bool parse_index_type(const std::string& str, lynx::IndexType& type) {
+    std::string lower = to_lower(str);
+    if (lower == "flat") {
+        type = lynx::IndexType::Flat;
+        return true;
+    } else if (lower == "hnsw") {
+        type = lynx::IndexType::HNSW;
+        return true;
+    }
+    return false;
+}
+
+// Helper function to print usage information
+void print_usage(const char* program_name) {
+    std::cout << "Usage: " << program_name << " [OPTIONS]\n\n";
+    std::cout << "Lynx Vector Database - Example Application\n\n";
+    std::cout << "OPTIONS:\n";
+    std::cout << "  --index-type TYPE    Specify the index type to use\n";
+    std::cout << "                       Available types: flat, hnsw (default: hnsw)\n";
+    std::cout << "  --help, -h           Display this help message\n\n";
+    std::cout << "EXAMPLES:\n";
+    std::cout << "  " << program_name << "                      # Use default HNSW index\n";
+    std::cout << "  " << program_name << " --index-type flat   # Use Flat (brute-force) index\n";
+    std::cout << "  " << program_name << " --index-type hnsw   # Use HNSW index\n";
+    std::cout << "\n";
+}
+
+int main(int argc, char* argv[]) {
+    // Parse command-line arguments
+    lynx::IndexType index_type = lynx::IndexType::HNSW;  // Default
+
+    for (int i = 1; i < argc; ++i) {
+        std::string arg = argv[i];
+
+        if (arg == "--help" || arg == "-h") {
+            print_usage(argv[0]);
+            return 0;
+        } else if (arg == "--index-type") {
+            if (i + 1 < argc) {
+                ++i;
+                if (!parse_index_type(argv[i], index_type)) {
+                    std::cerr << "ERROR: Invalid index type '" << argv[i] << "'\n";
+                    std::cerr << "Valid types are: flat, hnsw\n\n";
+                    print_usage(argv[0]);
+                    return 1;
+                }
+            } else {
+                std::cerr << "ERROR: --index-type requires an argument\n\n";
+                print_usage(argv[0]);
+                return 1;
+            }
+        } else {
+            std::cerr << "ERROR: Unknown option '" << arg << "'\n\n";
+            print_usage(argv[0]);
+            return 1;
+        }
+    }
     std::cout << "========================================\n";
     std::cout << "Lynx Vector Database - Usage Example\n";
     std::cout << "Version: " << lynx::IVectorDatabase::version() << "\n";
@@ -84,7 +152,7 @@ int main() {
 
     lynx::Config config;
     config.dimension = 128;
-    config.index_type = lynx::IndexType::HNSW;
+    config.index_type = index_type;  // Use the parsed index type from command line
     config.distance_metric = lynx::DistanceMetric::L2;
     config.hnsw_params.m = 16;
     config.hnsw_params.ef_construction = 200;
