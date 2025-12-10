@@ -232,72 +232,6 @@ test: $(TEST_EXECUTABLE)
 	@echo "Running tests..."
 	@LD_LIBRARY_PATH=$(LIB_OUT_DIR):$$LD_LIBRARY_PATH $(TEST_EXECUTABLE)
 
-# Code coverage target
-.PHONY: coverage
-coverage:
-	@echo "Building with code coverage instrumentation..."
-	@rm -rf build-coverage coverage_report coverage.info
-	@mkdir -p build-coverage
-	@cd build-coverage && cmake -DCMAKE_BUILD_TYPE=Debug \
-		-DLYNX_ENABLE_COVERAGE=ON \
-		-DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
-		..
-	@cd build-coverage && $(MAKE)
-	@echo "Running tests with coverage..."
-	@cd build-coverage && LD_LIBRARY_PATH=lib:$$LD_LIBRARY_PATH ./bin/lynx_tests
-	@echo "Generating coverage report..."
-	@if command -v lcov >/dev/null 2>&1; then \
-		echo "Using lcov for coverage reporting..."; \
-		lcov --capture --directory build-coverage --output-file coverage.info --quiet --rc geninfo_unexecuted_blocks=0 --ignore-errors mismatch,empty; \
-		lcov --remove coverage.info '/usr/*' '*/external/*' '*/tests/*' --output-file coverage.info --quiet --rc geninfo_unexecuted_blocks=0 --ignore-errors empty; \
-		lcov --list coverage.info --ignore-errors empty; \
-		if command -v genhtml >/dev/null 2>&1; then \
-			genhtml coverage.info --output-directory coverage_report --quiet --ignore-errors empty; \
-			echo ""; \
-			echo "Coverage report generated in coverage_report/index.html"; \
-		else \
-			echo "genhtml not found. Install lcov package for HTML reports."; \
-		fi; \
-	elif command -v gcov >/dev/null 2>&1 && [ -n "$$(find build-coverage -name '*.gcda' -print -quit)" ]; then \
-		echo "Using gcov for coverage reporting..."; \
-		echo ""; \
-		echo "Coverage Summary for Library Files:"; \
-		echo "===================================="; \
-		cd build-coverage/CMakeFiles/lynx_static.dir/src/lib && \
-		for gcda_file in *.gcda; do \
-			gcov "$$gcda_file" 2>&1 | grep -E "^File.*src/lib|^Lines executed" | head -2; \
-		done | sed "s|/home/user/lynx_vector_db/||g"; \
-		echo ""; \
-		echo "NOTE: Install lcov for HTML reports: sudo apt-get install lcov"; \
-		echo "Detailed coverage files (.gcov) are in build-coverage/CMakeFiles/lynx_static.dir/src/lib/"; \
-	elif command -v llvm-cov >/dev/null 2>&1 && command -v llvm-profdata >/dev/null 2>&1; then \
-		echo "Using llvm-cov for coverage reporting..."; \
-		cd build-coverage && llvm-profdata merge -sparse lynx_*.profraw -o lynx.profdata 2>/dev/null || true; \
-		if [ -f build-coverage/lynx.profdata ]; then \
-			llvm-cov show ./bin/lynx_tests -instr-profile=lynx.profdata \
-				-format=html -output-dir=../coverage_report \
-				-ignore-filename-regex='(tests|external)'; \
-			echo ""; \
-			echo "Coverage report generated in coverage_report/index.html"; \
-		else \
-			echo "ERROR: No profraw files generated. Clang instrumentation may not be enabled."; \
-			exit 1; \
-		fi; \
-	else \
-		echo "ERROR: No coverage tools found."; \
-		echo "Install one of the following:"; \
-		echo "  - lcov (for GCC): sudo apt-get install lcov"; \
-		echo "  - llvm tools (for Clang): sudo apt-get install llvm"; \
-		exit 1; \
-	fi
-
-# Clean coverage artifacts
-.PHONY: clean-coverage
-clean-coverage:
-	@echo "Cleaning coverage artifacts..."
-	@rm -rf build-coverage coverage_report coverage.info *.profraw *.profdata
-	@find . -name "*.gcda" -o -name "*.gcno" | xargs rm -f
-
 # Install
 .PHONY: install
 install: $(LIB_SHARED) $(LIB_STATIC)
@@ -338,11 +272,11 @@ info:
 	@echo "  make run-minimal  - Build and run minimal example"
 	@echo "  make build-tests  - Build unit tests"
 	@echo "  make test         - Build and run tests"
-	@echo "  make coverage     - Build with coverage and generate report"
-	@echo "  make clean-coverage - Clean coverage artifacts"
 	@echo "  make install      - Install to system"
 	@echo "  make cleanall     - Clean build and external deps"
 	@echo "  make info         - Show this info"
+	@echo ""
+	@echo "For code coverage, use: ./setup.sh coverage"
 
 # Help
 .PHONY: help
