@@ -13,6 +13,7 @@
 #define LYNX_LYNX_INTERN_H
 
 #include "../include/lynx/lynx.h"
+#include "utils.h"
 
 namespace lynx {
 

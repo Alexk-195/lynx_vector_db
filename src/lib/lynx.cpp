@@ -6,7 +6,7 @@
  */
 
 #include "lynx/lynx.h"
-#include "lynx/utils.h"
+#include "utils.h"
 #include "lynx_intern.h"
 #include "vector_database_impl.h"
 #include "vector_database_mps.h"

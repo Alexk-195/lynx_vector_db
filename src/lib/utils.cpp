@@ -8,7 +8,7 @@
  * @copyright MIT License
  */
 
-#include "lynx/utils.h"
+#include "utils.h"
 #include <cmath>
 #include <algorithm>
 

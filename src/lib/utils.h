@@ -11,7 +11,7 @@
 #ifndef LYNX_UTILS_H
 #define LYNX_UTILS_H
 
-#include "lynx.h"
+#include "lynx/lynx.h"
 #include <span>
 #include <cstddef>
 

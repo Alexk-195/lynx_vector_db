@@ -140,7 +140,7 @@ struct RemoveMessage : DatabaseMessage { ... };
 
 All distance metric calculations are centralized in `utils.h` and `utils.cpp` to avoid code duplication:
 
-- **Location**: `src/include/lynx/utils.h` and `src/lib/utils.cpp`
+- **Location**: `src/lib/utils.h` and `src/lib/utils.cpp`
 - **Functions**:
   - `utils::calculate_l2_squared()` - Squared L2 distance (faster, no sqrt)
   - `utils::calculate_l2()` - L2 (Euclidean) distance

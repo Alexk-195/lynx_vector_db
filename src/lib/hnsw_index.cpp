@@ -6,7 +6,7 @@
  */
 
 #include "hnsw_index.h"
-#include "lynx/utils.h"
+#include "utils.h"
 #include <algorithm>
 #include <cmath>
 #include <chrono>
