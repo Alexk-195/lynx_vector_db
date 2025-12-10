@@ -306,24 +306,6 @@ public:
 
     void process(std::shared_ptr<const mps::message> msg) override {
         try {
-            // Optimize index
-            if (auto optimize_msg = std::dynamic_pointer_cast<const OptimizeIndexMessage>(msg)) {
-                process_optimize();
-                return;
-            }
-
-            // Compact storage
-            if (auto compact_msg = std::dynamic_pointer_cast<const CompactStorageMessage>(msg)) {
-                process_compact();
-                return;
-            }
-
-            // Non-blocking optimize with write log
-            if (auto optimize_log_msg = std::dynamic_pointer_cast<const OptimizeWithLogMessage>(msg)) {
-                process_optimize_with_log(optimize_log_msg);
-                return;
-            }
-
             // Flush operation
             if (auto flush_msg = std::dynamic_pointer_cast<const FlushMessage>(msg)) {
                 process_flush(flush_msg);
@@ -348,119 +330,12 @@ public:
     }
 
 private:
-    void process_optimize() {
-        // Perform graph edge pruning to improve index quality
-        // This applies the RNG (Random Neighbor Graph) heuristic to remove
-        // redundant edges while maintaining graph connectivity and navigability.
-
-        // Call the HNSW index's optimize_graph method
-        ErrorCode result = index_->optimize_graph();
-
-        // In a production system, we might want to:
-        // - Log the optimization results
-        // - Update statistics
-        // - Trigger additional maintenance tasks based on results
-        // - Emit metrics for monitoring
-
-        // For now, we silently complete the optimization
-        // The operation is already thread-safe as optimize_graph() uses locks
-        (void)result; // Suppress unused variable warning
-    }
-
-    void process_compact() {
-        // Perform storage compaction and index integrity checks
-        // This removes dangling references, validates graph consistency,
-        // and ensures the entry point is valid.
-
-        // Call the HNSW index's compact_index method
-        ErrorCode result = index_->compact_index();
-
-        // In a production system, we might want to:
-        // - Log the compaction results
-        // - Update statistics
-        // - Emit metrics for monitoring
-        // - Track how many inconsistencies were fixed
-
-        // For now, we silently complete the compaction
-        // The operation is already thread-safe as compact_index() uses locks
-        (void)result; // Suppress unused variable warning
-    }
-
-    void process_optimize_with_log(std::shared_ptr<const OptimizeWithLogMessage> msg) {
-        try {
-            auto* write_log = msg->write_log;
-            auto* active_index = msg->active_index;
-            auto* index_mutex = msg->index_mutex;
-
-            if (!write_log || !active_index || !index_mutex) {
-                const_cast<OptimizeWithLogMessage*>(msg.get())->set_value(ErrorCode::InvalidParameter);
-                return;
-            }
-
-            // Step 1: Enable write logging
-            write_log->enabled.store(true, std::memory_order_release);
-
-            // Step 2: Clone the active index via serialization/deserialization
-            std::shared_ptr<HNSWIndex> optimized;
-            {
-                std::shared_lock lock(*index_mutex);
-                std::stringstream buffer;
-
-                ErrorCode err = (*active_index)->serialize(buffer);
-                if (err != ErrorCode::Ok) {
-                    write_log->enabled.store(false, std::memory_order_release);
-                    write_log->clear();
-                    const_cast<OptimizeWithLogMessage*>(msg.get())->set_value(ErrorCode::OutOfMemory);
-                    return;
-                }
-
-                optimized = std::make_shared<HNSWIndex>(
-                    (*active_index)->dimension(),
-                    msg->metric,
-                    msg->hnsw_params
-                );
-
-                err = optimized->deserialize(buffer);
-                if (err != ErrorCode::Ok) {
-                    write_log->enabled.store(false, std::memory_order_release);
-                    write_log->clear();
-                    const_cast<OptimizeWithLogMessage*>(msg.get())->set_value(ErrorCode::OutOfMemory);
-                    return;
-                }
-            }
-
-            // Step 3: Optimize the clone (queries continue on active index - NO BLOCKING!)
-            optimized->optimize_graph();
-
-            // Step 4: Check if too many writes occurred during optimization
-            if (write_log->size() > WriteLog::kWarnThreshold) {
-                write_log->enabled.store(false, std::memory_order_release);
-                write_log->clear();
-                const_cast<OptimizeWithLogMessage*>(msg.get())->set_value(ErrorCode::Busy);
-                return;
-            }
-
-            // Step 5: Replay logged writes to optimized index
-            write_log->replay_to(optimized.get());
-
-            // Step 6: Disable logging before swap
-            write_log->enabled.store(false, std::memory_order_release);
-
-            // Step 7: Quick atomic swap
-            {
-                std::unique_lock lock(*index_mutex);
-                *active_index = optimized;
-            }
-
-            // Step 8: Clear log
-            write_log->clear();
-
-            const_cast<OptimizeWithLogMessage*>(msg.get())->set_value(ErrorCode::Ok);
-
-        } catch (...) {
-            const_cast<OptimizeWithLogMessage*>(msg.get())->set_exception(std::current_exception());
-        }
-    }
+    /**
+     * @brief NOTE: Index optimization and compaction are now handled at the
+     * database level via VectorDatabase_MPS::optimize_index() using the WriteLog
+     * pattern for non-blocking maintenance. MaintenanceWorker only handles
+     * persistence operations.
+     */
 
     void process_flush(std::shared_ptr<const FlushMessage> msg) {
         try {
