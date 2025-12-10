@@ -179,10 +179,12 @@ ErrorCode VectorDatabase_Impl::flush() {
 }
 
 ErrorCode VectorDatabase_Impl::save() {
+    // TODO: Implement saving to disk, see Config for path
     return ErrorCode::NotImplemented;
 }
 
 ErrorCode VectorDatabase_Impl::load() {
+    // TODO: Implement loading from disk, see Config for path
     return ErrorCode::NotImplemented;
 }
 
