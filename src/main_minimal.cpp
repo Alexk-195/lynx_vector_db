@@ -6,6 +6,10 @@
  * 1. Create database
  * 2. Insert vectors
  * 3. Search for nearest neighbors
+ * 
+ * After installing Lynx with ./setup.sh install execute:
+ * g++ -o lynx_minimal main_minimal.cpp -std=c++20 -llynx
+ * to compite this example.
  */
 
 #include "lynx/lynx.h"
