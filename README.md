@@ -1,3 +1,5 @@
+[![Build Status](https://github.com/Alexk-195/lynx_vector_db/actions/workflows/c-cpp.yml/badge.svg)]
+
 # Lynx Vector Database
 
 A high-performance vector database implemented in modern C++20 with support for Approximate Nearest Neighbor (ANN) search algorithms.
