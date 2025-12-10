@@ -136,14 +136,28 @@ $(MAIN_MINIMAL_OBJ): $(MAIN_MINIMAL_SRC) | $(OBJ_DIR)
 	@$(CXX) $(CXXFLAGS) -c $< -o $@
 
 # Static library
+ifdef MPS_LIB
+$(LIB_STATIC): $(LIB_OBJS) $(MPS_LIB) | $(LIB_OUT_DIR)
+	@echo "Creating static library $@"
+	@ar rcs $@ $(LIB_OBJS) $(MPS_OBJ)
+else
 $(LIB_STATIC): $(LIB_OBJS) | $(LIB_OUT_DIR)
 	@echo "Creating static library $@"
 	@ar rcs $@ $^
+endif
+
 
 # Shared library
+ifdef MPS_LIB
+$(LIB_SHARED): $(LIB_OBJS) $(MPS_LIB) | $(LIB_OUT_DIR)
+	@echo "Creating shared library $@"
+	@$(CXX) -shared -o $@ $(LIB_OBJS) -L$(LIB_OUT_DIR) -lmps $(LDFLAGS)
+else
 $(LIB_SHARED): $(LIB_OBJS) | $(LIB_OUT_DIR)
 	@echo "Creating shared library $@"
 	@$(CXX) -shared -o $@ $^ $(LDFLAGS)
+endif
+
 
 # Executables
 ifdef MPS_LIB
