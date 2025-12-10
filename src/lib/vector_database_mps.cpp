@@ -158,7 +158,17 @@ ErrorCode VectorDatabase_MPS::insert(const VectorRecord& record) {
     insert_distributor_->send(msg);
 
     // Wait for result
-    return future.get();
+    ErrorCode result = future.get();
+
+    // Log if maintenance is running and operation succeeded
+    if (result == ErrorCode::Ok &&
+        write_log_.enabled.load(std::memory_order_acquire)) {
+        if (!write_log_.log_insert(record.id, record.vector)) {
+            // Log overflow - maintenance will detect this and abort
+        }
+    }
+
+    return result;
 }
 
 ErrorCode VectorDatabase_MPS::remove(std::uint64_t id) {
@@ -173,7 +183,17 @@ ErrorCode VectorDatabase_MPS::remove(std::uint64_t id) {
     remove_distributor_->send(msg);
 
     // Wait for result
-    return future.get();
+    ErrorCode result = future.get();
+
+    // Log if maintenance is running and operation succeeded
+    if (result == ErrorCode::Ok &&
+        write_log_.enabled.load(std::memory_order_acquire)) {
+        if (!write_log_.log_remove(id)) {
+            // Log overflow - maintenance will detect this and abort
+        }
+    }
+
+    return result;
 }
 
 bool VectorDatabase_MPS::contains(std::uint64_t id) const {
@@ -313,6 +333,81 @@ ErrorCode VectorDatabase_MPS::load() {
     auto future = msg->get_future();
     maintenance_pool_->push_back(msg);
     return future.get();
+}
+
+// ============================================================================
+// Index Maintenance (Non-blocking)
+// ============================================================================
+
+std::shared_ptr<HNSWIndex> VectorDatabase_MPS::clone_index(std::shared_ptr<HNSWIndex> source) {
+    // Clone via serialization/deserialization
+    std::stringstream buffer;
+
+    // Serialize the source index
+    ErrorCode err = source->serialize(buffer);
+    if (err != ErrorCode::Ok) {
+        return nullptr;
+    }
+
+    // Create a new index with the same parameters
+    auto cloned = std::make_shared<HNSWIndex>(
+        source->dimension(),
+        config_.distance_metric,
+        config_.hnsw_params
+    );
+
+    // Deserialize into the new index
+    err = cloned->deserialize(buffer);
+    if (err != ErrorCode::Ok) {
+        return nullptr;
+    }
+
+    return cloned;
+}
+
+ErrorCode VectorDatabase_MPS::optimize_index() {
+    // Step 1: Enable write logging
+    write_log_.enabled.store(true, std::memory_order_release);
+
+    // Step 2: Clone the active index
+    std::shared_ptr<HNSWIndex> optimized;
+    {
+        std::shared_lock lock(index_mutex_);
+        optimized = clone_index(index_);
+    }
+
+    if (!optimized) {
+        write_log_.enabled.store(false, std::memory_order_release);
+        write_log_.clear();
+        return ErrorCode::OutOfMemory;
+    }
+
+    // Step 3: Optimize the clone (queries continue on active index - NO BLOCKING!)
+    optimized->optimize_graph();
+
+    // Step 4: Check if too many writes occurred during optimization
+    if (write_log_.size() > WriteLog::kWarnThreshold) {
+        write_log_.enabled.store(false, std::memory_order_release);
+        write_log_.clear();
+        return ErrorCode::Busy;  // Too much activity, retry later
+    }
+
+    // Step 5: Replay logged writes to optimized index
+    write_log_.replay_to(optimized.get());
+
+    // Step 6: Disable logging before swap
+    write_log_.enabled.store(false, std::memory_order_release);
+
+    // Step 7: Quick atomic swap
+    {
+        std::unique_lock lock(index_mutex_);
+        index_ = optimized;
+    }
+
+    // Step 8: Clear log
+    write_log_.clear();
+
+    return ErrorCode::Ok;
 }
 
 } // namespace lynx

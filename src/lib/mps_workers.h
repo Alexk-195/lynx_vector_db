@@ -11,10 +11,12 @@
 #include "mps.h"
 #include "mps_messages.h"
 #include "hnsw_index.h"
+#include "write_log.h"
 #include <memory>
 #include <unordered_map>
 #include <fstream>
 #include <filesystem>
+#include <sstream>
 
 namespace lynx {
 
@@ -316,6 +318,12 @@ public:
                 return;
             }
 
+            // Non-blocking optimize with write log
+            if (auto optimize_log_msg = std::dynamic_pointer_cast<const OptimizeWithLogMessage>(msg)) {
+                process_optimize_with_log(optimize_log_msg);
+                return;
+            }
+
             // Flush operation
             if (auto flush_msg = std::dynamic_pointer_cast<const FlushMessage>(msg)) {
                 process_flush(flush_msg);
@@ -376,6 +384,82 @@ private:
         // For now, we silently complete the compaction
         // The operation is already thread-safe as compact_index() uses locks
         (void)result; // Suppress unused variable warning
+    }
+
+    void process_optimize_with_log(std::shared_ptr<const OptimizeWithLogMessage> msg) {
+        try {
+            auto* write_log = msg->write_log;
+            auto* active_index = msg->active_index;
+            auto* index_mutex = msg->index_mutex;
+
+            if (!write_log || !active_index || !index_mutex) {
+                const_cast<OptimizeWithLogMessage*>(msg.get())->set_value(ErrorCode::InvalidParameter);
+                return;
+            }
+
+            // Step 1: Enable write logging
+            write_log->enabled.store(true, std::memory_order_release);
+
+            // Step 2: Clone the active index via serialization/deserialization
+            std::shared_ptr<HNSWIndex> optimized;
+            {
+                std::shared_lock lock(*index_mutex);
+                std::stringstream buffer;
+
+                ErrorCode err = (*active_index)->serialize(buffer);
+                if (err != ErrorCode::Ok) {
+                    write_log->enabled.store(false, std::memory_order_release);
+                    write_log->clear();
+                    const_cast<OptimizeWithLogMessage*>(msg.get())->set_value(ErrorCode::OutOfMemory);
+                    return;
+                }
+
+                optimized = std::make_shared<HNSWIndex>(
+                    (*active_index)->dimension(),
+                    msg->metric,
+                    msg->hnsw_params
+                );
+
+                err = optimized->deserialize(buffer);
+                if (err != ErrorCode::Ok) {
+                    write_log->enabled.store(false, std::memory_order_release);
+                    write_log->clear();
+                    const_cast<OptimizeWithLogMessage*>(msg.get())->set_value(ErrorCode::OutOfMemory);
+                    return;
+                }
+            }
+
+            // Step 3: Optimize the clone (queries continue on active index - NO BLOCKING!)
+            optimized->optimize_graph();
+
+            // Step 4: Check if too many writes occurred during optimization
+            if (write_log->size() > WriteLog::kWarnThreshold) {
+                write_log->enabled.store(false, std::memory_order_release);
+                write_log->clear();
+                const_cast<OptimizeWithLogMessage*>(msg.get())->set_value(ErrorCode::Busy);
+                return;
+            }
+
+            // Step 5: Replay logged writes to optimized index
+            write_log->replay_to(optimized.get());
+
+            // Step 6: Disable logging before swap
+            write_log->enabled.store(false, std::memory_order_release);
+
+            // Step 7: Quick atomic swap
+            {
+                std::unique_lock lock(*index_mutex);
+                *active_index = optimized;
+            }
+
+            // Step 8: Clear log
+            write_log->clear();
+
+            const_cast<OptimizeWithLogMessage*>(msg.get())->set_value(ErrorCode::Ok);
+
+        } catch (...) {
+            const_cast<OptimizeWithLogMessage*>(msg.get())->set_exception(std::current_exception());
+        }
     }
 
     void process_flush(std::shared_ptr<const FlushMessage> msg) {

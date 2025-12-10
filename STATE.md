@@ -166,7 +166,13 @@ The MaintenanceWorker class (src/lib/mps_workers.h:292) handles background opera
    - Ensures consistency between graph and vectors data structures
    - Validates and fixes entry point if invalid
    - Detects and repairs orphaned nodes and vectors
-3. Periodic checkpoint automation
+3. ✅ Non-blocking index optimization with WriteLog - **COMPLETED**
+   - Implemented `WriteLog` struct for capturing operations during maintenance
+   - Uses clone-optimize-replay-swap pattern for zero-blocking maintenance
+   - Added `VectorDatabase_MPS::optimize_index()` method
+   - Automatic logging during maintenance with configurable thresholds
+   - Comprehensive test coverage for concurrency safety
+4. Periodic checkpoint automation
 
 **Medium Priority**:
 4. Graph connectivity metrics collection

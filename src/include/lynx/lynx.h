@@ -64,6 +64,7 @@ enum class ErrorCode {
     OutOfMemory,         ///< Memory allocation failed
     IOError,             ///< File I/O error
     NotImplemented,      ///< Feature not yet implemented
+    Busy,                ///< Operation cannot be completed due to high load
 };
 
 // ============================================================================
