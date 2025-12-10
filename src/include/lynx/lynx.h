@@ -175,7 +175,7 @@ struct Config {
  */
 class IVectorIndex {
 public:
-    virtual ~IVectorIndex() = default;
+    virtual ~IVectorIndex() = 0;
 
     // -------------------------------------------------------------------------
     // Vector Operations
@@ -279,7 +279,7 @@ public:
  */
 class IVectorDatabase {
 public:
-    virtual ~IVectorDatabase() = default;
+    virtual ~IVectorDatabase() = 0;
 
     // -------------------------------------------------------------------------
     // Single Vector Operations

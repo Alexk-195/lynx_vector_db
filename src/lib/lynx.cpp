@@ -54,6 +54,11 @@ const char* distance_metric_string(DistanceMetric metric) {
     }
 }
 
+// This is needed to remove lynx.h from coverage and achieve full destructor coverage
+IVectorDatabase::~IVectorDatabase() {}
+IVectorIndex::~IVectorIndex() {}
+
+
 const char* IVectorDatabase::version() {
     return "0.1.0";
 }
