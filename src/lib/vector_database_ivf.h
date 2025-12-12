@@ -15,6 +15,7 @@
 #include "ivf_index.h"
 #include <unordered_map>
 #include <memory>
+#include <shared_mutex>
 #include <cstddef>
 #include <cstdint>
 
@@ -59,6 +60,7 @@ public:
     ErrorCode remove(std::uint64_t id) override;
     bool contains(std::uint64_t id) const override;
     std::optional<VectorRecord> get(std::uint64_t id) const override;
+    RecordRange all_records() const override;
 
     // -------------------------------------------------------------------------
     // Search Operations
@@ -98,6 +100,7 @@ private:
     std::size_t total_inserts_;                               ///< Total insert count
     std::size_t total_queries_;                               ///< Total query count
     mutable double total_query_time_ms_;                      ///< Cumulative query time
+    mutable std::shared_mutex vectors_mutex_;                 ///< Mutex for thread-safe vector storage access
 };
 
 } // namespace lynx

@@ -110,6 +110,7 @@ endif()
 add_library(lynx_static STATIC
         src/lib/lynx.cpp
         src/lib/utils.cpp
+        src/lib/record_iterator.cpp
         src/lib/vector_database_flat.cpp
         src/lib/vector_database_hnsw.cpp
         src/lib/vector_database_ivf.cpp
@@ -137,6 +138,7 @@ set_target_properties(lynx_static PROPERTIES
 add_library(lynx SHARED
         src/lib/lynx.cpp
         src/lib/utils.cpp
+        src/lib/record_iterator.cpp
         src/lib/vector_database_flat.cpp
         src/lib/vector_database_hnsw.cpp
         src/lib/vector_database_ivf.cpp
@@ -230,6 +232,7 @@ if(LYNX_BUILD_TESTS)
         tests/test_distance_metrics.cpp
         tests/test_hnsw.cpp
         tests/test_kmeans.cpp
+        tests/test_iterator.cpp
         tests/test_ivf_index.cpp
         tests/test_lynx_coverage.cpp
         tests/test_minimal_example.cpp

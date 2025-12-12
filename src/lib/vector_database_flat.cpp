@@ -4,6 +4,7 @@
  */
 
 #include "vector_database_flat.h"
+#include "record_iterator_impl.h"
 #include <algorithm>
 #include <chrono>
 #include <fstream>
@@ -55,6 +56,16 @@ std::optional<VectorRecord> VectorDatabase_Impl::get(std::uint64_t id) const {
         return std::nullopt;
     }
     return it->second;
+}
+
+RecordRange VectorDatabase_Impl::all_records() const {
+    // Create iterators using SimpleIteratorImpl (no locking needed for single-threaded access)
+    using MapType = std::unordered_map<std::uint64_t, VectorRecord>;
+
+    auto begin_impl = std::make_shared<SimpleIteratorImpl<MapType>>(vectors_.begin());
+    auto end_impl = std::make_shared<SimpleIteratorImpl<MapType>>(vectors_.end());
+
+    return RecordRange(RecordIterator(begin_impl), RecordIterator(end_impl));
 }
 
 // ============================================================================

@@ -4,6 +4,7 @@
  */
 
 #include "vector_database_hnsw.h"
+#include "record_iterator_impl.h"
 #include <stdexcept>
 #include <algorithm>
 
@@ -224,6 +225,22 @@ std::optional<VectorRecord> VectorDatabase_MPS::get(std::uint64_t id) const {
 
     // Wait for result
     return future.get();
+}
+
+RecordRange VectorDatabase_MPS::all_records() const {
+    // Create iterators using LockedIteratorImpl with shared_mutex
+    // Hold index_mutex_ to protect both index_ and vectors_ during iteration
+    using MapType = std::unordered_map<std::uint64_t, VectorRecord>;
+
+    // Create a shared lock that will be held by all iterator copies
+    auto lock = std::make_shared<std::shared_lock<std::shared_mutex>>(index_mutex_);
+
+    auto begin_impl = std::make_shared<LockedIteratorImpl<MapType, std::shared_mutex>>(
+        vectors_->begin(), lock);
+    auto end_impl = std::make_shared<LockedIteratorImpl<MapType, std::shared_mutex>>(
+        vectors_->end(), lock);
+
+    return RecordRange(RecordIterator(begin_impl), RecordIterator(end_impl));
 }
 
 // ============================================================================
