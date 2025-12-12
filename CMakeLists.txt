@@ -164,10 +164,19 @@ target_link_libraries(lynx_db PRIVATE
         lynx
 )
 
+# Compare indices executable
+add_executable(compare_indices
+        src/compare_indices.cpp
+)
+
+target_link_libraries(compare_indices PRIVATE
+        lynx
+)
+
 # Installation
 include(GNUInstallDirs)
 
-install(TARGETS lynx lynx_static lynx_db
+install(TARGETS lynx lynx_static lynx_db compare_indices
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
