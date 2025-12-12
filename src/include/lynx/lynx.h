@@ -39,7 +39,7 @@ class IVectorIndex;
 enum class IndexType {
     Flat,   ///< Brute-force search, O(N) - best for small datasets, no storage, in memory only
     HNSW,   ///< Hierarchical Navigable Small World, O(log N) - best for speed/recall
-    IVF,    ///< Inverted File Index - best for memory efficiency (NOT IMPLEMENTED YET)
+    IVF,    ///< Inverted File Index - best for memory efficiency
 };
 
 /**
