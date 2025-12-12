@@ -10,7 +10,7 @@ Before making changes, read these documents:
 - `CONCEPT.md` - Architecture and design phases
 - `STATE.md` - Current implementation state
 - `README.md` - Project overview and build instructions
-- `TODOS.md` - Next Todos to be done first
+- `tickets/README.md` - Ticketing system for tracking tasks
 
 ## Code Style Guidelines
 
@@ -70,4 +70,4 @@ Set `MPS_DIR` environment variable to point to MPS library location.
 - Update `STATE.md` after completing implementation phases
 - Document public APIs with Doxygen-style comments
 - Keep `CONCEPT.md` updated if architecture changes
-- Update `TODOS.md` and mark work as done
+- Update tickets and move completed work to `tickets/done/`
