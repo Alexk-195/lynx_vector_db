@@ -102,7 +102,7 @@ if(GCOVR_PATH)
 elseif(LCOV_PATH AND GENHTML_PATH)
     message(STATUS "Using lcov for coverage reporting (Strategy 1)...")
 
-    # [cite_start]Capture coverage data [cite: 3]
+    # Capture coverage data
     execute_process(
         COMMAND ${LCOV_PATH} --capture
             --directory ${BINARY_DIR}
@@ -115,7 +115,7 @@ elseif(LCOV_PATH AND GENHTML_PATH)
         ERROR_VARIABLE lcov_error
     )
 
-    [cite_start]if(NOT lcov_capture_result EQUAL 0) [cite: 4]
+    if(NOT lcov_capture_result EQUAL 0)
         message(WARNING "lcov capture had issues: ${lcov_error}")
     endif()
 
@@ -130,7 +130,7 @@ elseif(LCOV_PATH AND GENHTML_PATH)
             --output-file ${SOURCE_DIR}/coverage.info
             --quiet
             --rc geninfo_unexecuted_blocks=0
-            [cite_start]--ignore-errors empty [cite: 5]
+            --ignore-errors empty
         RESULT_VARIABLE lcov_remove_result
     )
 
@@ -170,7 +170,7 @@ elseif(LCOV_PATH AND GENHTML_PATH)
     # Generate HTML report
     execute_process(
         COMMAND ${GENHTML_PATH} ${SOURCE_DIR}/coverage.info
-            [cite_start]--output-directory ${SOURCE_DIR}/coverage_report [cite: 6]
+            --output-directory ${SOURCE_DIR}/coverage_report
             --quiet
             --ignore-errors empty
         RESULT_VARIABLE genhtml_result
