@@ -1,6 +1,7 @@
 # Build artifacts
 build/
 build-coverage/
+build-test/
 cmake-build/
 cmake-build-debug/
 cmake-build-release/
