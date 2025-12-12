@@ -125,6 +125,37 @@ From `doc/research.md`:
 Consider for follow-up tickets:
 - Update src/lib/compare_indices.cpp to compare all 3 index types.
 
+## Sub-Tickets
+
+This ticket has been broken down into the following sub-tickets for easier implementation:
+
+- **#2001**: Implement K-Means Clustering Algorithm
+  - Foundation for IVF clustering
+  - K-means++ initialization
+  - Support for all distance metrics
+
+- **#2002**: Create IVFIndex Class Structure and Basic Operations
+  - IVFIndex class implementing IVectorIndex interface
+  - Data structures (centroids, inverted lists)
+  - Basic add() and contains() methods
+
+- **#2003**: Implement IVF Search with N-Probe
+  - Search algorithm with n_probe parameter
+  - Find nearest centroids
+  - Search within selected clusters
+
+- **#2004**: Implement IVF Remove, Build, and Persistence
+  - remove() method
+  - build() method for batch construction
+  - serialize() and deserialize() for persistence
+
+- **#2005**: IVF Comprehensive Testing, Benchmarks, and Documentation
+  - Complete unit test coverage
+  - Performance benchmarks vs HNSW and Flat
+  - Update documentation (CONCEPT.md, README.md)
+  - Integration with VectorDatabase
+
 ## Related Tickets
 - Related: HNSW implementation (completed)
+- Sub-tickets: #2001, #2002, #2003, #2004, #2005
 
