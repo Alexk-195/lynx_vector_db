@@ -10,9 +10,9 @@ This directory contains a file-based ticketing system for tracking tasks, issues
 tickets/
 ├── README.md              # This file
 ├── ticket_template.md     # Template for new tickets
-├── 1000_ticket.md         # Open ticket (example)
-├── 1010_ticket.md         # Open ticket (example)
-├── 1000_ticket_data.json  # Additional files for ticket 1000 (example)
+├── 1030_ticket.md         # Open ticket (example)
+├── 1040_ticket.md         # Open ticket (example)
+├── 1030_ticket_data.json  # Additional files for ticket 1030 (example)
 └── done/
     ├── 1000_ticket.md         # Completed ticket (moved from tickets/)
     ├── 1000_ticket_result.md  # Result summary for ticket 1000
