@@ -114,6 +114,7 @@ add_library(lynx_static STATIC
         src/lib/vector_database_hnsw.cpp
         src/lib/hnsw_index.cpp
         src/lib/kmeans.cpp
+        src/lib/ivf_index.cpp
 )
 
 target_include_directories(lynx_static PUBLIC
@@ -139,6 +140,7 @@ add_library(lynx SHARED
         src/lib/vector_database_hnsw.cpp
         src/lib/hnsw_index.cpp
         src/lib/kmeans.cpp
+        src/lib/ivf_index.cpp
 )
 
 target_include_directories(lynx PUBLIC
@@ -226,6 +228,7 @@ if(LYNX_BUILD_TESTS)
         tests/test_distance_metrics.cpp
         tests/test_hnsw.cpp
         tests/test_kmeans.cpp
+        tests/test_ivf_index.cpp
         tests/test_lynx_coverage.cpp
         tests/test_minimal_example.cpp
         tests/test_mps.cpp
