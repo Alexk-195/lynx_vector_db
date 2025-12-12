@@ -1,22 +1,25 @@
-# Lynx Vector Database - Ticketing System
+# File-Based Ticketing System
 
 ## Overview
 
-This directory contains a file-based ticketing system for tracking tasks, issues, and features for the Lynx Vector Database project. The system is designed to be simple, git-friendly, and easy for AI agents to manage.
+This directory contains a file-based ticketing system for tracking tasks, issues, and features. The system is designed to be simple, git-friendly, and easy for AI agents to manage.
 
 ## Directory Structure
 
 ```
 tickets/
-├── README.md           # This file
-├── 1000_ticket.md      # Open ticket (example)
-├── 1010_ticket.md      # Open ticket (example)
+├── README.md              # This file
+├── ticket_template.md     # Template for new tickets
+├── 1000_ticket.md         # Open ticket (example)
+├── 1010_ticket.md         # Open ticket (example)
 ├── 1000_ticket_data.json  # Additional files for ticket 1000 (example)
 └── done/
-    ├── 1000_ticket.md       # Completed ticket
+    ├── 1000_ticket.md         # Completed ticket (moved from tickets/)
     ├── 1000_ticket_result.md  # Result summary for ticket 1000
-    └── 1000_ticket_notes.txt  # Additional files for ticket 1000
+    └── 1000_ticket_notes.txt  # Additional files (moved from tickets/)
 ```
+
+**Note**: When a ticket is completed, it is **moved** (not copied) to the `done/` subfolder along with all its related files.
 
 ## Ticket Numbering
 
@@ -30,17 +33,17 @@ tickets/
 ### Numbering Examples
 
 ```
-1000 - Main feature: Implement HNSW index
-  1001 - Sub-task: Design graph data structure
-  1002 - Sub-task: Implement insertion logic
-  1003 - Sub-task: Implement search logic
+1000 - Main feature: Implement user authentication
+  1001 - Sub-task: Design database schema
+  1002 - Sub-task: Implement login API
+  1003 - Sub-task: Add password hashing
 
-1010 - Main feature: Add persistence layer
-  1011 - Sub-task: Design serialization format
-  1012 - Sub-task: Implement save functionality
-  1013 - Sub-task: Implement load functionality
+1010 - Main feature: Add payment processing
+  1011 - Sub-task: Integrate payment gateway
+  1012 - Sub-task: Implement webhooks
+  1013 - Sub-task: Add transaction logging
 
-1020 - Bug fix: Memory leak in vector storage
+1020 - Bug fix: Memory leak in background worker
 
 1030 - Documentation: Update API reference
 ```
@@ -49,42 +52,13 @@ tickets/
 
 ### 1. Creating a Ticket
 
-Create a new file in the `tickets/` directory:
+Create a new file in the `tickets/` directory using the template:
 
 ```bash
-tickets/1000_ticket.md
+cp tickets/ticket_template.md tickets/1000_ticket.md
 ```
 
-**Ticket template:**
-
-```markdown
-# Ticket 1000: [Title]
-
-**Status**: Open
-**Priority**: [High/Medium/Low]
-**Created**: YYYY-MM-DD
-**Assigned**: [Name or "Unassigned"]
-
-## Description
-
-[Detailed description of the task, issue, or feature]
-
-## Acceptance Criteria
-
-- [ ] Criterion 1
-- [ ] Criterion 2
-- [ ] Criterion 3
-
-## Notes
-
-[Any additional context, references, or implementation notes]
-
-## Related Tickets
-
-- Blocks: #1010
-- Blocked by: #1005
-- Related: #1020
-```
+Then edit `tickets/1000_ticket.md` with your ticket details. See [ticket_template.md](ticket_template.md) for the standard template format.
 
 ### 2. Working on a Ticket
 
@@ -136,7 +110,7 @@ When a ticket is completed:
 
 3. **Move any additional files** to `tickets/done/`:
    ```bash
-   mv tickets/1000_ticket_*.* tickets/done/
+   mv tickets/1000_ticket_* tickets/done/
    ```
 
 ## Additional Files
@@ -184,16 +158,19 @@ To find tickets:
 
 ```bash
 # List all open tickets
-ls tickets/*.md
+ls tickets/*ticket.md
 
 # List completed tickets
-ls tickets/done/*_ticket.md
+ls tickets/done/*ticket.md
 
 # Search for tickets by keyword
-grep -r "HNSW" tickets/
+grep -r "keyword" tickets/
 
 # Count open tickets
-ls tickets/*.md | wc -l
+ls tickets/*ticket.md | wc -l
+
+# Count completed tickets
+ls tickets/done/*ticket.md | wc -l
 ```
 
 ## Best Practices
@@ -205,7 +182,3 @@ ls tickets/*.md | wc -l
 5. **Clean up**: Move completed tickets and all their files to done/
 6. **Use sub-tickets**: Break complex work into manageable pieces
 7. **Skip numbers**: Leave gaps in numbering for future insertions
-
-## Migration from TODOS.md
-
-Previous TODO items from `TODOS.md` should be converted to tickets in this system. This provides better tracking, organization, and integration with version control.
