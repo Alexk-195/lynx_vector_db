@@ -10,6 +10,7 @@
 #include "lynx_intern.h"
 #include "vector_database_flat.h"
 #include "vector_database_hnsw.h"
+#include "vector_database_ivf.h"
 #include <stdexcept>
 #include <cmath>
 #include <algorithm>
@@ -102,9 +103,11 @@ std::shared_ptr<IVectorDatabase> IVectorDatabase::create(const Config& config) {
         return std::make_shared<VectorDatabase_Impl>(config);
     } else if (config.index_type == IndexType::HNSW) {
         return std::make_shared<VectorDatabase_MPS>(config);
+    } else if (config.index_type == IndexType::IVF) {
+        return std::make_shared<VectorDatabase_IVF>(config);
     }
     else
-        throw std::runtime_error("No implemented yet");
+        throw std::runtime_error("Unknown index type");
 }
 
 } // namespace lynx

@@ -161,11 +161,49 @@ These utility functions are used by:
 - Memory: High (graph overhead)
 - Best for: Low latency, high recall requirements
 
-### IVF (Planned)
-- Query: O(N/k · n_probe)
-- Construction: O(k·D) for k-means
-- Memory: Low to moderate
-- Best for: Memory-constrained, filtered search
+### IVF (Inverted File Index) - Implemented
+
+IVF uses k-means clustering to partition the vector space into regions.
+Each cluster has a centroid and an inverted list storing vectors assigned to that cluster.
+
+**Search Algorithm**:
+1. Find n_probe nearest centroids to the query vector
+2. Search only the inverted lists for the selected clusters
+3. Merge and return top-k results from candidates
+
+**Complexity**:
+- Query: O(k·D) to find centroids + O((N/k)·n_probe·D) for search
+- Construction: O(N·D·k·iters) for k-means + O(N) for assignment
+- Memory: O(N·D) for vectors + O(k·D) for centroids
+
+**Performance Characteristics**:
+- Index construction: 5-10x faster than HNSW (no graph building)
+- Memory usage: 2-3x less than HNSW (no graph edges, only centroids)
+- Query speed: Tunable via n_probe parameter
+  - n_probe=1: Fastest, ~60-70% recall
+  - n_probe=10: Balanced, ~90-95% recall
+  - n_probe=sqrt(k): High recall, ~98%+
+
+**Best Use Cases**:
+- Memory-constrained environments (lower memory than HNSW)
+- Filtered search (can skip entire clusters)
+- Large datasets with natural clustering structure
+- When fast index construction is important
+- Scenarios where index is rebuilt frequently
+
+**Tradeoffs vs HNSW**:
+- Pros: Faster construction, lower memory, simpler implementation
+- Cons: Slower queries for equivalent recall, recall depends on data clustering quality
+- Parameter tuning: Requires tuning n_clusters and n_probe for optimal performance
+
+**Configuration Parameters**:
+- `n_clusters` (k): Number of clusters to partition the space into
+  - Rule of thumb: sqrt(N) for balanced performance
+  - Larger k: More clusters, faster search, but requires higher n_probe for good recall
+  - Smaller k: Fewer clusters, slower search, but better recall with low n_probe
+- `n_probe`: Number of nearest clusters to search
+  - Higher values = better recall but slower queries
+  - Recommended: Start with 10, adjust based on recall requirements
 
 ### Flat (Brute Force)
 - Query: O(N·D)
@@ -208,6 +246,17 @@ These utility functions are used by:
 - [x] Memory-mapped file support
 - [x] Filtered search
 
+### Phase 6: IVF Index Implementation
+- [x] K-means clustering algorithm
+- [x] IVF index structure (centroids + inverted lists)
+- [x] IVF search with n_probe parameter
+- [x] IVF add/remove operations
+- [x] IVF build from batch
+- [x] IVF serialization/deserialization
+- [x] VectorDatabase_IVF integration
+- [x] Comprehensive unit tests
+- [x] Performance benchmarks
+
 ## Design Decisions
 
 ### Why Pure Virtual Interfaces?
@@ -240,9 +289,17 @@ struct Config {
     IndexType index_type = IndexType::HNSW;
 
     // HNSW parameters
-    size_t hnsw_m = 16;                    // Max connections
-    size_t hnsw_ef_construction = 200;     // Build quality
-    size_t hnsw_ef_search = 50;            // Search quality
+    HNSWParams hnsw_params;
+    //   size_t M = 16;                   // Max connections per layer
+    //   size_t ef_construction = 200;    // Build quality
+    //   double ml = 1.0 / log(2.0);      // Level generation multiplier
+
+    // IVF parameters
+    IVFParams ivf_params;
+    //   size_t n_clusters = 100;         // Number of clusters (k)
+    //   size_t n_probe = 10;             // Number of clusters to search
+    //   size_t max_iterations = 300;     // K-means max iterations
+    //   double tolerance = 1e-4;         // K-means convergence tolerance
 
     // Threading
     size_t num_query_threads = 0;          // 0 = auto-detect

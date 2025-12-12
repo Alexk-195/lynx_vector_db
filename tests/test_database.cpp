@@ -46,8 +46,15 @@ TEST(VectorDatabaseTest, CreateWithDifferentIndexTypes) {
         ASSERT_NE(db, nullptr);
     }
 
-    // Note: IVF index type is not yet implemented
-    // Test will be added when IVF support is available
+    // Test IVF
+    {
+        lynx::Config config;
+        config.index_type = lynx::IndexType::IVF;
+        config.ivf_params.n_clusters = 10;
+        config.ivf_params.n_probe = 3;
+        auto db = lynx::IVectorDatabase::create(config);
+        ASSERT_NE(db, nullptr);
+    }
 }
 
 // ============================================================================
@@ -846,4 +853,305 @@ TEST(VectorDatabaseTest, LoadNonexistentPathReturnsError) {
     // Try to load from non-existent path
     auto result = db->load();
     EXPECT_NE(result, lynx::ErrorCode::Ok);
+}
+
+// ============================================================================
+// IVF Index Integration Tests
+// ============================================================================
+
+TEST(IVFDatabaseTest, CreateWithDefaultParams) {
+    lynx::Config config;
+    config.index_type = lynx::IndexType::IVF;
+    config.ivf_params.n_clusters = 5;
+    config.ivf_params.n_probe = 2;
+
+    auto db = lynx::IVectorDatabase::create(config);
+    ASSERT_NE(db, nullptr);
+    EXPECT_EQ(db->dimension(), 128); // Default dimension
+    EXPECT_EQ(db->size(), 0);
+}
+
+TEST(IVFDatabaseTest, BatchInsertAndSearch) {
+    lynx::Config config;
+    config.dimension = 64;
+    config.index_type = lynx::IndexType::IVF;
+    config.ivf_params.n_clusters = 5;
+    config.ivf_params.n_probe = 3;
+
+    auto db = lynx::IVectorDatabase::create(config);
+
+    // Create batch of vectors
+    std::vector<lynx::VectorRecord> records;
+    for (std::size_t i = 0; i < 100; ++i) {
+        std::vector<float> vec(64);
+        for (std::size_t j = 0; j < 64; ++j) {
+            vec[j] = static_cast<float>(i + j) / 100.0f;
+        }
+        records.push_back({i, std::move(vec), std::nullopt});
+    }
+
+    // Build index with batch insert
+    EXPECT_EQ(db->batch_insert(records), lynx::ErrorCode::Ok);
+    EXPECT_EQ(db->size(), 100);
+
+    // Search
+    std::vector<float> query(64, 0.5f);
+    auto result = db->search(query, 10);
+
+    EXPECT_LE(result.items.size(), 10);
+    EXPECT_GT(result.query_time_ms, 0.0);
+}
+
+TEST(IVFDatabaseTest, BatchInsertThenIncrementalInsert) {
+    lynx::Config config;
+    config.dimension = 32;
+    config.index_type = lynx::IndexType::IVF;
+    config.ivf_params.n_clusters = 3;
+    config.ivf_params.n_probe = 2;
+
+    auto db = lynx::IVectorDatabase::create(config);
+
+    // Batch insert to build index
+    std::vector<lynx::VectorRecord> records;
+    for (std::size_t i = 0; i < 50; ++i) {
+        std::vector<float> vec(32, static_cast<float>(i));
+        records.push_back({i, std::move(vec), std::nullopt});
+    }
+    EXPECT_EQ(db->batch_insert(records), lynx::ErrorCode::Ok);
+    EXPECT_EQ(db->size(), 50);
+
+    // Incremental insert
+    std::vector<float> new_vec(32, 999.0f);
+    lynx::VectorRecord new_record{100, std::move(new_vec), std::nullopt};
+    EXPECT_EQ(db->insert(new_record), lynx::ErrorCode::Ok);
+    EXPECT_EQ(db->size(), 51);
+    EXPECT_TRUE(db->contains(100));
+}
+
+TEST(IVFDatabaseTest, IncrementalInsertWithoutBuildFails) {
+    lynx::Config config;
+    config.dimension = 8;
+    config.index_type = lynx::IndexType::IVF;
+    config.ivf_params.n_clusters = 2;
+
+    auto db = lynx::IVectorDatabase::create(config);
+
+    // Try to insert without building index first
+    std::vector<float> vec(8, 1.0f);
+    lynx::VectorRecord record{1, std::move(vec), std::nullopt};
+
+    // Should fail because centroids haven't been computed
+    EXPECT_EQ(db->insert(record), lynx::ErrorCode::InvalidState);
+}
+
+TEST(IVFDatabaseTest, SearchWithDifferentNProbe) {
+    lynx::Config config;
+    config.dimension = 16;
+    config.index_type = lynx::IndexType::IVF;
+    config.ivf_params.n_clusters = 10;
+    config.ivf_params.n_probe = 3;  // Default n_probe
+
+    auto db = lynx::IVectorDatabase::create(config);
+
+    // Build index
+    std::vector<lynx::VectorRecord> records;
+    for (std::size_t i = 0; i < 200; ++i) {
+        std::vector<float> vec(16);
+        for (std::size_t j = 0; j < 16; ++j) {
+            vec[j] = static_cast<float>(i * j) / 50.0f;
+        }
+        records.push_back({i, std::move(vec), std::nullopt});
+    }
+    EXPECT_EQ(db->batch_insert(records), lynx::ErrorCode::Ok);
+
+    std::vector<float> query(16, 5.0f);
+
+    // Search with n_probe=1 (fast, lower recall)
+    lynx::SearchParams params1;
+    params1.n_probe = 1;
+    auto result1 = db->search(query, 10, params1);
+    EXPECT_LE(result1.items.size(), 10);
+
+    // Search with n_probe=5 (slower, higher recall)
+    lynx::SearchParams params5;
+    params5.n_probe = 5;
+    auto result5 = db->search(query, 10, params5);
+    EXPECT_LE(result5.items.size(), 10);
+
+    // Higher n_probe should give same or better results (lower top distance)
+    if (!result1.items.empty() && !result5.items.empty()) {
+        EXPECT_LE(result5.items[0].distance, result1.items[0].distance);
+    }
+}
+
+TEST(IVFDatabaseTest, RemoveAfterBatchInsert) {
+    lynx::Config config;
+    config.dimension = 8;
+    config.index_type = lynx::IndexType::IVF;
+    config.ivf_params.n_clusters = 3;
+    config.ivf_params.n_probe = 2;
+
+    auto db = lynx::IVectorDatabase::create(config);
+
+    // Build index
+    std::vector<lynx::VectorRecord> records;
+    for (std::size_t i = 0; i < 30; ++i) {
+        std::vector<float> vec(8, static_cast<float>(i));
+        records.push_back({i, std::move(vec), std::nullopt});
+    }
+    EXPECT_EQ(db->batch_insert(records), lynx::ErrorCode::Ok);
+    EXPECT_EQ(db->size(), 30);
+
+    // Remove a vector
+    EXPECT_EQ(db->remove(15), lynx::ErrorCode::Ok);
+    EXPECT_EQ(db->size(), 29);
+    EXPECT_FALSE(db->contains(15));
+
+    // Search should not return removed vector
+    std::vector<float> query(8, 15.0f);
+    lynx::SearchParams params;
+    params.n_probe = 3;
+    auto result = db->search(query, 30, params);
+
+    for (const auto& item : result.items) {
+        EXPECT_NE(item.id, 15);
+    }
+}
+
+TEST(IVFDatabaseTest, StatsAfterOperations) {
+    lynx::Config config;
+    config.dimension = 16;
+    config.index_type = lynx::IndexType::IVF;
+    config.ivf_params.n_clusters = 4;
+
+    auto db = lynx::IVectorDatabase::create(config);
+
+    // Initial stats
+    auto stats1 = db->stats();
+    EXPECT_EQ(stats1.vector_count, 0);
+    EXPECT_EQ(stats1.total_queries, 0);
+
+    // Build index
+    std::vector<lynx::VectorRecord> records;
+    for (std::size_t i = 0; i < 40; ++i) {
+        std::vector<float> vec(16, static_cast<float>(i));
+        records.push_back({i, std::move(vec), std::nullopt});
+    }
+    db->batch_insert(records);
+
+    // Stats after insert
+    auto stats2 = db->stats();
+    EXPECT_EQ(stats2.vector_count, 40);
+    EXPECT_GT(stats2.index_memory_bytes, 0);
+
+    // Perform some searches
+    std::vector<float> query(16, 20.0f);
+    lynx::SearchParams params;
+    params.n_probe = 2;
+    db->search(query, 5, params);
+    db->search(query, 10, params);
+
+    // Stats after searches
+    auto stats3 = db->stats();
+    EXPECT_EQ(stats3.total_queries, 2);
+    EXPECT_GT(stats3.avg_query_time_ms, 0.0);
+}
+
+TEST(IVFDatabaseTest, DifferentDistanceMetrics) {
+    // Test L2
+    {
+        lynx::Config config;
+        config.dimension = 4;
+        config.index_type = lynx::IndexType::IVF;
+        config.distance_metric = lynx::DistanceMetric::L2;
+        config.ivf_params.n_clusters = 2;
+
+        auto db = lynx::IVectorDatabase::create(config);
+
+        std::vector<lynx::VectorRecord> records = {
+            {1, {0.0f, 0.0f, 0.0f, 0.0f}, std::nullopt},
+            {2, {1.0f, 0.0f, 0.0f, 0.0f}, std::nullopt},
+            {3, {2.0f, 0.0f, 0.0f, 0.0f}, std::nullopt}
+        };
+        db->batch_insert(records);
+
+        std::vector<float> query = {0.0f, 0.0f, 0.0f, 0.0f};
+        lynx::SearchParams params;
+        params.n_probe = 2;
+        auto result = db->search(query, 3, params);
+
+        ASSERT_GE(result.items.size(), 1);
+        EXPECT_EQ(result.items[0].id, 1); // Nearest
+    }
+
+    // Test Cosine
+    {
+        lynx::Config config;
+        config.dimension = 4;
+        config.index_type = lynx::IndexType::IVF;
+        config.distance_metric = lynx::DistanceMetric::Cosine;
+        config.ivf_params.n_clusters = 2;
+
+        auto db = lynx::IVectorDatabase::create(config);
+
+        std::vector<lynx::VectorRecord> records = {
+            {1, {1.0f, 0.0f, 0.0f, 0.0f}, std::nullopt},
+            {2, {0.9f, 0.1f, 0.0f, 0.0f}, std::nullopt},
+            {3, {0.0f, 1.0f, 0.0f, 0.0f}, std::nullopt}
+        };
+        db->batch_insert(records);
+
+        std::vector<float> query = {1.0f, 0.0f, 0.0f, 0.0f};
+        lynx::SearchParams params;
+        params.n_probe = 2;
+        auto result = db->search(query, 3, params);
+
+        ASSERT_GE(result.items.size(), 1);
+        EXPECT_EQ(result.items[0].id, 1); // Same direction
+    }
+}
+
+TEST(IVFDatabaseTest, PersistenceRoundTrip) {
+    const std::string test_path = "/tmp/lynx_test_ivf_persistence";
+    std::system(("rm -rf " + test_path).c_str());
+
+    lynx::Config config;
+    config.dimension = 16;
+    config.index_type = lynx::IndexType::IVF;
+    config.ivf_params.n_clusters = 4;
+    config.ivf_params.n_probe = 2;
+    config.data_path = test_path;
+
+    // Create and populate database
+    {
+        auto db = lynx::IVectorDatabase::create(config);
+
+        std::vector<lynx::VectorRecord> records;
+        for (std::size_t i = 0; i < 50; ++i) {
+            std::vector<float> vec(16, static_cast<float>(i) / 10.0f);
+            records.push_back({i, std::move(vec), std::nullopt});
+        }
+        EXPECT_EQ(db->batch_insert(records), lynx::ErrorCode::Ok);
+        EXPECT_EQ(db->size(), 50);
+
+        // Save to disk
+        EXPECT_EQ(db->save(), lynx::ErrorCode::Ok);
+    }
+
+    // Load from disk in new database
+    {
+        auto db = lynx::IVectorDatabase::create(config);
+        EXPECT_EQ(db->load(), lynx::ErrorCode::Ok);
+        EXPECT_EQ(db->size(), 50);
+
+        // Verify search works after loading
+        std::vector<float> query(16, 2.5f);
+        lynx::SearchParams params;
+        params.n_probe = 3;
+        auto result = db->search(query, 10, params);
+
+        EXPECT_LE(result.items.size(), 10);
+    }
+
+    std::system(("rm -rf " + test_path).c_str());
 }

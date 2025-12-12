@@ -6,10 +6,14 @@ A fast and light weight vector database implemented in modern C++20 with support
 
 ## Features
 
-- **HNSW Index**: Hierarchical Navigable Small World graphs for O(log N) query time
+- **Multiple Index Types**:
+  - **HNSW**: Hierarchical Navigable Small World graphs for O(log N) query time and high recall
+  - **IVF**: Inverted File Index for fast construction and memory-efficient approximate search
+  - **Flat**: Brute-force exact search for small datasets
 - **Multi-threaded**: Built on MPS (Message Processing System) for concurrent operations
 - **Modern C++20**: Concepts, spans, ranges, and coroutines
 - **Flexible Distance Metrics**: L2 (Euclidean), Cosine, Dot Product
+- **Persistence**: Save and load indices to/from disk
 
 ## Requirements
 
@@ -115,7 +119,108 @@ sudo cmake --install .
 
 ## Usage
 
-For minimal example see [src/main_minimal.cpp](src/main_minimal.cpp)
+### Quick Example - HNSW Index
+
+```cpp
+#include <lynx/lynx.h>
+
+int main() {
+    // Create database with HNSW index
+    lynx::Config config;
+    config.dimension = 128;
+    config.index_type = lynx::IndexType::HNSW;
+    config.hnsw_params.M = 16;
+    config.hnsw_params.ef_construction = 200;
+
+    auto db = lynx::IVectorDatabase::create(config);
+
+    // Insert vectors
+    std::vector<float> vec1(128, 0.5f);
+    db->insert({1, vec1, std::nullopt});
+
+    // Search
+    std::vector<float> query(128, 0.5f);
+    auto results = db->search(query, 10);
+
+    return 0;
+}
+```
+
+### IVF Index Example
+
+```cpp
+#include <lynx/lynx.h>
+
+int main() {
+    // Create database with IVF index
+    lynx::Config config;
+    config.dimension = 128;
+    config.index_type = lynx::IndexType::IVF;
+    config.ivf_params.n_clusters = 100;     // Number of clusters
+    config.ivf_params.n_probe = 10;         // Clusters to search
+
+    auto db = lynx::IVectorDatabase::create(config);
+
+    // Build index from batch data
+    std::vector<lynx::VectorRecord> records;
+    for (size_t i = 0; i < 10000; ++i) {
+        std::vector<float> vec(128);
+        // ... fill vector ...
+        records.push_back({i, vec, std::nullopt});
+    }
+    db->batch_insert(records);
+
+    // Search with custom n_probe
+    std::vector<float> query(128, 0.5f);
+    lynx::SearchParams params;
+    params.n_probe = 20;  // Search more clusters for higher recall
+    auto results = db->search(query, 10, params);
+
+    return 0;
+}
+```
+
+For more examples see [src/main_minimal.cpp](src/main_minimal.cpp) and [src/main.cpp](src/main.cpp)
+
+### Choosing an Index Type
+
+| Index Type | Best For | Query Speed | Memory | Construction | Recall |
+|------------|----------|-------------|---------|--------------|---------|
+| **Flat** | Small datasets (<1K), exact search required | Slow (O(N)) | Low | Instant | 100% |
+| **HNSW** | High-performance ANN, low latency critical | Fast (O(log N)) | High | Slow | 95-99% |
+| **IVF** | Memory-constrained, fast construction needed | Medium | Low | Fast | 85-98% |
+
+### IVF Parameter Tuning
+
+**n_clusters** (number of clusters):
+- Rule of thumb: `sqrt(N)` where N is the number of vectors
+- Example: For 10,000 vectors, use ~100 clusters
+- Larger values: Faster search but may require higher n_probe for good recall
+- Smaller values: Slower search but better recall with low n_probe
+
+**n_probe** (clusters to search):
+- Controls the speed/recall tradeoff
+- Start with 10 and adjust based on your needs:
+  - n_probe=1: Fastest queries, ~60-70% recall
+  - n_probe=10: Balanced, ~90-95% recall
+  - n_probe=sqrt(n_clusters): High recall, ~98%+
+- Higher values = better recall but slower queries
+
+**Example tuning process**:
+```cpp
+// Start with default configuration
+config.ivf_params.n_clusters = 100;  // For ~10K vectors
+config.ivf_params.n_probe = 10;
+
+// If recall is too low, increase n_probe
+params.n_probe = 20;  // Better recall, slower
+
+// If queries are too slow, decrease n_probe
+params.n_probe = 5;   // Faster, lower recall
+
+// For datasets with natural clusters, fewer clusters may work better
+config.ivf_params.n_clusters = 50;  // Try fewer clusters
+```
 
 ## Project Structure
 
