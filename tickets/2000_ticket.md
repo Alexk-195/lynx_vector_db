@@ -10,6 +10,8 @@
 
 Implement the Inverted File Index (IVF) algorithm as an alternative indexing method for Lynx Vector Database. IVF is a cluster-based ANN search method that partitions the dataset into distinct clusters using k-means, reducing search space by limiting exhaustive search to only relevant clusters.
 
+If implementing intra cluster search use index inteface IVectorIndex provided in lynx_intern.h. So that Flat or HNSW Index can be selected for it.
+
 According to CONCEPT.md, IVF should provide:
 - Query complexity: O(N/k · n_probe)
 - Construction complexity: O(k·D) for k-means
