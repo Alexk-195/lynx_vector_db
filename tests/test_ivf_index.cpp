@@ -416,15 +416,48 @@ TEST(IVFIndexTest, MemoryUsageIncreases) {
 }
 
 // ============================================================================
-// Search Stub Tests (To be properly tested in #2003)
+// Search Tests (Ticket #2003)
 // ============================================================================
 
-TEST(IVFIndexTest, SearchReturnsEmptyForNow) {
+TEST(IVFIndexTest, SearchBasic) {
+    IVFParams params;
+    params.n_clusters = 3;
+    params.n_probe = 3;  // Search all clusters
+
+    IVFIndex index(8, DistanceMetric::L2, params);
+
+    // Set centroids
+    auto centroids = generate_test_centroids(3, 8, 10.0f);
+    index.set_centroids(centroids);
+
+    // Add vectors
+    auto vectors = generate_random_vectors_ivf(30, 8);
+    for (std::size_t i = 0; i < vectors.size(); ++i) {
+        index.add(i, vectors[i]);
+    }
+
+    // Search for top-10 nearest neighbors
+    std::vector<float> query(8, 0.0f);
+    SearchParams search_params;
+    search_params.n_probe = 3;
+
+    auto results = index.search(query, 10, search_params);
+
+    EXPECT_EQ(results.size(), 10);
+
+    // Verify results are sorted by distance
+    for (std::size_t i = 1; i < results.size(); ++i) {
+        EXPECT_LE(results[i-1].distance, results[i].distance);
+    }
+}
+
+TEST(IVFIndexTest, SearchEmptyIndex) {
     IVFParams params;
     params.n_clusters = 3;
 
     IVFIndex index(8, DistanceMetric::L2, params);
 
+    // Set centroids but don't add any vectors
     auto centroids = generate_test_centroids(3, 8);
     index.set_centroids(centroids);
 
@@ -432,8 +465,19 @@ TEST(IVFIndexTest, SearchReturnsEmptyForNow) {
     SearchParams search_params;
 
     auto results = index.search(query, 10, search_params);
+    EXPECT_TRUE(results.empty());
+}
 
-    // Search returns empty for now (to be implemented in #2003)
+TEST(IVFIndexTest, SearchWithoutCentroids) {
+    IVFParams params;
+    params.n_clusters = 3;
+
+    IVFIndex index(8, DistanceMetric::L2, params);
+
+    std::vector<float> query(8, 0.0f);
+    SearchParams search_params;
+
+    auto results = index.search(query, 10, search_params);
     EXPECT_TRUE(results.empty());
 }
 
@@ -443,11 +487,316 @@ TEST(IVFIndexTest, SearchDimensionMismatch) {
 
     IVFIndex index(8, DistanceMetric::L2, params);
 
+    auto centroids = generate_test_centroids(3, 8);
+    index.set_centroids(centroids);
+
     std::vector<float> query(16, 0.0f);  // Wrong dimension
     SearchParams search_params;
 
     auto results = index.search(query, 10, search_params);
     EXPECT_TRUE(results.empty());
+}
+
+TEST(IVFIndexTest, SearchKLargerThanVectors) {
+    IVFParams params;
+    params.n_clusters = 3;
+
+    IVFIndex index(8, DistanceMetric::L2, params);
+
+    auto centroids = generate_test_centroids(3, 8);
+    index.set_centroids(centroids);
+
+    // Add only 5 vectors
+    auto vectors = generate_random_vectors_ivf(5, 8);
+    for (std::size_t i = 0; i < vectors.size(); ++i) {
+        index.add(i, vectors[i]);
+    }
+
+    std::vector<float> query(8, 0.0f);
+    SearchParams search_params;
+    search_params.n_probe = 3;
+
+    // Request 10 neighbors, but only 5 exist
+    auto results = index.search(query, 10, search_params);
+    EXPECT_EQ(results.size(), 5);
+}
+
+TEST(IVFIndexTest, SearchWithNProbe1) {
+    IVFParams params;
+    params.n_clusters = 5;
+
+    IVFIndex index(8, DistanceMetric::L2, params);
+
+    // Create well-separated centroids
+    auto centroids = generate_test_centroids(5, 8, 100.0f);
+    index.set_centroids(centroids);
+
+    // Add vectors near each centroid
+    for (std::size_t c = 0; c < 5; ++c) {
+        auto vecs = generate_vectors_near_centroid(centroids[c], 10, 0.5f, c);
+        for (std::size_t i = 0; i < vecs.size(); ++i) {
+            index.add(c * 10 + i, vecs[i]);
+        }
+    }
+
+    // Query near first centroid
+    auto query = centroids[0];
+    SearchParams search_params;
+    search_params.n_probe = 1;  // Only search nearest cluster
+
+    auto results = index.search(query, 5, search_params);
+
+    // Should find 5 results from the nearest cluster
+    EXPECT_EQ(results.size(), 5);
+}
+
+TEST(IVFIndexTest, SearchWithNProbeAll) {
+    IVFParams params;
+    params.n_clusters = 5;
+
+    IVFIndex index(8, DistanceMetric::L2, params);
+
+    auto centroids = generate_test_centroids(5, 8, 100.0f);
+    index.set_centroids(centroids);
+
+    // Add vectors
+    for (std::size_t c = 0; c < 5; ++c) {
+        auto vecs = generate_vectors_near_centroid(centroids[c], 10, 0.5f, c);
+        for (std::size_t i = 0; i < vecs.size(); ++i) {
+            index.add(c * 10 + i, vecs[i]);
+        }
+    }
+
+    auto query = centroids[0];
+    SearchParams search_params;
+    search_params.n_probe = 5;  // Search all clusters
+
+    auto results = index.search(query, 10, search_params);
+
+    // Should find 10 results from all clusters
+    EXPECT_EQ(results.size(), 10);
+}
+
+TEST(IVFIndexTest, SearchNProbeGreaterThanClusters) {
+    IVFParams params;
+    params.n_clusters = 3;
+
+    IVFIndex index(8, DistanceMetric::L2, params);
+
+    auto centroids = generate_test_centroids(3, 8);
+    index.set_centroids(centroids);
+
+    auto vectors = generate_random_vectors_ivf(30, 8);
+    for (std::size_t i = 0; i < vectors.size(); ++i) {
+        index.add(i, vectors[i]);
+    }
+
+    std::vector<float> query(8, 0.0f);
+    SearchParams search_params;
+    search_params.n_probe = 100;  // More than number of clusters
+
+    // Should clamp to 3 (num_clusters) and work correctly
+    auto results = index.search(query, 10, search_params);
+    EXPECT_EQ(results.size(), 10);
+}
+
+TEST(IVFIndexTest, SearchExactMatch) {
+    IVFParams params;
+    params.n_clusters = 3;
+
+    IVFIndex index(8, DistanceMetric::L2, params);
+
+    auto centroids = generate_test_centroids(3, 8);
+    index.set_centroids(centroids);
+
+    // Add a specific vector
+    std::vector<float> target_vec = {1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f};
+    index.add(42, target_vec);
+
+    // Add some other vectors
+    auto vectors = generate_random_vectors_ivf(20, 8);
+    for (std::size_t i = 0; i < vectors.size(); ++i) {
+        index.add(100 + i, vectors[i]);
+    }
+
+    // Search for exact match
+    SearchParams search_params;
+    search_params.n_probe = 3;
+    auto results = index.search(target_vec, 1, search_params);
+
+    ASSERT_EQ(results.size(), 1);
+    EXPECT_EQ(results[0].id, 42);
+    EXPECT_NEAR(results[0].distance, 0.0f, 1e-6f);  // Distance should be ~0
+}
+
+TEST(IVFIndexTest, SearchL2Metric) {
+    IVFParams params;
+    params.n_clusters = 3;
+
+    IVFIndex index(4, DistanceMetric::L2, params);
+
+    std::vector<std::vector<float>> centroids = {
+        {0.0f, 0.0f, 0.0f, 0.0f},
+        {10.0f, 0.0f, 0.0f, 0.0f},
+        {20.0f, 0.0f, 0.0f, 0.0f}
+    };
+    index.set_centroids(centroids);
+
+    // Add vectors at known distances
+    std::vector<float> vec1 = {0.0f, 0.0f, 0.0f, 0.0f};  // Distance 0 from query
+    std::vector<float> vec2 = {1.0f, 0.0f, 0.0f, 0.0f};  // Distance 1 from query
+    std::vector<float> vec3 = {2.0f, 0.0f, 0.0f, 0.0f};  // Distance 2 from query
+
+    index.add(1, vec1);
+    index.add(2, vec2);
+    index.add(3, vec3);
+
+    std::vector<float> query = {0.0f, 0.0f, 0.0f, 0.0f};
+    SearchParams search_params;
+    search_params.n_probe = 3;
+
+    auto results = index.search(query, 3, search_params);
+
+    ASSERT_EQ(results.size(), 3);
+    EXPECT_EQ(results[0].id, 1);  // Closest
+    EXPECT_EQ(results[1].id, 2);
+    EXPECT_EQ(results[2].id, 3);  // Farthest
+}
+
+TEST(IVFIndexTest, SearchCosineMetric) {
+    IVFParams params;
+    params.n_clusters = 2;
+
+    IVFIndex index(4, DistanceMetric::Cosine, params);
+
+    std::vector<std::vector<float>> centroids = {
+        {1.0f, 0.0f, 0.0f, 0.0f},
+        {0.0f, 1.0f, 0.0f, 0.0f}
+    };
+    index.set_centroids(centroids);
+
+    // Vectors in similar directions
+    std::vector<float> vec1 = {1.0f, 0.0f, 0.0f, 0.0f};   // Same direction as query
+    std::vector<float> vec2 = {0.9f, 0.1f, 0.0f, 0.0f};   // Similar direction
+    std::vector<float> vec3 = {0.0f, 1.0f, 0.0f, 0.0f};   // Orthogonal direction
+
+    index.add(1, vec1);
+    index.add(2, vec2);
+    index.add(3, vec3);
+
+    std::vector<float> query = {1.0f, 0.0f, 0.0f, 0.0f};
+    SearchParams search_params;
+    search_params.n_probe = 2;
+
+    auto results = index.search(query, 3, search_params);
+
+    ASSERT_EQ(results.size(), 3);
+    EXPECT_EQ(results[0].id, 1);  // Same direction (smallest cosine distance)
+}
+
+TEST(IVFIndexTest, SearchDotProductMetric) {
+    IVFParams params;
+    params.n_clusters = 2;
+
+    IVFIndex index(4, DistanceMetric::DotProduct, params);
+
+    std::vector<std::vector<float>> centroids = {
+        {1.0f, 0.0f, 0.0f, 0.0f},
+        {-1.0f, 0.0f, 0.0f, 0.0f}
+    };
+    index.set_centroids(centroids);
+
+    std::vector<float> vec1 = {1.0f, 0.0f, 0.0f, 0.0f};
+    std::vector<float> vec2 = {0.5f, 0.0f, 0.0f, 0.0f};
+    std::vector<float> vec3 = {-1.0f, 0.0f, 0.0f, 0.0f};
+
+    index.add(1, vec1);
+    index.add(2, vec2);
+    index.add(3, vec3);
+
+    std::vector<float> query = {1.0f, 0.0f, 0.0f, 0.0f};
+    SearchParams search_params;
+    search_params.n_probe = 2;
+
+    auto results = index.search(query, 3, search_params);
+
+    ASSERT_EQ(results.size(), 3);
+    EXPECT_EQ(results[0].id, 1);  // Largest dot product (smallest negative)
+}
+
+TEST(IVFIndexTest, SearchRecallVsNProbe) {
+    // Test that higher n_probe gives better recall
+    IVFParams params;
+    params.n_clusters = 10;
+
+    IVFIndex index(64, DistanceMetric::L2, params);
+
+    // Generate dataset
+    auto centroids = generate_test_centroids(10, 64, 50.0f);
+    index.set_centroids(centroids);
+
+    auto vectors = generate_random_vectors_ivf(1000, 64, 12345);
+    for (std::size_t i = 0; i < vectors.size(); ++i) {
+        index.add(i, vectors[i]);
+    }
+
+    // Pick a query vector
+    std::vector<float> query = vectors[0];
+
+    // Search with n_probe=1
+    SearchParams params1;
+    params1.n_probe = 1;
+    auto results1 = index.search(query, 10, params1);
+
+    // Search with n_probe=5
+    SearchParams params5;
+    params5.n_probe = 5;
+    auto results5 = index.search(query, 10, params5);
+
+    // Search with n_probe=10 (all clusters)
+    SearchParams params10;
+    params10.n_probe = 10;
+    auto results10 = index.search(query, 10, params10);
+
+    EXPECT_EQ(results1.size(), 10);
+    EXPECT_EQ(results5.size(), 10);
+    EXPECT_EQ(results10.size(), 10);
+
+    // Higher n_probe should give same or better (lower) top distance
+    EXPECT_LE(results10[0].distance, results5[0].distance);
+    EXPECT_LE(results5[0].distance, results1[0].distance);
+}
+
+TEST(IVFIndexTest, SearchConcurrent) {
+    IVFParams params;
+    params.n_clusters = 5;
+
+    IVFIndex index(64, DistanceMetric::L2, params);
+
+    auto centroids = generate_test_centroids(5, 64);
+    index.set_centroids(centroids);
+
+    auto vectors = generate_random_vectors_ivf(100, 64);
+    for (std::size_t i = 0; i < vectors.size(); ++i) {
+        index.add(i, vectors[i]);
+    }
+
+    // Concurrent searches should not crash
+    std::vector<std::thread> threads;
+    for (int t = 0; t < 4; ++t) {
+        threads.emplace_back([&index, &vectors]() {
+            SearchParams search_params;
+            search_params.n_probe = 3;
+            for (int i = 0; i < 100; ++i) {
+                auto results = index.search(vectors[i % vectors.size()], 10, search_params);
+                EXPECT_LE(results.size(), 10);
+            }
+        });
+    }
+
+    for (auto& thread : threads) {
+        thread.join();
+    }
 }
 
 // ============================================================================

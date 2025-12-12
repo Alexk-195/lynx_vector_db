@@ -231,6 +231,16 @@ private:
     [[nodiscard]] std::size_t find_nearest_centroid(std::span<const float> vector) const;
 
     /**
+     * @brief Find the n_probe nearest centroids to a vector.
+     * @param vector Vector to find nearest centroids for
+     * @param n_probe Number of nearest centroids to find
+     * @return Vector of cluster IDs sorted by distance (nearest first)
+     */
+    [[nodiscard]] std::vector<std::size_t> find_nearest_centroids(
+        std::span<const float> vector,
+        std::size_t n_probe) const;
+
+    /**
      * @brief Calculate distance between two vectors.
      * @param a First vector
      * @param b Second vector
