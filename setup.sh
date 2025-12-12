@@ -144,8 +144,29 @@ case "${1}" in
         ;;
     test)
         check_dependencies
-        make release
-        make test
+        log_info "Building and running tests with CMake..."
+
+        # Create build directory for tests
+        mkdir -p build-test
+        cd build-test
+
+        # Configure with CMake
+        log_info "Configuring CMake..."
+        cmake -DCMAKE_BUILD_TYPE=Release \
+              -DLYNX_BUILD_TESTS=ON \
+              -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+              ..
+
+        # Build the project and tests
+        log_info "Building project and tests..."
+        cmake --build . -j$(nproc 2>/dev/null || echo 4)
+
+        # Run tests with CTest
+        log_info "Running tests..."
+        ctest --output-on-failure
+
+        cd ..
+        log_info "Test run complete"
         ;;
     coverage)
         check_dependencies
