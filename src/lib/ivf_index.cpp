@@ -11,6 +11,9 @@
 #include <stdexcept>
 #include <limits>
 #include <mutex>
+#include <istream>
+#include <ostream>
+#include <string>
 
 namespace lynx {
 
@@ -71,9 +74,38 @@ ErrorCode IVFIndex::add(std::uint64_t id, std::span<const float> vector) {
     return ErrorCode::Ok;
 }
 
-ErrorCode IVFIndex::remove(std::uint64_t /*id*/) {
-    // To be implemented in ticket #2004
-    return ErrorCode::NotImplemented;
+ErrorCode IVFIndex::remove(std::uint64_t id) {
+    std::unique_lock lock(mutex_);
+
+    // Find which cluster contains this ID
+    auto it = id_to_cluster_.find(id);
+    if (it == id_to_cluster_.end()) {
+        return ErrorCode::VectorNotFound;
+    }
+
+    std::size_t cluster_id = it->second;
+    auto& inv_list = inverted_lists_[cluster_id];
+
+    // Find position in inverted list
+    auto id_it = std::find(inv_list.ids.begin(), inv_list.ids.end(), id);
+    if (id_it == inv_list.ids.end()) {
+        return ErrorCode::InvalidState;  // Inconsistent state
+    }
+
+    std::size_t pos = std::distance(inv_list.ids.begin(), id_it);
+
+    // Remove from inverted list (swap with last for O(1) removal)
+    if (pos != inv_list.ids.size() - 1) {
+        std::swap(inv_list.ids[pos], inv_list.ids.back());
+        std::swap(inv_list.vectors[pos], inv_list.vectors.back());
+    }
+    inv_list.ids.pop_back();
+    inv_list.vectors.pop_back();
+
+    // Remove from mapping
+    id_to_cluster_.erase(it);
+
+    return ErrorCode::Ok;
 }
 
 bool IVFIndex::contains(std::uint64_t id) const {
@@ -160,23 +192,224 @@ std::vector<SearchResultItem> IVFIndex::search(
 // IVectorIndex Interface - Batch Operations
 // ============================================================================
 
-ErrorCode IVFIndex::build(std::span<const VectorRecord> /*vectors*/) {
-    // To be implemented in ticket #2004
-    return ErrorCode::NotImplemented;
+ErrorCode IVFIndex::build(std::span<const VectorRecord> vectors) {
+    if (vectors.empty()) {
+        return ErrorCode::InvalidParameter;
+    }
+
+    // Validate all vectors have correct dimension
+    for (const auto& rec : vectors) {
+        if (rec.vector.size() != dimension_) {
+            return ErrorCode::DimensionMismatch;
+        }
+    }
+
+    std::unique_lock lock(mutex_);
+
+    // Clear existing data
+    inverted_lists_.clear();
+    centroids_.clear();
+    id_to_cluster_.clear();
+
+    // Extract vector data for k-means
+    std::vector<std::vector<float>> vec_data;
+    vec_data.reserve(vectors.size());
+    for (const auto& rec : vectors) {
+        vec_data.push_back(rec.vector);
+    }
+
+    // Run k-means clustering
+    clustering::KMeans kmeans(params_.n_clusters, dimension_, metric_, {});
+    kmeans.fit(vec_data);
+    centroids_ = kmeans.centroids();
+
+    // Initialize inverted lists
+    inverted_lists_.resize(centroids_.size());
+
+    // Assign vectors to clusters
+    auto assignments = kmeans.predict(vec_data);
+    for (std::size_t i = 0; i < vectors.size(); ++i) {
+        std::size_t cluster_id = assignments[i];
+        inverted_lists_[cluster_id].ids.push_back(vectors[i].id);
+        inverted_lists_[cluster_id].vectors.push_back(vectors[i].vector);
+        id_to_cluster_[vectors[i].id] = cluster_id;
+    }
+
+    return ErrorCode::Ok;
 }
 
 // ============================================================================
 // IVectorIndex Interface - Serialization
 // ============================================================================
 
-ErrorCode IVFIndex::serialize(std::ostream& /*out*/) const {
-    // To be implemented in ticket #2004
-    return ErrorCode::NotImplemented;
+ErrorCode IVFIndex::serialize(std::ostream& out) const {
+    std::shared_lock lock(mutex_);
+
+    // Write header
+    out.write("IVFX", 4);
+    std::uint32_t version = 1;
+    out.write(reinterpret_cast<const char*>(&version), sizeof(version));
+
+    std::uint64_t dim = dimension_;
+    out.write(reinterpret_cast<const char*>(&dim), sizeof(dim));
+
+    std::uint32_t metric = static_cast<std::uint32_t>(metric_);
+    out.write(reinterpret_cast<const char*>(&metric), sizeof(metric));
+
+    // Write centroids
+    std::uint64_t num_clusters = centroids_.size();
+    out.write(reinterpret_cast<const char*>(&num_clusters), sizeof(num_clusters));
+
+    for (const auto& centroid : centroids_) {
+        out.write(reinterpret_cast<const char*>(centroid.data()),
+                 dimension_ * sizeof(float));
+    }
+
+    // Write inverted lists
+    for (const auto& inv_list : inverted_lists_) {
+        std::uint64_t list_size = inv_list.ids.size();
+        out.write(reinterpret_cast<const char*>(&list_size), sizeof(list_size));
+
+        if (list_size > 0) {
+            out.write(reinterpret_cast<const char*>(inv_list.ids.data()),
+                     list_size * sizeof(std::uint64_t));
+
+            for (const auto& vec : inv_list.vectors) {
+                out.write(reinterpret_cast<const char*>(vec.data()),
+                         dimension_ * sizeof(float));
+            }
+        }
+    }
+
+    // Write ID mapping
+    std::uint64_t map_size = id_to_cluster_.size();
+    out.write(reinterpret_cast<const char*>(&map_size), sizeof(map_size));
+    for (const auto& [id, cluster] : id_to_cluster_) {
+        out.write(reinterpret_cast<const char*>(&id), sizeof(id));
+        std::uint64_t cluster_u64 = cluster;
+        out.write(reinterpret_cast<const char*>(&cluster_u64), sizeof(cluster_u64));
+    }
+
+    return out.good() ? ErrorCode::Ok : ErrorCode::IOError;
 }
 
-ErrorCode IVFIndex::deserialize(std::istream& /*in*/) {
-    // To be implemented in ticket #2004
-    return ErrorCode::NotImplemented;
+ErrorCode IVFIndex::deserialize(std::istream& in) {
+    std::unique_lock lock(mutex_);
+
+    // Read and validate header
+    char magic[4];
+    in.read(magic, 4);
+    if (!in.good() || std::string(magic, 4) != "IVFX") {
+        return ErrorCode::IOError;
+    }
+
+    std::uint32_t version;
+    in.read(reinterpret_cast<char*>(&version), sizeof(version));
+    if (!in.good() || version != 1) {
+        return ErrorCode::IOError;
+    }
+
+    std::uint64_t dim;
+    in.read(reinterpret_cast<char*>(&dim), sizeof(dim));
+    if (!in.good() || dim != dimension_) {
+        return ErrorCode::DimensionMismatch;
+    }
+
+    std::uint32_t metric;
+    in.read(reinterpret_cast<char*>(&metric), sizeof(metric));
+    if (!in.good() || static_cast<DistanceMetric>(metric) != metric_) {
+        return ErrorCode::InvalidParameter;
+    }
+
+    // Read centroids
+    std::uint64_t num_clusters;
+    in.read(reinterpret_cast<char*>(&num_clusters), sizeof(num_clusters));
+    if (!in.good() || num_clusters == 0) {
+        return ErrorCode::IOError;
+    }
+
+    std::vector<std::vector<float>> new_centroids;
+    new_centroids.reserve(num_clusters);
+
+    for (std::uint64_t i = 0; i < num_clusters; ++i) {
+        std::vector<float> centroid(dimension_);
+        in.read(reinterpret_cast<char*>(centroid.data()),
+               dimension_ * sizeof(float));
+        if (!in.good()) {
+            return ErrorCode::IOError;
+        }
+        new_centroids.push_back(std::move(centroid));
+    }
+
+    // Read inverted lists
+    std::vector<InvertedList> new_inverted_lists;
+    new_inverted_lists.resize(num_clusters);
+
+    for (std::uint64_t i = 0; i < num_clusters; ++i) {
+        std::uint64_t list_size;
+        in.read(reinterpret_cast<char*>(&list_size), sizeof(list_size));
+        if (!in.good()) {
+            return ErrorCode::IOError;
+        }
+
+        if (list_size > 0) {
+            new_inverted_lists[i].ids.resize(list_size);
+            in.read(reinterpret_cast<char*>(new_inverted_lists[i].ids.data()),
+                   list_size * sizeof(std::uint64_t));
+            if (!in.good()) {
+                return ErrorCode::IOError;
+            }
+
+            new_inverted_lists[i].vectors.reserve(list_size);
+            for (std::uint64_t j = 0; j < list_size; ++j) {
+                std::vector<float> vec(dimension_);
+                in.read(reinterpret_cast<char*>(vec.data()),
+                       dimension_ * sizeof(float));
+                if (!in.good()) {
+                    return ErrorCode::IOError;
+                }
+                new_inverted_lists[i].vectors.push_back(std::move(vec));
+            }
+        }
+    }
+
+    // Read ID mapping
+    std::uint64_t map_size;
+    in.read(reinterpret_cast<char*>(&map_size), sizeof(map_size));
+    if (!in.good()) {
+        return ErrorCode::IOError;
+    }
+
+    std::unordered_map<std::uint64_t, std::size_t> new_id_to_cluster;
+    new_id_to_cluster.reserve(map_size);
+
+    for (std::uint64_t i = 0; i < map_size; ++i) {
+        std::uint64_t id;
+        std::uint64_t cluster;
+        in.read(reinterpret_cast<char*>(&id), sizeof(id));
+        in.read(reinterpret_cast<char*>(&cluster), sizeof(cluster));
+        if (!in.good() || cluster >= num_clusters) {
+            return ErrorCode::IOError;
+        }
+        new_id_to_cluster[id] = static_cast<std::size_t>(cluster);
+    }
+
+    // Validate integrity: check that mapping size matches total vectors
+    std::size_t total_vectors = 0;
+    for (const auto& inv_list : new_inverted_lists) {
+        total_vectors += inv_list.size();
+    }
+    if (total_vectors != map_size) {
+        return ErrorCode::InvalidState;
+    }
+
+    // All validation passed, update index state
+    centroids_ = std::move(new_centroids);
+    inverted_lists_ = std::move(new_inverted_lists);
+    id_to_cluster_ = std::move(new_id_to_cluster);
+    params_.n_clusters = num_clusters;
+
+    return ErrorCode::Ok;
 }
 
 // ============================================================================
