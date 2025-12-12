@@ -1,6 +1,7 @@
-# Ticket NNNN: [Title]
+# Ticket: [Title]
 
-**Status**: Open
+*Important*: Read README.md and tickets/README.md if not yet done.
+
 **Priority**: [High/Medium/Low]
 **Created**: YYYY-MM-DD
 **Assigned**: [Name or "Unassigned"]
