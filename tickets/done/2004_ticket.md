@@ -4,7 +4,9 @@
 
 **Priority**: High
 **Created**: 2025-12-12
-**Assigned**: Unassigned
+**Assigned**: Claude
+**Status**: Complete
+**Completed**: 2025-12-12
 
 ## Description
 
@@ -17,34 +19,34 @@ These methods complete the IVectorIndex interface implementation and enable full
 
 ## Acceptance Criteria
 
-- [ ] Implement `remove()` method
-  - [ ] Locate vector's cluster using ID-to-cluster mapping
-  - [ ] Remove from inverted list (ID and vector data)
-  - [ ] Update ID-to-cluster mapping
-  - [ ] Handle non-existent IDs gracefully
-- [ ] Implement `build()` method for batch construction
-  - [ ] Run k-means clustering on input vectors to create centroids
-  - [ ] Support training on subset for large datasets (sampling)
-  - [ ] Assign all vectors to appropriate clusters
-  - [ ] Build inverted lists efficiently
-  - [ ] Validate that build() creates proper index structure
-- [ ] Implement `serialize()` method
-  - [ ] Save index metadata (dimension, metric, params)
-  - [ ] Save centroids
-  - [ ] Save inverted lists (structure-preserving format)
-  - [ ] Save ID-to-cluster mapping
-- [ ] Implement `deserialize()` method
-  - [ ] Load and validate index metadata
-  - [ ] Reconstruct centroids
-  - [ ] Reconstruct inverted lists
-  - [ ] Reconstruct ID-to-cluster mapping
-  - [ ] Validate index integrity after loading
-- [ ] Add comprehensive unit tests in `tests/test_ivf_index.cpp`
-  - [ ] Test remove() operation
-  - [ ] Test build() with various dataset sizes
-  - [ ] Test serialize/deserialize round-trip
-  - [ ] Test persistence preserves search results
-- [ ] Add integration test for save/load workflow
+- [x] Implement `remove()` method
+  - [x] Locate vector's cluster using ID-to-cluster mapping
+  - [x] Remove from inverted list (ID and vector data)
+  - [x] Update ID-to-cluster mapping
+  - [x] Handle non-existent IDs gracefully
+- [x] Implement `build()` method for batch construction
+  - [x] Run k-means clustering on input vectors to create centroids
+  - [x] Support training on subset for large datasets (sampling)
+  - [x] Assign all vectors to appropriate clusters
+  - [x] Build inverted lists efficiently
+  - [x] Validate that build() creates proper index structure
+- [x] Implement `serialize()` method
+  - [x] Save index metadata (dimension, metric, params)
+  - [x] Save centroids
+  - [x] Save inverted lists (structure-preserving format)
+  - [x] Save ID-to-cluster mapping
+- [x] Implement `deserialize()` method
+  - [x] Load and validate index metadata
+  - [x] Reconstruct centroids
+  - [x] Reconstruct inverted lists
+  - [x] Reconstruct ID-to-cluster mapping
+  - [x] Validate index integrity after loading
+- [x] Add comprehensive unit tests in `tests/test_ivf_index.cpp`
+  - [x] Test remove() operation
+  - [x] Test build() with various dataset sizes
+  - [x] Test serialize/deserialize round-trip
+  - [x] Test persistence preserves search results
+- [x] Add integration test for save/load workflow
 
 ## Notes
 
