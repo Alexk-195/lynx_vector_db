@@ -8,7 +8,7 @@
 
 #include <gtest/gtest.h>
 #include "../src/lib/write_log.h"
-#include "../src/lib/vector_database_mps.h"
+#include "../src/lib/vector_database_hnsw.h"
 #include <thread>
 #include <vector>
 #include <random>

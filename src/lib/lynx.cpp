@@ -8,8 +8,8 @@
 #include "lynx/lynx.h"
 #include "utils.h"
 #include "lynx_intern.h"
-#include "vector_database_impl.h"
-#include "vector_database_mps.h"
+#include "vector_database_flat.h"
+#include "vector_database_hnsw.h"
 #include <stdexcept>
 #include <cmath>
 #include <algorithm>

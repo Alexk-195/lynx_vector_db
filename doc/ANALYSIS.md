@@ -14,7 +14,7 @@ The differences between Flat and HNSW search results are **expected and by desig
 **Finding**: Both Flat and HNSW indices use the same distance calculation functions from `utils.cpp`.
 
 **Evidence**:
-- Flat index: `vector_database_impl.cpp:88` calls `calculate_distance(query, record.vector, config_.distance_metric)`
+- Flat index: `vector_database_flat.cpp:88` calls `calculate_distance(query, record.vector, config_.distance_metric)`
 - HNSW index: `hnsw_index.cpp:65` calls `utils::calculate_distance(query, it->second, metric_)`
 - Both ultimately use the same implementation in `src/lib/utils.cpp`
 
@@ -23,7 +23,7 @@ The differences between Flat and HNSW search results are **expected and by desig
 ### 2. Search Algorithm Differences
 
 #### Flat Index (Brute Force)
-**Implementation**: `vector_database_impl.cpp:64-116`
+**Implementation**: `vector_database_flat.cpp:64-116`
 
 ```cpp
 SearchResult VectorDatabase_Impl::search(std::span<const float> query, std::size_t k,
@@ -257,5 +257,5 @@ The choice between them depends on use case:
 ## References
 
 1. **HNSW Paper**: "Efficient and robust approximate nearest neighbor search using Hierarchical Navigable Small World graphs" by Malkov & Yashunin (2018)
-2. **Implementation**: `src/lib/hnsw_index.cpp`, `src/lib/vector_database_impl.cpp`
+2. **Implementation**: `src/lib/hnsw_index.cpp`, `src/lib/vector_database_flat.cpp`
 3. **Test Results**: `compare_indices.cpp` output above

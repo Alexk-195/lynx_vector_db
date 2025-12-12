@@ -40,8 +40,8 @@ This ensures:
 
 | File | Changes |
 |------|---------|
-| `src/lib/vector_database_mps.h` | Added `optimize_index()`, `clone_index()`, `write_log_`, `index_mutex_` |
-| `src/lib/vector_database_mps.cpp` | Implemented optimization methods; modified `insert()`/`remove()` for logging |
+| `src/lib/vector_database_hnsw.h` | Added `optimize_index()`, `clone_index()`, `write_log_`, `index_mutex_` |
+| `src/lib/vector_database_hnsw.cpp` | Implemented optimization methods; modified `insert()`/`remove()` for logging |
 | `src/lib/mps_messages.h` | Added `OptimizeWithLogMessage` |
 | `src/lib/mps_workers.h` | Added `process_optimize_with_log()` handler |
 | `src/include/lynx/lynx.h` | Added `ErrorCode::Busy` |

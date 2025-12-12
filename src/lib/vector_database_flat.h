@@ -1,13 +1,13 @@
 /**
- * @file vector_database_impl.h
+ * @file vector_database_flat.h
  * @brief Internal implementation of the vector database
  *
  * This file contains the VectorDatabase_Impl class which provides
  * the concrete implementation of the IVectorDatabase interface.
  */
 
-#ifndef LYNX_VECTOR_DATABASE_IMPL_H
-#define LYNX_VECTOR_DATABASE_IMPL_H
+#ifndef LYNX_VECTOR_DATABASE_FLAT_H
+#define LYNX_VECTOR_DATABASE_FLAT_H
 
 #include "lynx/lynx.h"
 #include <unordered_map>
@@ -91,4 +91,4 @@ private:
 
 } // namespace lynx
 
-#endif // LYNX_VECTOR_DATABASE_IMPL_H
+#endif // LYNX_VECTOR_DATABASE_FLAT_H
