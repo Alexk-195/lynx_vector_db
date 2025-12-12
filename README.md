@@ -2,7 +2,7 @@
 
 # Lynx Vector Database
 
-A high-performance vector database implemented in modern C++20 with support for Approximate Nearest Neighbor (ANN) search algorithms.
+A fast and light weight vector database implemented in modern C++20 with support for Approximate Nearest Neighbor (ANN) search algorithms. Suitable for medium size projects on embedded systems. 
 
 ## Features
 
