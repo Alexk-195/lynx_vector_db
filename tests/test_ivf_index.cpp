@@ -800,46 +800,428 @@ TEST(IVFIndexTest, SearchConcurrent) {
 }
 
 // ============================================================================
-// Stub Method Tests (To be implemented in later tickets)
+// Remove Tests (Ticket #2004)
 // ============================================================================
 
-TEST(IVFIndexTest, RemoveNotImplemented) {
+TEST(IVFIndexTest, RemoveExistingVector) {
     IVFParams params;
     params.n_clusters = 3;
 
     IVFIndex index(8, DistanceMetric::L2, params);
 
-    EXPECT_EQ(index.remove(1), ErrorCode::NotImplemented);
+    auto centroids = generate_test_centroids(3, 8);
+    index.set_centroids(centroids);
+
+    // Add vectors
+    auto vectors = generate_random_vectors_ivf(10, 8);
+    for (std::size_t i = 0; i < vectors.size(); ++i) {
+        index.add(i, vectors[i]);
+    }
+
+    EXPECT_EQ(index.size(), 10);
+    EXPECT_TRUE(index.contains(5));
+
+    // Remove vector
+    EXPECT_EQ(index.remove(5), ErrorCode::Ok);
+    EXPECT_EQ(index.size(), 9);
+    EXPECT_FALSE(index.contains(5));
 }
 
-TEST(IVFIndexTest, BuildNotImplemented) {
+TEST(IVFIndexTest, RemoveNonExistentVector) {
+    IVFParams params;
+    params.n_clusters = 3;
+
+    IVFIndex index(8, DistanceMetric::L2, params);
+
+    auto centroids = generate_test_centroids(3, 8);
+    index.set_centroids(centroids);
+
+    // Try to remove non-existent vector
+    EXPECT_EQ(index.remove(999), ErrorCode::VectorNotFound);
+}
+
+TEST(IVFIndexTest, RemoveFromDifferentClusters) {
+    IVFParams params;
+    params.n_clusters = 3;
+
+    IVFIndex index(8, DistanceMetric::L2, params);
+
+    // Create well-separated centroids
+    auto centroids = generate_test_centroids(3, 8, 100.0f);
+    index.set_centroids(centroids);
+
+    // Add vectors to different clusters
+    for (std::size_t c = 0; c < 3; ++c) {
+        auto vecs = generate_vectors_near_centroid(centroids[c], 5, 0.5f, c);
+        for (std::size_t i = 0; i < vecs.size(); ++i) {
+            index.add(c * 10 + i, vecs[i]);
+        }
+    }
+
+    EXPECT_EQ(index.size(), 15);
+
+    // Remove from each cluster
+    EXPECT_EQ(index.remove(0), ErrorCode::Ok);   // Cluster 0
+    EXPECT_EQ(index.remove(10), ErrorCode::Ok);  // Cluster 1
+    EXPECT_EQ(index.remove(20), ErrorCode::Ok);  // Cluster 2
+
+    EXPECT_EQ(index.size(), 12);
+}
+
+TEST(IVFIndexTest, RemoveAndSearch) {
+    IVFParams params;
+    params.n_clusters = 3;
+
+    IVFIndex index(8, DistanceMetric::L2, params);
+
+    auto centroids = generate_test_centroids(3, 8);
+    index.set_centroids(centroids);
+
+    // Add vectors
+    auto vectors = generate_random_vectors_ivf(20, 8);
+    for (std::size_t i = 0; i < vectors.size(); ++i) {
+        index.add(i, vectors[i]);
+    }
+
+    // Search before removal
+    SearchParams search_params;
+    search_params.n_probe = 3;
+    auto results_before = index.search(vectors[0], 10, search_params);
+
+    // Remove a vector
+    index.remove(5);
+
+    // Search after removal - should not contain removed vector
+    auto results_after = index.search(vectors[0], 10, search_params);
+
+    for (const auto& result : results_after) {
+        EXPECT_NE(result.id, 5);
+    }
+}
+
+// ============================================================================
+// Build Tests (Ticket #2004)
+// ============================================================================
+
+TEST(IVFIndexTest, BuildWithSmallDataset) {
+    IVFParams params;
+    params.n_clusters = 3;
+
+    IVFIndex index(8, DistanceMetric::L2, params);
+
+    // Create vector records
+    std::vector<VectorRecord> records;
+    auto vectors = generate_random_vectors_ivf(100, 8);
+    for (std::size_t i = 0; i < vectors.size(); ++i) {
+        records.push_back({i, vectors[i], std::nullopt});
+    }
+
+    EXPECT_EQ(index.build(records), ErrorCode::Ok);
+    EXPECT_EQ(index.size(), 100);
+    EXPECT_TRUE(index.has_centroids());
+    EXPECT_EQ(index.centroids().size(), 3);
+}
+
+TEST(IVFIndexTest, BuildWithEmptyDataset) {
     IVFParams params;
     params.n_clusters = 3;
 
     IVFIndex index(8, DistanceMetric::L2, params);
 
     std::vector<VectorRecord> records;
-    EXPECT_EQ(index.build(records), ErrorCode::NotImplemented);
+    EXPECT_EQ(index.build(records), ErrorCode::InvalidParameter);
 }
 
-TEST(IVFIndexTest, SerializeNotImplemented) {
+TEST(IVFIndexTest, BuildWithDimensionMismatch) {
     IVFParams params;
     params.n_clusters = 3;
 
     IVFIndex index(8, DistanceMetric::L2, params);
+
+    std::vector<VectorRecord> records;
+    std::vector<float> wrong_vec(16, 1.0f);  // Wrong dimension
+    records.push_back({1, wrong_vec, std::nullopt});
+
+    EXPECT_EQ(index.build(records), ErrorCode::DimensionMismatch);
+}
+
+TEST(IVFIndexTest, BuildAndSearch) {
+    IVFParams params;
+    params.n_clusters = 5;
+
+    IVFIndex index(64, DistanceMetric::L2, params);
+
+    // Build with dataset
+    std::vector<VectorRecord> records;
+    auto vectors = generate_random_vectors_ivf(1000, 64, 42);
+    for (std::size_t i = 0; i < vectors.size(); ++i) {
+        records.push_back({i, vectors[i], std::nullopt});
+    }
+
+    EXPECT_EQ(index.build(records), ErrorCode::Ok);
+
+    // Verify search works
+    SearchParams search_params;
+    search_params.n_probe = 3;
+    auto results = index.search(vectors[0], 10, search_params);
+
+    EXPECT_EQ(results.size(), 10);
+    EXPECT_EQ(results[0].id, 0);  // Should find itself as nearest
+}
+
+TEST(IVFIndexTest, BuildOverwritesExistingData) {
+    IVFParams params;
+    params.n_clusters = 3;
+
+    IVFIndex index(8, DistanceMetric::L2, params);
+
+    // Set centroids and add vectors
+    auto centroids = generate_test_centroids(3, 8);
+    index.set_centroids(centroids);
+
+    auto vectors1 = generate_random_vectors_ivf(10, 8);
+    for (std::size_t i = 0; i < vectors1.size(); ++i) {
+        index.add(i, vectors1[i]);
+    }
+
+    EXPECT_EQ(index.size(), 10);
+
+    // Build with new dataset
+    std::vector<VectorRecord> records;
+    auto vectors2 = generate_random_vectors_ivf(20, 8, 99);
+    for (std::size_t i = 0; i < vectors2.size(); ++i) {
+        records.push_back({100 + i, vectors2[i], std::nullopt});
+    }
+
+    EXPECT_EQ(index.build(records), ErrorCode::Ok);
+    EXPECT_EQ(index.size(), 20);
+
+    // Old vectors should be gone
+    EXPECT_FALSE(index.contains(0));
+    EXPECT_TRUE(index.contains(100));
+}
+
+// ============================================================================
+// Serialization Tests (Ticket #2004)
+// ============================================================================
+
+TEST(IVFIndexTest, SerializeEmptyIndex) {
+    IVFParams params;
+    params.n_clusters = 3;
+
+    IVFIndex index(8, DistanceMetric::L2, params);
+
+    // Set centroids but no vectors
+    auto centroids = generate_test_centroids(3, 8);
+    index.set_centroids(centroids);
 
     std::ostringstream oss;
-    EXPECT_EQ(index.serialize(oss), ErrorCode::NotImplemented);
+    EXPECT_EQ(index.serialize(oss), ErrorCode::Ok);
+    EXPECT_GT(oss.str().size(), 0);
 }
 
-TEST(IVFIndexTest, DeserializeNotImplemented) {
+TEST(IVFIndexTest, SerializeWithData) {
     IVFParams params;
     params.n_clusters = 3;
 
     IVFIndex index(8, DistanceMetric::L2, params);
 
-    std::istringstream iss;
-    EXPECT_EQ(index.deserialize(iss), ErrorCode::NotImplemented);
+    auto centroids = generate_test_centroids(3, 8);
+    index.set_centroids(centroids);
+
+    auto vectors = generate_random_vectors_ivf(50, 8);
+    for (std::size_t i = 0; i < vectors.size(); ++i) {
+        index.add(i, vectors[i]);
+    }
+
+    std::ostringstream oss;
+    EXPECT_EQ(index.serialize(oss), ErrorCode::Ok);
+    EXPECT_GT(oss.str().size(), 0);
+}
+
+TEST(IVFIndexTest, DeserializeValidData) {
+    IVFParams params;
+    params.n_clusters = 3;
+
+    IVFIndex index1(8, DistanceMetric::L2, params);
+
+    // Build and serialize
+    std::vector<VectorRecord> records;
+    auto vectors = generate_random_vectors_ivf(100, 8);
+    for (std::size_t i = 0; i < vectors.size(); ++i) {
+        records.push_back({i, vectors[i], std::nullopt});
+    }
+    index1.build(records);
+
+    std::ostringstream oss;
+    EXPECT_EQ(index1.serialize(oss), ErrorCode::Ok);
+
+    // Deserialize
+    IVFIndex index2(8, DistanceMetric::L2, params);
+    std::istringstream iss(oss.str());
+    EXPECT_EQ(index2.deserialize(iss), ErrorCode::Ok);
+
+    // Verify state
+    EXPECT_EQ(index2.size(), 100);
+    EXPECT_TRUE(index2.has_centroids());
+    EXPECT_EQ(index2.centroids().size(), 3);
+}
+
+TEST(IVFIndexTest, SerializeDeserializeRoundTrip) {
+    IVFParams params;
+    params.n_clusters = 5;
+
+    IVFIndex index1(64, DistanceMetric::L2, params);
+
+    // Build index
+    std::vector<VectorRecord> records;
+    auto vectors = generate_random_vectors_ivf(200, 64, 12345);
+    for (std::size_t i = 0; i < vectors.size(); ++i) {
+        records.push_back({i, vectors[i], std::nullopt});
+    }
+    index1.build(records);
+
+    // Search before serialization
+    SearchParams search_params;
+    search_params.n_probe = 3;
+    auto results_before = index1.search(vectors[0], 10, search_params);
+
+    // Serialize
+    std::ostringstream oss;
+    EXPECT_EQ(index1.serialize(oss), ErrorCode::Ok);
+
+    // Deserialize
+    IVFIndex index2(64, DistanceMetric::L2, params);
+    std::istringstream iss(oss.str());
+    EXPECT_EQ(index2.deserialize(iss), ErrorCode::Ok);
+
+    // Search after deserialization - should get identical results
+    auto results_after = index2.search(vectors[0], 10, search_params);
+
+    ASSERT_EQ(results_before.size(), results_after.size());
+    for (std::size_t i = 0; i < results_before.size(); ++i) {
+        EXPECT_EQ(results_before[i].id, results_after[i].id);
+        EXPECT_NEAR(results_before[i].distance, results_after[i].distance, 1e-6f);
+    }
+}
+
+TEST(IVFIndexTest, DeserializeDimensionMismatch) {
+    IVFParams params;
+    params.n_clusters = 3;
+
+    IVFIndex index1(8, DistanceMetric::L2, params);
+
+    // Build with 8 dimensions
+    std::vector<VectorRecord> records;
+    auto vectors = generate_random_vectors_ivf(50, 8);
+    for (std::size_t i = 0; i < vectors.size(); ++i) {
+        records.push_back({i, vectors[i], std::nullopt});
+    }
+    index1.build(records);
+
+    std::ostringstream oss;
+    index1.serialize(oss);
+
+    // Try to deserialize into index with different dimension
+    IVFIndex index2(16, DistanceMetric::L2, params);
+    std::istringstream iss(oss.str());
+    EXPECT_EQ(index2.deserialize(iss), ErrorCode::DimensionMismatch);
+}
+
+TEST(IVFIndexTest, DeserializeInvalidMagic) {
+    IVFParams params;
+    params.n_clusters = 3;
+
+    IVFIndex index(8, DistanceMetric::L2, params);
+
+    std::string bad_data = "BAD!";
+    std::istringstream iss(bad_data);
+    EXPECT_EQ(index.deserialize(iss), ErrorCode::IOError);
+}
+
+TEST(IVFIndexTest, SerializePreservesAllVectors) {
+    IVFParams params;
+    params.n_clusters = 3;
+
+    IVFIndex index1(8, DistanceMetric::L2, params);
+
+    std::vector<VectorRecord> records;
+    auto vectors = generate_random_vectors_ivf(50, 8);
+    for (std::size_t i = 0; i < vectors.size(); ++i) {
+        records.push_back({i, vectors[i], std::nullopt});
+    }
+    index1.build(records);
+
+    // Serialize and deserialize
+    std::ostringstream oss;
+    index1.serialize(oss);
+
+    IVFIndex index2(8, DistanceMetric::L2, params);
+    std::istringstream iss(oss.str());
+    index2.deserialize(iss);
+
+    // Verify all vectors are present
+    for (std::size_t i = 0; i < 50; ++i) {
+        EXPECT_TRUE(index2.contains(i));
+    }
+}
+
+// ============================================================================
+// Integration Tests (Ticket #2004)
+// ============================================================================
+
+TEST(IVFIndexTest, FullWorkflowBuildAddSearchRemoveSave) {
+    IVFParams params;
+    params.n_clusters = 5;
+
+    IVFIndex index(64, DistanceMetric::L2, params);
+
+    // Build with initial dataset
+    std::vector<VectorRecord> records;
+    auto vectors = generate_random_vectors_ivf(500, 64, 42);
+    for (std::size_t i = 0; i < 500; ++i) {
+        records.push_back({i, vectors[i], std::nullopt});
+    }
+    EXPECT_EQ(index.build(records), ErrorCode::Ok);
+
+    // Add more vectors
+    auto new_vectors = generate_random_vectors_ivf(100, 64, 99);
+    for (std::size_t i = 0; i < 100; ++i) {
+        EXPECT_EQ(index.add(500 + i, new_vectors[i]), ErrorCode::Ok);
+    }
+    EXPECT_EQ(index.size(), 600);
+
+    // Search
+    SearchParams search_params;
+    search_params.n_probe = 3;
+    auto results1 = index.search(vectors[0], 10, search_params);
+    EXPECT_EQ(results1.size(), 10);
+
+    // Remove some vectors
+    for (std::size_t i = 100; i < 110; ++i) {
+        EXPECT_EQ(index.remove(i), ErrorCode::Ok);
+    }
+    EXPECT_EQ(index.size(), 590);
+
+    // Search again
+    auto results2 = index.search(vectors[0], 10, search_params);
+
+    // Save
+    std::ostringstream oss;
+    EXPECT_EQ(index.serialize(oss), ErrorCode::Ok);
+
+    // Load
+    IVFIndex index2(64, DistanceMetric::L2, params);
+    std::istringstream iss(oss.str());
+    EXPECT_EQ(index2.deserialize(iss), ErrorCode::Ok);
+
+    // Search after load - should match results2
+    auto results3 = index2.search(vectors[0], 10, search_params);
+    ASSERT_EQ(results2.size(), results3.size());
+    for (std::size_t i = 0; i < results2.size(); ++i) {
+        EXPECT_EQ(results2[i].id, results3[i].id);
+        EXPECT_NEAR(results2[i].distance, results3[i].distance, 1e-5f);
+    }
 }
 
 // ============================================================================

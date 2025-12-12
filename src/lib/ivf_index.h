@@ -74,10 +74,11 @@ public:
     /**
      * @brief Remove a vector from the index.
      *
-     * @note Currently returns NotImplemented (to be implemented in ticket #2004)
+     * Locates the vector using the ID-to-cluster mapping, removes it from
+     * the inverted list, and updates the mapping.
      *
      * @param id Vector identifier to remove
-     * @return ErrorCode indicating success or failure
+     * @return ErrorCode::Ok on success, ErrorCode::VectorNotFound if ID doesn't exist
      */
     ErrorCode remove(std::uint64_t id) override;
 
@@ -91,7 +92,8 @@ public:
     /**
      * @brief Search for k nearest neighbors.
      *
-     * @note Currently returns empty results (to be implemented in ticket #2003)
+     * Searches the n_probe nearest clusters and returns the k nearest vectors
+     * from those clusters.
      *
      * @param query Query vector
      * @param k Number of neighbors to return
@@ -106,30 +108,33 @@ public:
     /**
      * @brief Build index from a batch of vectors.
      *
-     * @note Currently returns NotImplemented (to be implemented in ticket #2004)
+     * Runs k-means clustering to compute centroids, assigns all vectors to
+     * clusters, and builds the inverted lists. Clears any existing data.
      *
      * @param vectors Vector records to index
-     * @return ErrorCode indicating success or failure
+     * @return ErrorCode::Ok on success, error code otherwise
      */
     ErrorCode build(std::span<const VectorRecord> vectors) override;
 
     /**
      * @brief Serialize index to output stream.
      *
-     * @note Currently returns NotImplemented (to be implemented in ticket #2004)
+     * Saves the complete index state including metadata, centroids,
+     * inverted lists, and ID-to-cluster mapping.
      *
      * @param out Output stream
-     * @return ErrorCode indicating success or failure
+     * @return ErrorCode::Ok on success, ErrorCode::IOError on failure
      */
     ErrorCode serialize(std::ostream& out) const override;
 
     /**
      * @brief Deserialize index from input stream.
      *
-     * @note Currently returns NotImplemented (to be implemented in ticket #2004)
+     * Loads the index state from a stream, validating all data for integrity.
+     * Requires that the dimension and metric match the index configuration.
      *
      * @param in Input stream
-     * @return ErrorCode indicating success or failure
+     * @return ErrorCode::Ok on success, error code otherwise
      */
     ErrorCode deserialize(std::istream& in) override;
 
