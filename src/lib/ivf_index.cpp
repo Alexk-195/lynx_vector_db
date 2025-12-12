@@ -87,17 +87,73 @@ bool IVFIndex::contains(std::uint64_t id) const {
 
 std::vector<SearchResultItem> IVFIndex::search(
     std::span<const float> query,
-    std::size_t /*k*/,
-    const SearchParams& /*params*/) const {
+    std::size_t k,
+    const SearchParams& params) const {
 
     // Validate dimension
     if (query.size() != dimension_) {
         return {};
     }
 
-    // To be implemented in ticket #2003
-    // For now, return empty results
-    return {};
+    std::shared_lock lock(mutex_);
+
+    // Check if centroids have been initialized
+    if (centroids_.empty()) {
+        return {};
+    }
+
+    // If index is empty, return empty results
+    if (id_to_cluster_.empty()) {
+        return {};
+    }
+
+    // Get n_probe from params, default to IVFParams.n_probe
+    std::size_t n_probe = params.n_probe;
+
+    // Clamp n_probe to valid range [1, num_clusters]
+    n_probe = std::max(std::size_t{1}, std::min(n_probe, centroids_.size()));
+
+    // Step 1: Find n_probe nearest centroids
+    std::vector<std::size_t> probe_clusters = find_nearest_centroids(query, n_probe);
+
+    // Step 2: Search within selected clusters and collect candidates
+    std::vector<SearchResultItem> candidates;
+
+    for (std::size_t cluster_id : probe_clusters) {
+        const auto& inv_list = inverted_lists_[cluster_id];
+
+        // Skip empty clusters
+        if (inv_list.empty()) {
+            continue;
+        }
+
+        // Calculate distance to each vector in this cluster
+        for (std::size_t i = 0; i < inv_list.ids.size(); ++i) {
+            float dist = calculate_distance(query, inv_list.vectors[i]);
+            candidates.push_back({inv_list.ids[i], dist});
+        }
+    }
+
+    // Step 3: Select top-k results
+    // Use partial_sort for efficiency (only sort what we need)
+    std::size_t result_size = std::min(k, candidates.size());
+
+    if (result_size == 0) {
+        return {};
+    }
+
+    std::partial_sort(
+        candidates.begin(),
+        candidates.begin() + result_size,
+        candidates.end(),
+        [](const SearchResultItem& a, const SearchResultItem& b) {
+            return a.distance < b.distance;
+        });
+
+    // Resize to k (or less if we don't have enough candidates)
+    candidates.resize(result_size);
+
+    return candidates;
 }
 
 // ============================================================================
@@ -229,6 +285,46 @@ std::size_t IVFIndex::find_nearest_centroid(std::span<const float> vector) const
     }
 
     return nearest;
+}
+
+std::vector<std::size_t> IVFIndex::find_nearest_centroids(
+    std::span<const float> vector,
+    std::size_t n_probe) const {
+    // Note: This method is called with mutex already held
+
+    if (centroids_.empty()) {
+        return {};
+    }
+
+    // Calculate distances to all centroids
+    std::vector<std::pair<float, std::size_t>> centroid_distances;
+    centroid_distances.reserve(centroids_.size());
+
+    for (std::size_t i = 0; i < centroids_.size(); ++i) {
+        float dist = calculate_distance(vector, centroids_[i]);
+        centroid_distances.push_back({dist, i});
+    }
+
+    // Clamp n_probe to actual number of centroids
+    n_probe = std::min(n_probe, centroids_.size());
+
+    // Select n_probe nearest centroids using partial_sort
+    std::partial_sort(
+        centroid_distances.begin(),
+        centroid_distances.begin() + n_probe,
+        centroid_distances.end(),
+        [](const auto& a, const auto& b) {
+            return a.first < b.first;
+        });
+
+    // Extract cluster IDs
+    std::vector<std::size_t> result;
+    result.reserve(n_probe);
+    for (std::size_t i = 0; i < n_probe; ++i) {
+        result.push_back(centroid_distances[i].second);
+    }
+
+    return result;
 }
 
 float IVFIndex::calculate_distance(std::span<const float> a, std::span<const float> b) const {
