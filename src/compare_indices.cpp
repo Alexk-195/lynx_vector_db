@@ -9,6 +9,7 @@
 #include <random>
 #include <iomanip>
 #include <set>
+#include <chrono>
 
 // Helper function to generate random vectors
 std::vector<float> generate_random_vector(size_t dim, std::mt19937& gen) {
@@ -171,18 +172,43 @@ int main() {
     auto flat_db = lynx::IVectorDatabase::create(flat_config);
     auto hnsw_db = lynx::IVectorDatabase::create(hnsw_config);
 
-    // Insert the same vectors into both databases
-    std::cout << "Inserting " << num_vectors << " vectors...\n";
+    // Generate all vectors first (for fair comparison)
+    std::cout << "Generating " << num_vectors << " vectors...\n";
+    std::vector<std::vector<float>> all_vectors;
+    all_vectors.reserve(num_vectors);
     for (uint64_t id = 1; id <= num_vectors; ++id) {
-        auto vec = generate_random_vector(dimension, gen);
+        all_vectors.push_back(generate_random_vector(dimension, gen));
+    }
 
+    // Insert into Flat index with timing
+    std::cout << "Inserting into Flat index...\n";
+    auto flat_start = std::chrono::high_resolution_clock::now();
+    for (uint64_t id = 1; id <= num_vectors; ++id) {
         lynx::VectorRecord record;
         record.id = id;
-        record.vector = vec;
-
+        record.vector = all_vectors[id - 1];
         flat_db->insert(record);
+    }
+    auto flat_end = std::chrono::high_resolution_clock::now();
+    auto flat_insertion_time = std::chrono::duration_cast<std::chrono::milliseconds>(flat_end - flat_start).count();
+
+    // Insert into HNSW index with timing
+    std::cout << "Inserting into HNSW index...\n";
+    auto hnsw_start = std::chrono::high_resolution_clock::now();
+    for (uint64_t id = 1; id <= num_vectors; ++id) {
+        lynx::VectorRecord record;
+        record.id = id;
+        record.vector = all_vectors[id - 1];
         hnsw_db->insert(record);
     }
+    auto hnsw_end = std::chrono::high_resolution_clock::now();
+    auto hnsw_insertion_time = std::chrono::duration_cast<std::chrono::milliseconds>(hnsw_end - hnsw_start).count();
+
+    std::cout << "\nInsertion Times:\n";
+    std::cout << "  Flat: " << flat_insertion_time << " ms\n";
+    std::cout << "  HNSW: " << hnsw_insertion_time << " ms\n";
+    std::cout << "  Ratio (HNSW/Flat): " << std::setprecision(2)
+              << (static_cast<double>(hnsw_insertion_time) / std::max(flat_insertion_time, 1L)) << "x\n\n";
 
     std::cout << "Flat DB size: " << flat_db->size() << "\n";
     std::cout << "HNSW DB size: " << hnsw_db->size() << "\n\n";
