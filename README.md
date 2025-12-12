@@ -125,7 +125,6 @@ lynx_vector_db/
 ├── setup.sh             # Build script
 ├── CLAUDE.md            # AI assistant instructions
 ├── CONCEPT.md           # Architecture and design
-├── STATE.md             # Implementation status
 ├── README.md            # This file
 ├── LICENSE              # MIT License
 ├── doc/
@@ -159,7 +158,7 @@ See [CONCEPT.md](CONCEPT.md) for detailed design documentation.
 ## Documentation
 
 - [CONCEPT.md](CONCEPT.md) - Design concept
-- [STATE.md](STATE.md) - Current implementation state
+- [doc/STATE.md](STATE.md) - Current implementation state
 - [doc/research.md](doc/research.md) - ANN algorithm research
 - [tests/README.md](tests/README.md) - Infos about unit testing
 - [tickets/README.md](tickets/README.md) - File-based ticketing system
@@ -167,10 +166,9 @@ See [CONCEPT.md](CONCEPT.md) for detailed design documentation.
 ## Contributing
 
 1. Read [CLAUDE.md](CLAUDE.md) for coding guidelines
-2. Check [STATE.md](STATE.md) for current progress
-3. Review open tickets in [tickets/](tickets/) for tasks to work on
-4. Follow the code style conventions
-5. Add tests for new functionality
+2. Review open tickets in [tickets/](tickets/) for tasks to work on
+3. Follow the code style conventions
+4. Add tests for new functionality
 
 ## License
 

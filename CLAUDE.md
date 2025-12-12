@@ -8,7 +8,6 @@ Lynx is a high-performance vector database implemented in modern C++20, using th
 
 Before making changes, read these documents:
 - `CONCEPT.md` - Architecture and design phases
-- `STATE.md` - Current implementation state
 - `README.md` - Project overview and build instructions
 - `tickets/README.md` - Ticketing system for tracking tasks
 
@@ -67,7 +66,6 @@ Set `MPS_DIR` environment variable to point to MPS library location.
 
 ## Documentation
 
-- Update `STATE.md` after completing implementation phases
 - Document public APIs with Doxygen-style comments
 - Keep `CONCEPT.md` updated if architecture changes
 - Update tickets and move completed work to `tickets/done/`
