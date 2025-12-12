@@ -163,6 +163,9 @@ ls tickets/*ticket.md
 # List completed tickets
 ls tickets/done/*ticket.md
 
+# List last 3 completed tickets
+ls tickets/done/*ticket.md | sort | tail -3
+
 # Search for tickets by keyword
 grep -r "keyword" tickets/
 
@@ -171,7 +174,12 @@ ls tickets/*ticket.md | wc -l
 
 # Count completed tickets
 ls tickets/done/*ticket.md | wc -l
+
+# Find next open ticket
+ls tickets/*ticket.md | sort | head -1
+
 ```
+
 
 ## Best Practices
 
