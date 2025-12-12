@@ -123,13 +123,8 @@ From `doc/research.md`:
 ### Future Enhancements
 
 Consider for follow-up tickets:
-- IVF-PQ: Combine with Product Quantization for memory savings (ticket 2001)
-- IVF-HNSW: Use HNSW for intra-cluster search instead of flat search (ticket 2002)
-- GPU-accelerated k-means for faster index construction (ticket 2003)
-- Dynamic cluster rebalancing as dataset grows (ticket 2004)
+- Update src/lib/compare_indices.cpp to compare all 3 index types.
 
 ## Related Tickets
-
 - Related: HNSW implementation (completed)
-- Blocks: #2001 (IVF-PQ implementation)
-- Blocks: #2002 (IVF-HNSW hybrid)
+
