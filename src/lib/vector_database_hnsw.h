@@ -1,13 +1,13 @@
 /**
- * @file vector_database_mps.h
+ * @file vector_database_hnsw.h
  * @brief Thread-safe vector database implementation using MPS
  *
  * This implementation uses MPS (Message Processing System) for multi-threading,
  * providing concurrent read access and serialized write access to the HNSW index.
  */
 
-#ifndef LYNX_VECTOR_DATABASE_MPS_H
-#define LYNX_VECTOR_DATABASE_MPS_H
+#ifndef LYNX_VECTOR_DATABASE_HNSW_H
+#define LYNX_VECTOR_DATABASE_HNSW_H
 
 #include "../include/lynx/lynx.h"
 #include "hnsw_index.h"
@@ -232,4 +232,4 @@ private:
 
 } // namespace lynx
 
-#endif // LYNX_VECTOR_DATABASE_MPS_H
+#endif // LYNX_VECTOR_DATABASE_HNSW_H

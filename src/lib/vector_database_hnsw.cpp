@@ -1,9 +1,9 @@
 /**
- * @file vector_database_mps.cpp
+ * @file vector_database_hnsw.cpp
  * @brief Implementation of thread-safe vector database using MPS
  */
 
-#include "vector_database_mps.h"
+#include "vector_database_hnsw.h"
 #include <stdexcept>
 #include <algorithm>
 

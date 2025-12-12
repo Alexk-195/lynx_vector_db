@@ -1,9 +1,9 @@
 /**
- * @file vector_database_impl.cpp
+ * @file vector_database_flat.cpp
  * @brief Implementation of VectorDatabase_Impl class
  */
 
-#include "vector_database_impl.h"
+#include "vector_database_flat.h"
 #include <algorithm>
 #include <chrono>
 #include <fstream>
