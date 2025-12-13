@@ -17,6 +17,7 @@
 #include <fstream>
 #include <filesystem>
 #include <sstream>
+#include <chrono>
 
 namespace lynx {
 
@@ -86,14 +87,20 @@ private:
             // Increment query counter
             total_queries_->fetch_add(1, std::memory_order_relaxed);
 
+            auto start_time = std::chrono::high_resolution_clock::now();
+
             std::span<const float> query(msg->query);
             auto items = index_->search(query, msg->k, msg->params);
+
+            auto end_time = std::chrono::high_resolution_clock::now();
+            auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
+            double query_time_ms = duration.count() / 1000.0;
 
             // Create SearchResult
             SearchResult result;
             result.items = std::move(items);
             result.total_candidates = index_->size(); // Total vectors in database
-            result.query_time_ms = 0.0; // TODO: measure actual time
+            result.query_time_ms = query_time_ms;
 
             const_cast<SearchMessage*>(msg.get())->set_value(std::move(result));
         } catch (...) {
