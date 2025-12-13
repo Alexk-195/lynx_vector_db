@@ -49,6 +49,7 @@ public:
     ErrorCode remove(std::uint64_t id) override;
     bool contains(std::uint64_t id) const override;
     std::optional<VectorRecord> get(std::uint64_t id) const override;
+    RecordRange all_records() const override;
 
     // -------------------------------------------------------------------------
     // Search Operations

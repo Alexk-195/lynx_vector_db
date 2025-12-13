@@ -13,6 +13,7 @@
 #include <gtest/gtest.h>
 #include "lynx/lynx.h"
 #include "../src/lib/lynx_intern.h"
+#include "../src/lib/record_iterator_impl.h"
 
 namespace lynx {
 
@@ -104,6 +105,14 @@ public:
 
     std::optional<VectorRecord> get(std::uint64_t id) const override {
         return std::nullopt;
+    }
+
+    RecordRange all_records() const override {
+        // Return empty range
+        std::unordered_map<std::uint64_t, VectorRecord> empty_map;
+        auto begin_impl = std::make_shared<SimpleIteratorImpl<std::unordered_map<std::uint64_t, VectorRecord>>>(empty_map.end());
+        auto end_impl = std::make_shared<SimpleIteratorImpl<std::unordered_map<std::uint64_t, VectorRecord>>>(empty_map.end());
+        return RecordRange(RecordIterator(begin_impl), RecordIterator(end_impl));
     }
 
     // Search Operations

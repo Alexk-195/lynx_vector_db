@@ -4,10 +4,12 @@
  */
 
 #include "vector_database_ivf.h"
+#include "record_iterator_impl.h"
 #include "utils.h"
 #include <algorithm>
 #include <chrono>
 #include <fstream>
+#include <mutex>
 
 namespace lynx {
 
@@ -47,9 +49,12 @@ ErrorCode VectorDatabase_IVF::insert(const VectorRecord& record) {
     }
 
     // Insert into vector storage
-    vectors_[record.id] = record;
+    {
+        std::unique_lock lock(vectors_mutex_);
+        vectors_[record.id] = record;
+    }
 
-    // Add to index
+    // Add to index (index has its own locking)
     ErrorCode result = index_->add(record.id, record.vector);
 
     if (result == ErrorCode::Ok) {
@@ -60,33 +65,48 @@ ErrorCode VectorDatabase_IVF::insert(const VectorRecord& record) {
 }
 
 ErrorCode VectorDatabase_IVF::remove(std::uint64_t id) {
-    // Check if vector exists in storage
-    auto it = vectors_.find(id);
-    if (it == vectors_.end()) {
-        return ErrorCode::VectorNotFound;
-    }
-
-    // Remove from index
+    // Remove from index first (index has its own locking)
     ErrorCode result = index_->remove(id);
 
-    // Remove from storage
+    // Remove from storage if index removal succeeded
     if (result == ErrorCode::Ok) {
-        vectors_.erase(it);
+        std::unique_lock lock(vectors_mutex_);
+        auto it = vectors_.find(id);
+        if (it != vectors_.end()) {
+            vectors_.erase(it);
+        }
     }
 
     return result;
 }
 
 bool VectorDatabase_IVF::contains(std::uint64_t id) const {
+    std::shared_lock lock(vectors_mutex_);
     return vectors_.find(id) != vectors_.end();
 }
 
 std::optional<VectorRecord> VectorDatabase_IVF::get(std::uint64_t id) const {
+    std::shared_lock lock(vectors_mutex_);
     auto it = vectors_.find(id);
     if (it == vectors_.end()) {
         return std::nullopt;
     }
     return it->second;
+}
+
+RecordRange VectorDatabase_IVF::all_records() const {
+    // Create iterators using LockedIteratorImpl with shared_mutex
+    using MapType = std::unordered_map<std::uint64_t, VectorRecord>;
+
+    // Create a shared lock that will be held by all iterator copies
+    auto lock = std::make_shared<std::shared_lock<std::shared_mutex>>(vectors_mutex_);
+
+    auto begin_impl = std::make_shared<LockedIteratorImpl<MapType, std::shared_mutex>>(
+        vectors_.begin(), lock);
+    auto end_impl = std::make_shared<LockedIteratorImpl<MapType, std::shared_mutex>>(
+        vectors_.end(), lock);
+
+    return RecordRange(RecordIterator(begin_impl), RecordIterator(end_impl));
 }
 
 // ============================================================================
@@ -143,15 +163,18 @@ ErrorCode VectorDatabase_IVF::batch_insert(std::span<const VectorRecord> records
         }
     }
 
-    // Build the index with all records
+    // Build the index with all records (index has its own locking)
     ErrorCode build_result = index_->build(records);
     if (build_result != ErrorCode::Ok) {
         return build_result;
     }
 
     // Store all records in vector storage
-    for (const auto& record : records) {
-        vectors_[record.id] = record;
+    {
+        std::unique_lock lock(vectors_mutex_);
+        for (const auto& record : records) {
+            vectors_[record.id] = record;
+        }
     }
 
     total_inserts_ += records.size();
@@ -163,6 +186,7 @@ ErrorCode VectorDatabase_IVF::batch_insert(std::span<const VectorRecord> records
 // ============================================================================
 
 std::size_t VectorDatabase_IVF::size() const {
+    std::shared_lock lock(vectors_mutex_);
     return vectors_.size();
 }
 

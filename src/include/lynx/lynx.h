@@ -28,6 +28,7 @@ namespace lynx {
 
 class IVectorDatabase;
 class IVectorIndex;
+class RecordIteratorImpl;
 
 // ============================================================================
 // Enumerations
@@ -164,6 +165,141 @@ struct Config {
 };
 
 // ============================================================================
+// Record Iterator
+// ============================================================================
+
+/**
+ * @brief Iterator for traversing all records in the database.
+ *
+ * This iterator provides const access to all VectorRecord entries.
+ * For thread-safe implementations, a read lock is held for the lifetime
+ * of the associated RecordRange object.
+ *
+ * Usage:
+ * @code
+ * auto records = db->all_records();
+ * for (const auto& [id, record] : records) {
+ *     // Process each record
+ * }
+ * @endcode
+ */
+class RecordIterator {
+public:
+    using iterator_category = std::forward_iterator_tag;
+    using value_type = std::pair<const std::uint64_t, VectorRecord>;
+    using difference_type = std::ptrdiff_t;
+    using pointer = const value_type*;
+    using reference = const value_type&;
+
+    /**
+     * @brief Construct iterator from implementation
+     * @param impl Implementation-specific iterator (pImpl pattern)
+     */
+    explicit RecordIterator(std::shared_ptr<RecordIteratorImpl> impl);
+
+    /**
+     * @brief Copy constructor
+     */
+    RecordIterator(const RecordIterator& other);
+
+    /**
+     * @brief Copy assignment
+     */
+    RecordIterator& operator=(const RecordIterator& other);
+
+    /**
+     * @brief Destructor
+     */
+    ~RecordIterator();
+
+    /**
+     * @brief Dereference operator
+     * @return Reference to current record
+     */
+    reference operator*() const;
+
+    /**
+     * @brief Arrow operator
+     * @return Pointer to current record
+     */
+    pointer operator->() const;
+
+    /**
+     * @brief Pre-increment operator
+     * @return Reference to this iterator after increment
+     */
+    RecordIterator& operator++();
+
+    /**
+     * @brief Post-increment operator
+     * @return Copy of iterator before increment
+     */
+    RecordIterator operator++(int);
+
+    /**
+     * @brief Equality comparison
+     * @param other Iterator to compare with
+     * @return true if iterators point to same element
+     */
+    bool operator==(const RecordIterator& other) const;
+
+    /**
+     * @brief Inequality comparison
+     * @param other Iterator to compare with
+     * @return true if iterators point to different elements
+     */
+    bool operator!=(const RecordIterator& other) const;
+
+private:
+    std::shared_ptr<RecordIteratorImpl> impl_;  ///< pImpl for implementation-specific details
+};
+
+/**
+ * @brief Range object for iterating over all database records.
+ *
+ * This class provides begin() and end() iterators for range-based for loops.
+ * For thread-safe implementations, it holds a read lock for its entire lifetime,
+ * ensuring consistent iteration even with concurrent operations.
+ *
+ * IMPORTANT: The lock is held until this object is destroyed, so keep the
+ * range scope as short as possible to avoid blocking write operations.
+ *
+ * @code
+ * {
+ *     auto records = db->all_records();  // Lock acquired here
+ *     for (const auto& [id, record] : records) {
+ *         // Process record - read lock held
+ *     }
+ * }  // Lock released here
+ * @endcode
+ */
+class RecordRange {
+public:
+    /**
+     * @brief Construct record range
+     * @param begin_iter Iterator to first element
+     * @param end_iter Iterator past last element
+     */
+    RecordRange(RecordIterator begin_iter, RecordIterator end_iter);
+
+    /**
+     * @brief Get iterator to first record
+     * @return Iterator to beginning
+     */
+    RecordIterator begin() const;
+
+    /**
+     * @brief Get iterator past last record
+     * @return Iterator to end
+     */
+    RecordIterator end() const;
+
+private:
+    RecordIterator begin_;  ///< Iterator to first element
+    RecordIterator end_;    ///< Iterator past last element
+};
+
+// ============================================================================
 // Interfaces
 // ============================================================================
 
@@ -209,6 +345,30 @@ public:
      */
     [[nodiscard]] virtual std::optional<VectorRecord> get(
         std::uint64_t id) const = 0;
+
+    /**
+     * @brief Get an iterator range over all records in the database.
+     *
+     * Returns a RecordRange that provides begin() and end() iterators
+     * for traversing all vector records. The range holds a read lock
+     * (in thread-safe implementations) for its entire lifetime.
+     *
+     * IMPORTANT: Keep the range scope as short as possible to avoid
+     * blocking write operations in thread-safe implementations.
+     *
+     * Example usage:
+     * @code
+     * {
+     *     auto records = db->all_records();  // Lock acquired
+     *     for (const auto& [id, record] : records) {
+     *         std::cout << "ID: " << id << ", Dim: " << record.vector.size() << "\n";
+     *     }
+     * }  // Lock released
+     * @endcode
+     *
+     * @return RecordRange for iterating over all records
+     */
+    [[nodiscard]] virtual RecordRange all_records() const = 0;
 
     // -------------------------------------------------------------------------
     // Search Operations
