@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python context.py:*)",
+      "Bash(./setup.sh:*)",
+      "Bash(ctest:*)"
+    ]
+  }
+}

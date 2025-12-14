@@ -1044,16 +1044,19 @@ TEST(IVFDatabaseTest, StatsAfterOperations) {
     EXPECT_EQ(stats2.vector_count, 40);
     EXPECT_GT(stats2.index_memory_bytes, 0);
 
-    // Perform some searches
+    // Perform multiple searches to accumulate measurable time
     std::vector<float> query(16, 20.0f);
     lynx::SearchParams params;
     params.n_probe = 2;
-    db->search(query, 5, params);
-    db->search(query, 10, params);
+
+    // Run 100 searches to ensure timer captures meaningful time
+    for (int i = 0; i < 100; ++i) {
+        db->search(query, 5, params);
+    }
 
     // Stats after searches
     auto stats3 = db->stats();
-    EXPECT_EQ(stats3.total_queries, 2);
+    EXPECT_EQ(stats3.total_queries, 100);
     EXPECT_GT(stats3.avg_query_time_ms, 0.0);
 }
 
