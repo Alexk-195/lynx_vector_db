@@ -3,7 +3,10 @@
     "allow": [
       "Bash(python context.py:*)",
       "Bash(./setup.sh:*)",
-      "Bash(ctest:*)"
+      "Bash(ctest:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push)"
     ]
   }
 }
