@@ -1,0 +1,1 @@
+In src/compare_indices.cpp change insertion into ivf database so that batch insert takes maximum 100 entries. 
