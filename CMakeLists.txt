@@ -237,6 +237,7 @@ if(LYNX_BUILD_TESTS)
         tests/test_iterator.cpp
         tests/test_ivf_index.cpp
         tests/test_flat_index.cpp
+        tests/test_flat_index_integration.cpp
         tests/test_lynx_coverage.cpp
         tests/test_minimal_example.cpp
         tests/test_mps.cpp
