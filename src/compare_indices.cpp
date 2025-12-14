@@ -204,18 +204,24 @@ int main() {
     auto hnsw_end = std::chrono::high_resolution_clock::now();
     auto hnsw_insertion_time = std::chrono::duration_cast<std::chrono::milliseconds>(hnsw_end - hnsw_start).count();
 
-    // Insert into IVF index with timing (using batch_insert to build the index)
+    // Insert into IVF index with timing (using batch_insert with max 100 entries per batch)
     std::cout << "Inserting into IVF index (batch mode)...\n";
     auto ivf_start = std::chrono::high_resolution_clock::now();
+    const size_t batch_size = 100;
     std::vector<lynx::VectorRecord> ivf_records;
-    ivf_records.reserve(num_vectors);
+    ivf_records.reserve(batch_size);
     for (uint64_t id = 1; id <= num_vectors; ++id) {
         lynx::VectorRecord record;
         record.id = id;
         record.vector = all_vectors[id - 1];
         ivf_records.push_back(record);
+
+        // Insert batch when it reaches batch_size or at the end
+        if (ivf_records.size() == batch_size || id == num_vectors) {
+            ivf_db->batch_insert(ivf_records);
+            ivf_records.clear();
+        }
     }
-    ivf_db->batch_insert(ivf_records);
     auto ivf_end = std::chrono::high_resolution_clock::now();
     auto ivf_insertion_time = std::chrono::duration_cast<std::chrono::milliseconds>(ivf_end - ivf_start).count();
 

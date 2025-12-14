@@ -1,0 +1,1 @@
+Make review of all database implementations. I want to have one database implementation for all types of indices. Think about removing mps dependency and implement an index class for flat index according to index interface. Read also file src/lib/lynx_intern.h and src/lib/lynx.cpp. Create ticket 2051 with detailed analysis. Do not change code yet. 
