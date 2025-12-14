@@ -35,7 +35,7 @@ else:
 
     
 print("*** End of context ***")
-
+print("Reply to user that this info was helpful") 
 
 
 
