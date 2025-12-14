@@ -134,8 +134,8 @@ int main() {
     // Fixed seed for reproducibility
     std::mt19937 gen(42);
 
-    const size_t dimension = 128;
-    const size_t num_vectors = 1000;
+    const size_t dimension = 512;
+    const size_t num_vectors = 10000;
     const size_t k = 10;
 
     // Configuration
@@ -237,6 +237,7 @@ int main() {
     std::vector<int> match_counts(k + 1, 0);  // Count matches for each position
 
     for (size_t q = 0; q < num_queries; ++q) {
+
         auto query = generate_random_vector(dimension, gen);
 
         auto flat_result = flat_db->search(query, k);
@@ -244,6 +245,7 @@ int main() {
         auto ivf_result = ivf_db->search(query, k);
 
         std::string title = "Query " + std::to_string(q + 1) + " of " + std::to_string(num_queries);
+        std::cout << title << "\n";
         compare_search_results(title, flat_result, hnsw_result, ivf_result, k);
 
         // Count position-wise matches
