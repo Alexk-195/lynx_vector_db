@@ -5,9 +5,10 @@
  * This implementation uses the delegation pattern to support multiple
  * index types (Flat, HNSW, IVF) through a common IVectorIndex interface.
  *
- * This is the initial single-threaded implementation. Thread safety will be
- * added in a future ticket using std::shared_mutex for concurrent reads
- * and exclusive writes.
+ * Thread Safety:
+ * - Uses std::shared_mutex for readers-writer lock pattern
+ * - Multiple concurrent readers (search, get, contains, all_records, stats)
+ * - Exclusive writer access (insert, remove, batch_insert, save, load)
  *
  * @copyright MIT License
  */
@@ -22,6 +23,7 @@
 #include <memory>
 #include <atomic>
 #include <chrono>
+#include <shared_mutex>
 
 namespace lynx {
 
@@ -38,9 +40,10 @@ namespace lynx {
  * - Persistence support (save/load)
  *
  * Thread Safety:
- * - This initial implementation is NOT thread-safe
- * - Thread safety will be added in ticket #2056 using std::shared_mutex
- *   for concurrent read access and exclusive write access
+ * - Thread-safe using std::shared_mutex (readers-writer lock)
+ * - Read operations use shared locks (concurrent reads allowed)
+ * - Write operations use exclusive locks (serialized writes)
+ * - Statistics use atomic operations for lock-free updates
  */
 class VectorDatabase : public IVectorDatabase {
 public:
@@ -170,7 +173,10 @@ private:
     // Vector storage
     std::unordered_map<std::uint64_t, VectorRecord> vectors_; ///< Vector storage
 
-    // Statistics (using atomics for potential future thread-safety)
+    // Thread safety
+    mutable std::shared_mutex vectors_mutex_;                 ///< Protects vectors_ map
+
+    // Statistics (using atomics for lock-free updates)
     // Marked mutable to allow updates in const methods (search, stats)
     mutable std::atomic<std::size_t> total_inserts_{0};               ///< Total insert count
     mutable std::atomic<std::size_t> total_queries_{0};               ///< Total query count

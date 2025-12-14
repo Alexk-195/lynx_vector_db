@@ -245,6 +245,7 @@ if(LYNX_BUILD_TESTS)
         tests/test_persistence.cpp
         tests/test_write_log.cpp
         tests/test_vector_database.cpp
+        tests/test_threading.cpp
     )
 
     target_link_libraries(lynx_tests PRIVATE
@@ -321,3 +322,6 @@ message(STATUS "   Build benchmarks:  ${LYNX_BUILD_BENCHMARKS}")
 message(STATUS "   Use SIMD:          ${LYNX_USE_SIMD}")
 message(STATUS "   Code coverage:     ${LYNX_ENABLE_COVERAGE}")
 message(STATUS "")
+# Threading benchmark executable
+add_executable(bench_threading tests/bench_threading.cpp)
+target_link_libraries(bench_threading PRIVATE lynx_static Threads::Threads)

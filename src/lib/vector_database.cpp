@@ -15,6 +15,7 @@
 #include <filesystem>
 #include <algorithm>
 #include <unordered_set>
+#include <mutex>
 
 namespace lynx {
 
@@ -68,6 +69,9 @@ ErrorCode VectorDatabase::insert(const VectorRecord& record) {
         return validation;
     }
 
+    // Acquire exclusive lock for write access
+    std::unique_lock lock(vectors_mutex_);
+
     // Check for duplicate ID
     if (vectors_.contains(record.id)) {
         return ErrorCode::InvalidParameter;
@@ -91,6 +95,9 @@ ErrorCode VectorDatabase::insert(const VectorRecord& record) {
 }
 
 ErrorCode VectorDatabase::remove(std::uint64_t id) {
+    // Acquire exclusive lock for write access
+    std::unique_lock lock(vectors_mutex_);
+
     // Check if exists
     auto it = vectors_.find(id);
     if (it == vectors_.end()) {
@@ -110,10 +117,12 @@ ErrorCode VectorDatabase::remove(std::uint64_t id) {
 }
 
 bool VectorDatabase::contains(std::uint64_t id) const {
+    std::shared_lock lock(vectors_mutex_);
     return vectors_.contains(id);
 }
 
 std::optional<VectorRecord> VectorDatabase::get(std::uint64_t id) const {
+    std::shared_lock lock(vectors_mutex_);
     auto it = vectors_.find(id);
     if (it == vectors_.end()) {
         return std::nullopt;
@@ -122,9 +131,14 @@ std::optional<VectorRecord> VectorDatabase::get(std::uint64_t id) const {
 }
 
 RecordRange VectorDatabase::all_records() const {
-    // Create simple iterators (no locking for single-threaded version)
-    auto begin_impl = std::make_shared<SimpleIteratorImpl<decltype(vectors_)>>(vectors_.begin());
-    auto end_impl = std::make_shared<SimpleIteratorImpl<decltype(vectors_)>>(vectors_.end());
+    // Create a shared lock that will be kept alive by the iterators
+    auto lock = std::make_shared<std::shared_lock<std::shared_mutex>>(vectors_mutex_);
+
+    // Create locked iterators that hold the lock for their lifetime
+    auto begin_impl = std::make_shared<LockedIteratorImpl<decltype(vectors_), std::shared_mutex>>(
+        vectors_.begin(), lock);
+    auto end_impl = std::make_shared<LockedIteratorImpl<decltype(vectors_), std::shared_mutex>>(
+        vectors_.end(), lock);
 
     return RecordRange(
         RecordIterator(begin_impl),
@@ -154,8 +168,14 @@ SearchResult VectorDatabase::search(std::span<const float> query,
     // Start timing
     auto start = std::chrono::high_resolution_clock::now();
 
+    // Acquire shared lock for read access
+    std::shared_lock lock(vectors_mutex_);
+
     // Delegate to index
     std::vector<SearchResultItem> items = index_->search(query, k, params);
+
+    // Release lock before timing calculations
+    lock.unlock();
 
     // Calculate timing
     auto end = std::chrono::high_resolution_clock::now();
@@ -193,6 +213,9 @@ ErrorCode VectorDatabase::batch_insert(std::span<const VectorRecord> records) {
         }
     }
 
+    // Acquire exclusive lock for write access
+    std::unique_lock lock(vectors_mutex_);
+
     // HYBRID STRATEGY: Choose based on current state and index type
 
     // Strategy 1: Empty index → use bulk build (fastest)
@@ -215,6 +238,7 @@ ErrorCode VectorDatabase::batch_insert(std::span<const VectorRecord> records) {
 // =============================================================================
 
 std::size_t VectorDatabase::size() const {
+    std::shared_lock lock(vectors_mutex_);
     return vectors_.size();
 }
 
@@ -223,6 +247,8 @@ std::size_t VectorDatabase::dimension() const {
 }
 
 DatabaseStats VectorDatabase::stats() const {
+    std::shared_lock lock(vectors_mutex_);
+
     DatabaseStats stats;
     stats.vector_count = vectors_.size();
     stats.dimension = config_.dimension;
@@ -237,7 +263,7 @@ DatabaseStats VectorDatabase::stats() const {
     );
     stats.memory_usage_bytes = vector_memory + stats.index_memory_bytes;
 
-    // Query statistics
+    // Query statistics (atomics don't need locking)
     stats.total_queries = total_queries_.load(std::memory_order_relaxed);
     stats.total_inserts = total_inserts_.load(std::memory_order_relaxed);
 
@@ -262,6 +288,9 @@ ErrorCode VectorDatabase::save() {
     if (config_.data_path.empty()) {
         return ErrorCode::InvalidParameter;
     }
+
+    // Acquire shared lock for read access (persistence doesn't modify data)
+    std::shared_lock lock(vectors_mutex_);
 
     try {
         // Create directory if it doesn't exist
@@ -333,6 +362,9 @@ ErrorCode VectorDatabase::load() {
     if (config_.data_path.empty()) {
         return ErrorCode::InvalidParameter;
     }
+
+    // Acquire exclusive lock for write access (loading modifies data)
+    std::unique_lock lock(vectors_mutex_);
 
     try {
         // 1. Load index
