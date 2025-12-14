@@ -560,17 +560,17 @@ Make MPS a compile-time optional dependency:
 
 2. **What should default ThreadingMode be?**
    - Options: None, Simple, MPS
-   - Recommendation: Simple (safe for most use cases)
+   - Recommendation: Simple (safe for most use cases). Implement only Simple strategy. Don't even offer other modes. 
 
 3. **Should MPS be optional at compile time?**
    - Pro: Reduces dependencies for users who don't need it
    - Con: More complex build configuration
-   - Recommendation: Phase 3 consideration, not Phase 1
+   - Recommendation: Keep mps compiling, keep tests as mps will be needed in the future. 
 
 4. **Backward compatibility requirements?**
    - Keep old classes with deprecation warnings?
    - Support old API for 1-2 releases?
-   - Recommendation: Deprecate for 1 release, remove in next
+   - Recommendation: don't keep old classes. No backward compatibility required. 
 
 ## Estimated Effort
 
