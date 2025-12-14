@@ -111,6 +111,7 @@ add_library(lynx_static STATIC
         src/lib/lynx.cpp
         src/lib/utils.cpp
         src/lib/record_iterator.cpp
+        src/lib/vector_database.cpp
         src/lib/vector_database_flat.cpp
         src/lib/vector_database_hnsw.cpp
         src/lib/vector_database_ivf.cpp
@@ -243,6 +244,7 @@ if(LYNX_BUILD_TESTS)
         tests/test_mps.cpp
         tests/test_persistence.cpp
         tests/test_write_log.cpp
+        tests/test_vector_database.cpp
     )
 
     target_link_libraries(lynx_tests PRIVATE
