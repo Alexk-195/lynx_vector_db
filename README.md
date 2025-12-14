@@ -81,8 +81,6 @@ export MPS_DIR=/path/to/mps
 ```bash
 make              # Build release
 make debug        # Build debug
-make test         # Build and run tests
-make build-tests  # Build tests only
 make clean        # Clean build
 make run          # Build and run
 make info         # Show build configuration
@@ -107,11 +105,6 @@ cmake .. -DMPS_DIR=/path/to/mps
 
 # Build
 cmake --build . --parallel
-
-# Run tests
-ctest              # Individual test discovery
-make test          # CMake test target
-make check         # Verbose test output
 
 # Install
 sudo cmake --install .

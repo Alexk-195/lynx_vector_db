@@ -32,12 +32,16 @@ ErrorCode VectorDatabase_Impl::insert(const VectorRecord& record) {
     }
 
     // Insert or update the vector
-    vectors_[record.id] = record;
-    total_inserts_++;
+    {
+        std::unique_lock lock(vectors_mutex_);
+        vectors_[record.id] = record;
+    }
+    total_inserts_.fetch_add(1);
     return ErrorCode::Ok;
 }
 
 ErrorCode VectorDatabase_Impl::remove(std::uint64_t id) {
+    std::unique_lock lock(vectors_mutex_);
     auto it = vectors_.find(id);
     if (it == vectors_.end()) {
         return ErrorCode::VectorNotFound;
@@ -47,10 +51,12 @@ ErrorCode VectorDatabase_Impl::remove(std::uint64_t id) {
 }
 
 bool VectorDatabase_Impl::contains(std::uint64_t id) const {
+    std::shared_lock lock(vectors_mutex_);
     return vectors_.find(id) != vectors_.end();
 }
 
 std::optional<VectorRecord> VectorDatabase_Impl::get(std::uint64_t id) const {
+    std::shared_lock lock(vectors_mutex_);
     auto it = vectors_.find(id);
     if (it == vectors_.end()) {
         return std::nullopt;
@@ -59,11 +65,16 @@ std::optional<VectorRecord> VectorDatabase_Impl::get(std::uint64_t id) const {
 }
 
 RecordRange VectorDatabase_Impl::all_records() const {
-    // Create iterators using SimpleIteratorImpl (no locking needed for single-threaded access)
+    // Create iterators using LockedIteratorImpl with shared_mutex
     using MapType = std::unordered_map<std::uint64_t, VectorRecord>;
 
-    auto begin_impl = std::make_shared<SimpleIteratorImpl<MapType>>(vectors_.begin());
-    auto end_impl = std::make_shared<SimpleIteratorImpl<MapType>>(vectors_.end());
+    // Create a shared lock that will be held by all iterator copies
+    auto lock = std::make_shared<std::shared_lock<std::shared_mutex>>(vectors_mutex_);
+
+    auto begin_impl = std::make_shared<LockedIteratorImpl<MapType, std::shared_mutex>>(
+        vectors_.begin(), lock);
+    auto end_impl = std::make_shared<LockedIteratorImpl<MapType, std::shared_mutex>>(
+        vectors_.end(), lock);
 
     return RecordRange(RecordIterator(begin_impl), RecordIterator(end_impl));
 }
@@ -88,16 +99,22 @@ SearchResult VectorDatabase_Impl::search(std::span<const float> query, std::size
 
     // Brute-force search: calculate distance to all vectors
     std::vector<SearchResultItem> results;
-    results.reserve(vectors_.size());
+    size_t total_candidates;
 
-    for (const auto& [id, record] : vectors_) {
-        // Apply filter if provided
-        if (params.filter && !(*params.filter)(id)) {
-            continue;
+    {
+        std::shared_lock lock(vectors_mutex_);
+        results.reserve(vectors_.size());
+        total_candidates = vectors_.size();
+
+        for (const auto& [id, record] : vectors_) {
+            // Apply filter if provided
+            if (params.filter && !(*params.filter)(id)) {
+                continue;
+            }
+
+            float distance = calculate_distance(query, record.vector, config_.distance_metric);
+            results.push_back({id, distance});
         }
-
-        float distance = calculate_distance(query, record.vector, config_.distance_metric);
-        results.push_back({id, distance});
     }
 
     // Sort by distance (ascending)
@@ -115,13 +132,16 @@ SearchResult VectorDatabase_Impl::search(std::span<const float> query, std::size
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
     double query_time_ms = duration.count() / 1000.0;
 
-    // Update statistics (mutable for const method)
-    const_cast<VectorDatabase_Impl*>(this)->total_queries_++;
-    const_cast<VectorDatabase_Impl*>(this)->total_query_time_ms_ += query_time_ms;
+    // Update statistics (thread-safe)
+    total_queries_.fetch_add(1);
+    {
+        std::lock_guard lock(stats_mutex_);
+        total_query_time_ms_ += query_time_ms;
+    }
 
     SearchResult result;
     result.items = std::move(results);
-    result.total_candidates = vectors_.size();
+    result.total_candidates = total_candidates;
     result.query_time_ms = query_time_ms;
     return result;
 }
@@ -145,6 +165,7 @@ ErrorCode VectorDatabase_Impl::batch_insert(std::span<const VectorRecord> record
 // ============================================================================
 
 std::size_t VectorDatabase_Impl::size() const {
+    std::shared_lock lock(vectors_mutex_);
     return vectors_.size();
 }
 
@@ -154,26 +175,36 @@ std::size_t VectorDatabase_Impl::dimension() const {
 
 DatabaseStats VectorDatabase_Impl::stats() const {
     DatabaseStats stats_result;
-    stats_result.vector_count = vectors_.size();
-    stats_result.dimension = config_.dimension;
 
-    // Calculate memory usage
-    // Each vector: sizeof(uint64_t) + dimension * sizeof(float) + overhead
-    std::size_t per_vector_size = sizeof(std::uint64_t) +
-                                  (config_.dimension * sizeof(float)) +
-                                  sizeof(VectorRecord);
-    stats_result.memory_usage_bytes = vectors_.size() * per_vector_size;
-    stats_result.index_memory_bytes = 0; // No index yet (brute force)
+    // Get vector count with lock
+    {
+        std::shared_lock lock(vectors_mutex_);
+        stats_result.vector_count = vectors_.size();
 
-    // Calculate average query time
-    if (total_queries_ > 0) {
-        stats_result.avg_query_time_ms = total_query_time_ms_ / total_queries_;
-    } else {
-        stats_result.avg_query_time_ms = 0.0;
+        // Calculate memory usage
+        // Each vector: sizeof(uint64_t) + dimension * sizeof(float) + overhead
+        std::size_t per_vector_size = sizeof(std::uint64_t) +
+                                      (config_.dimension * sizeof(float)) +
+                                      sizeof(VectorRecord);
+        stats_result.memory_usage_bytes = vectors_.size() * per_vector_size;
     }
 
-    stats_result.total_queries = total_queries_;
-    stats_result.total_inserts = total_inserts_;
+    stats_result.dimension = config_.dimension;
+    stats_result.index_memory_bytes = 0; // No index yet (brute force)
+
+    // Get statistics atomically
+    stats_result.total_queries = total_queries_.load();
+    stats_result.total_inserts = total_inserts_.load();
+
+    // Calculate average query time
+    {
+        std::lock_guard lock(stats_mutex_);
+        if (stats_result.total_queries > 0) {
+            stats_result.avg_query_time_ms = total_query_time_ms_ / stats_result.total_queries;
+        } else {
+            stats_result.avg_query_time_ms = 0.0;
+        }
+    }
 
     return stats_result;
 }
@@ -217,9 +248,16 @@ ErrorCode VectorDatabase_Impl::save() {
         out.write(reinterpret_cast<const char*>(&metric_value), sizeof(metric_value));
 
         // Write statistics
-        out.write(reinterpret_cast<const char*>(&total_inserts_), sizeof(total_inserts_));
-        out.write(reinterpret_cast<const char*>(&total_queries_), sizeof(total_queries_));
-        out.write(reinterpret_cast<const char*>(&total_query_time_ms_), sizeof(total_query_time_ms_));
+        std::size_t inserts = total_inserts_.load();
+        std::size_t queries = total_queries_.load();
+        double query_time;
+        {
+            std::lock_guard lock(stats_mutex_);
+            query_time = total_query_time_ms_;
+        }
+        out.write(reinterpret_cast<const char*>(&inserts), sizeof(inserts));
+        out.write(reinterpret_cast<const char*>(&queries), sizeof(queries));
+        out.write(reinterpret_cast<const char*>(&query_time), sizeof(query_time));
 
         // Write number of vectors
         std::size_t num_vectors = vectors_.size();
@@ -330,9 +368,12 @@ ErrorCode VectorDatabase_Impl::load() {
             if (vector_size != config_.dimension) {
                 // Restore to empty state on error
                 vectors_.clear();
-                total_inserts_ = 0;
-                total_queries_ = 0;
-                total_query_time_ms_ = 0.0;
+                total_inserts_.store(0);
+                total_queries_.store(0);
+                {
+                    std::lock_guard lock(stats_mutex_);
+                    total_query_time_ms_ = 0.0;
+                }
                 return ErrorCode::DimensionMismatch;
             }
 
@@ -361,25 +402,34 @@ ErrorCode VectorDatabase_Impl::load() {
         if (!in.good()) {
             // Restore to empty state on error
             vectors_.clear();
-            total_inserts_ = 0;
-            total_queries_ = 0;
-            total_query_time_ms_ = 0.0;
+            total_inserts_.store(0);
+            total_queries_.store(0);
+            {
+                std::lock_guard lock(stats_mutex_);
+                total_query_time_ms_ = 0.0;
+            }
             return ErrorCode::IOError;
         }
 
         // Restore statistics
-        total_inserts_ = loaded_total_inserts;
-        total_queries_ = loaded_total_queries;
-        total_query_time_ms_ = loaded_total_query_time_ms;
+        total_inserts_.store(loaded_total_inserts);
+        total_queries_.store(loaded_total_queries);
+        {
+            std::lock_guard lock(stats_mutex_);
+            total_query_time_ms_ = loaded_total_query_time_ms;
+        }
 
         return ErrorCode::Ok;
 
     } catch (const std::exception&) {
         // Restore to empty state on exception
         vectors_.clear();
-        total_inserts_ = 0;
-        total_queries_ = 0;
-        total_query_time_ms_ = 0.0;
+        total_inserts_.store(0);
+        total_queries_.store(0);
+        {
+            std::lock_guard lock(stats_mutex_);
+            total_query_time_ms_ = 0.0;
+        }
         return ErrorCode::IOError;
     }
 }

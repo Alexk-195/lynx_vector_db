@@ -16,6 +16,8 @@
 #include <unordered_map>
 #include <memory>
 #include <shared_mutex>
+#include <atomic>
+#include <mutex>
 #include <cstddef>
 #include <cstdint>
 
@@ -97,10 +99,11 @@ private:
     Config config_;                                           ///< Database configuration
     std::shared_ptr<IVFIndex> index_;                        ///< IVF index
     std::unordered_map<std::uint64_t, VectorRecord> vectors_; ///< Vector storage
-    std::size_t total_inserts_;                               ///< Total insert count
-    std::size_t total_queries_;                               ///< Total query count
-    mutable double total_query_time_ms_;                      ///< Cumulative query time
     mutable std::shared_mutex vectors_mutex_;                 ///< Mutex for thread-safe vector storage access
+    mutable std::atomic<std::size_t> total_inserts_;          ///< Total insert count (thread-safe)
+    mutable std::atomic<std::size_t> total_queries_;          ///< Total query count (thread-safe)
+    mutable std::mutex stats_mutex_;                          ///< Mutex for statistics
+    mutable double total_query_time_ms_;                      ///< Cumulative query time
 };
 
 } // namespace lynx
