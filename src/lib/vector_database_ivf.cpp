@@ -43,9 +43,26 @@ ErrorCode VectorDatabase_IVF::insert(const VectorRecord& record) {
 
     // Check if index has been built (has centroids)
     if (!index_->has_centroids()) {
-        // For single inserts without a built index, we cannot proceed
-        // User should call batch_insert to build the index first
-        return ErrorCode::InvalidState;
+        // Auto-initialize: build index with this first vector
+        // Use a unique lock on vectors_mutex_ to ensure only one thread initializes
+        std::unique_lock lock(vectors_mutex_);
+
+        // Double-check after acquiring lock (another thread might have initialized)
+        if (!index_->has_centroids()) {
+            // Build the index with just this one vector
+            std::vector<VectorRecord> init_records = {record};
+            ErrorCode build_result = index_->build(init_records);
+            if (build_result != ErrorCode::Ok) {
+                return build_result;
+            }
+
+            // Store the vector
+            vectors_[record.id] = record;
+            total_inserts_.fetch_add(1);
+            return ErrorCode::Ok;
+        }
+        // Another thread initialized, fall through to normal insert
+        lock.unlock();
     }
 
     // Insert into vector storage
@@ -58,7 +75,7 @@ ErrorCode VectorDatabase_IVF::insert(const VectorRecord& record) {
     ErrorCode result = index_->add(record.id, record.vector);
 
     if (result == ErrorCode::Ok) {
-        total_inserts_++;
+        total_inserts_.fetch_add(1);
     }
 
     return result;
@@ -140,9 +157,12 @@ SearchResult VectorDatabase_IVF::search(std::span<const float> query, std::size_
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
     double query_time_ms = duration.count() / 1000.0;
 
-    // Update statistics (mutable for const method)
-    const_cast<VectorDatabase_IVF*>(this)->total_queries_++;
-    const_cast<VectorDatabase_IVF*>(this)->total_query_time_ms_ += query_time_ms;
+    // Update statistics (thread-safe)
+    total_queries_.fetch_add(1);
+    {
+        std::lock_guard lock(stats_mutex_);
+        total_query_time_ms_ += query_time_ms;
+    }
 
     SearchResult result;
     result.items = std::move(results);
@@ -177,7 +197,7 @@ ErrorCode VectorDatabase_IVF::batch_insert(std::span<const VectorRecord> records
         }
     }
 
-    total_inserts_ += records.size();
+    total_inserts_.fetch_add(records.size());
     return ErrorCode::Ok;
 }
 
@@ -196,28 +216,38 @@ std::size_t VectorDatabase_IVF::dimension() const {
 
 DatabaseStats VectorDatabase_IVF::stats() const {
     DatabaseStats stats_result;
-    stats_result.vector_count = vectors_.size();
-    stats_result.dimension = config_.dimension;
 
-    // Calculate memory usage
-    // Vectors in storage
-    std::size_t per_vector_size = sizeof(std::uint64_t) +
-                                  (config_.dimension * sizeof(float)) +
-                                  sizeof(VectorRecord);
-    stats_result.memory_usage_bytes = vectors_.size() * per_vector_size;
+    // Get vector count with lock
+    {
+        std::shared_lock lock(vectors_mutex_);
+        stats_result.vector_count = vectors_.size();
+
+        // Calculate memory usage
+        // Vectors in storage
+        std::size_t per_vector_size = sizeof(std::uint64_t) +
+                                      (config_.dimension * sizeof(float)) +
+                                      sizeof(VectorRecord);
+        stats_result.memory_usage_bytes = vectors_.size() * per_vector_size;
+    }
+
+    stats_result.dimension = config_.dimension;
 
     // Index memory (from IVFIndex)
     stats_result.index_memory_bytes = index_->memory_usage();
 
-    // Calculate average query time
-    if (total_queries_ > 0) {
-        stats_result.avg_query_time_ms = total_query_time_ms_ / total_queries_;
-    } else {
-        stats_result.avg_query_time_ms = 0.0;
-    }
+    // Get statistics atomically
+    stats_result.total_queries = total_queries_.load();
+    stats_result.total_inserts = total_inserts_.load();
 
-    stats_result.total_queries = total_queries_;
-    stats_result.total_inserts = total_inserts_;
+    // Calculate average query time
+    {
+        std::lock_guard lock(stats_mutex_);
+        if (stats_result.total_queries > 0) {
+            stats_result.avg_query_time_ms = total_query_time_ms_ / stats_result.total_queries;
+        } else {
+            stats_result.avg_query_time_ms = 0.0;
+        }
+    }
 
     return stats_result;
 }
@@ -271,9 +301,16 @@ ErrorCode VectorDatabase_IVF::save() {
                  sizeof(config_.ivf_params.n_probe));
 
         // Write statistics
-        out.write(reinterpret_cast<const char*>(&total_inserts_), sizeof(total_inserts_));
-        out.write(reinterpret_cast<const char*>(&total_queries_), sizeof(total_queries_));
-        out.write(reinterpret_cast<const char*>(&total_query_time_ms_), sizeof(total_query_time_ms_));
+        std::size_t inserts = total_inserts_.load();
+        std::size_t queries = total_queries_.load();
+        double query_time;
+        {
+            std::lock_guard lock(stats_mutex_);
+            query_time = total_query_time_ms_;
+        }
+        out.write(reinterpret_cast<const char*>(&inserts), sizeof(inserts));
+        out.write(reinterpret_cast<const char*>(&queries), sizeof(queries));
+        out.write(reinterpret_cast<const char*>(&query_time), sizeof(query_time));
 
         // Write number of vectors
         std::size_t num_vectors = vectors_.size();
@@ -407,9 +444,12 @@ ErrorCode VectorDatabase_IVF::load() {
             if (vector_size != config_.dimension) {
                 // Restore to empty state on error
                 vectors_.clear();
-                total_inserts_ = 0;
-                total_queries_ = 0;
-                total_query_time_ms_ = 0.0;
+                total_inserts_.store(0);
+                total_queries_.store(0);
+                {
+                    std::lock_guard lock(stats_mutex_);
+                    total_query_time_ms_ = 0.0;
+                }
                 return ErrorCode::DimensionMismatch;
             }
 
@@ -440,34 +480,46 @@ ErrorCode VectorDatabase_IVF::load() {
         if (index_result != ErrorCode::Ok) {
             // Restore to empty state on error
             vectors_.clear();
-            total_inserts_ = 0;
-            total_queries_ = 0;
-            total_query_time_ms_ = 0.0;
+            total_inserts_.store(0);
+            total_queries_.store(0);
+            {
+                std::lock_guard lock(stats_mutex_);
+                total_query_time_ms_ = 0.0;
+            }
             return index_result;
         }
 
         if (!in.good()) {
             // Restore to empty state on error
             vectors_.clear();
-            total_inserts_ = 0;
-            total_queries_ = 0;
-            total_query_time_ms_ = 0.0;
+            total_inserts_.store(0);
+            total_queries_.store(0);
+            {
+                std::lock_guard lock(stats_mutex_);
+                total_query_time_ms_ = 0.0;
+            }
             return ErrorCode::IOError;
         }
 
         // Restore statistics
-        total_inserts_ = loaded_total_inserts;
-        total_queries_ = loaded_total_queries;
-        total_query_time_ms_ = loaded_total_query_time_ms;
+        total_inserts_.store(loaded_total_inserts);
+        total_queries_.store(loaded_total_queries);
+        {
+            std::lock_guard lock(stats_mutex_);
+            total_query_time_ms_ = loaded_total_query_time_ms;
+        }
 
         return ErrorCode::Ok;
 
     } catch (const std::exception&) {
         // Restore to empty state on exception
         vectors_.clear();
-        total_inserts_ = 0;
-        total_queries_ = 0;
-        total_query_time_ms_ = 0.0;
+        total_inserts_.store(0);
+        total_queries_.store(0);
+        {
+            std::lock_guard lock(stats_mutex_);
+            total_query_time_ms_ = 0.0;
+        }
         return ErrorCode::IOError;
     }
 }

@@ -928,7 +928,7 @@ TEST(IVFDatabaseTest, BatchInsertThenIncrementalInsert) {
     EXPECT_TRUE(db->contains(100));
 }
 
-TEST(IVFDatabaseTest, IncrementalInsertWithoutBuildFails) {
+TEST(IVFDatabaseTest, IncrementalInsertWithoutBuildAutoInitializes) {
     lynx::Config config;
     config.dimension = 8;
     config.index_type = lynx::IndexType::IVF;
@@ -936,12 +936,28 @@ TEST(IVFDatabaseTest, IncrementalInsertWithoutBuildFails) {
 
     auto db = lynx::IVectorDatabase::create(config);
 
-    // Try to insert without building index first
+    // Insert without building index first - should auto-initialize
     std::vector<float> vec(8, 1.0f);
-    lynx::VectorRecord record{1, std::move(vec), std::nullopt};
+    lynx::VectorRecord record{1, vec, std::nullopt};
 
-    // Should fail because centroids haven't been computed
-    EXPECT_EQ(db->insert(record), lynx::ErrorCode::InvalidState);
+    // Should succeed with auto-initialization
+    EXPECT_EQ(db->insert(record), lynx::ErrorCode::Ok);
+
+    // Verify the vector was inserted
+    EXPECT_EQ(db->size(), 1);
+    EXPECT_TRUE(db->contains(1));
+
+    // Verify we can search after auto-initialization
+    std::vector<float> query(8, 1.0f);
+    auto results = db->search(query, 1);
+    EXPECT_EQ(results.items.size(), 1);
+    EXPECT_EQ(results.items[0].id, 1);
+
+    // Verify we can insert more vectors after auto-initialization
+    std::vector<float> vec2(8, 2.0f);
+    lynx::VectorRecord record2{2, vec2, std::nullopt};
+    EXPECT_EQ(db->insert(record2), lynx::ErrorCode::Ok);
+    EXPECT_EQ(db->size(), 2);
 }
 
 TEST(IVFDatabaseTest, SearchWithDifferentNProbe) {

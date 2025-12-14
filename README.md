@@ -81,8 +81,6 @@ export MPS_DIR=/path/to/mps
 ```bash
 make              # Build release
 make debug        # Build debug
-make test         # Build and run tests
-make build-tests  # Build tests only
 make clean        # Clean build
 make run          # Build and run
 make info         # Show build configuration
@@ -91,6 +89,8 @@ make info         # Show build configuration
 # If using make directly, set MPS_PATH or MPS_DIR manually
 export MPS_PATH=/path/to/mps
 make
+
+# Note: To run tests, use ./setup.sh test or CMake (see Testing section below)
 ```
 
 ### Build Options - CMake
@@ -108,10 +108,10 @@ cmake .. -DMPS_DIR=/path/to/mps
 # Build
 cmake --build . --parallel
 
-# Run tests
-ctest              # Individual test discovery
-make test          # CMake test target
-make check         # Verbose test output
+# Run tests (see Testing section below for more options)
+ctest                    # Run all tests
+make test                # Alternative way to run all tests
+make check               # Run tests with verbose output
 
 # Install
 sudo cmake --install .
@@ -181,6 +181,119 @@ int main() {
 ```
 
 For more examples see [src/main_minimal.cpp](src/main_minimal.cpp) and [src/main.cpp](src/main.cpp)
+
+## Testing
+
+### Running Tests
+
+#### Quick Start
+
+```bash
+# Using setup.sh (recommended - automatically configures CMake)
+./setup.sh test
+
+# Or using CMake directly
+cd build
+ctest                 # Run all tests
+```
+
+#### All Tests
+
+```bash
+cd build
+
+# Run all tests
+ctest
+
+# Run all tests with output
+ctest --output-on-failure
+
+# Run all tests with verbose output
+ctest -V
+
+# Run all tests quietly
+ctest -Q
+```
+
+#### Running Specific Tests
+
+```bash
+cd build
+
+# Run tests matching a pattern (regex)
+ctest -R "ThreadingTest"                    # All threading tests
+ctest -R "IVFDatabaseTest"                  # All IVF database tests
+ctest -R "HNSW"                             # All HNSW-related tests
+
+# Run specific test by exact name
+ctest -R "^IVFDatabaseTest.BatchInsertAndSearch$"
+
+# Run multiple patterns
+ctest -R "Threading|IVF"                    # Threading OR IVF tests
+
+# Exclude tests matching a pattern
+ctest -E "Benchmark"                        # Exclude benchmark tests
+
+# Combine include and exclude
+ctest -R "Threading" -E "Stress"            # Threading tests except stress tests
+```
+
+#### Running Tests with Verbose Output
+
+```bash
+cd build
+
+# Verbose output for specific tests
+ctest -R "ThreadingTest" -V
+
+# Show only failures
+ctest -R "IVFDatabaseTest" --output-on-failure
+
+# Rerun only failed tests
+ctest --rerun-failed
+
+# Stop on first failure
+ctest --stop-on-failure
+```
+
+#### Running Tests Multiple Times
+
+```bash
+cd build
+
+# Run tests multiple times to check for flakiness
+ctest -R "StatisticsConsistency" --repeat until-pass:5
+
+# Run a specific test 10 times
+for i in {1..10}; do
+    echo "=== Run $i ==="
+    ctest -R "ConcurrentWrites" --output-on-failure || break
+done
+```
+
+#### Test Categories
+
+| Category | Pattern | Description |
+|----------|---------|-------------|
+| **Threading Tests** | `ctest -R "ThreadingTest"` | Multi-threaded safety tests |
+| **IVF Tests** | `ctest -R "IVFDatabaseTest\|IVFIndexTest"` | IVF index tests |
+| **HNSW Tests** | `ctest -R "HNSWTest\|HNSWDatabaseTest"` | HNSW index tests |
+| **Flat Tests** | `ctest -R "FlatIndexTest"` | Flat/brute-force index tests |
+| **Distance Tests** | `ctest -R "DistanceMetricsTest"` | Distance metric tests |
+| **Persistence Tests** | `ctest -R "Persistence"` | Save/load functionality tests |
+| **Benchmark Tests** | `ctest -R "Benchmark"` | Performance benchmarks |
+
+#### Using Google Test Filters (Advanced)
+
+```bash
+cd build
+
+# Run the test binary directly with Google Test filters
+./bin/lynx_tests --gtest_filter="ThreadingTest.*"
+./bin/lynx_tests --gtest_filter="*IVF*"
+./bin/lynx_tests --gtest_list_tests                    # List all tests
+./bin/lynx_tests --gtest_filter="ThreadingTest.*" --gtest_repeat=10
+```
 
 ### Choosing an Index Type
 

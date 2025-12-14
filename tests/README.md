@@ -11,29 +11,6 @@ Actual test implementation is done in other files starting with "test_".
 
 ## Running Tests
 
-### Using Make (Makefile)
-```bash
-make test              # Build and run all tests
-make build-tests       # Build tests without running
-```
-
-### Using CMake
-```bash
-# Configure
-mkdir build && cd build
-cmake ..
-
-# Build
-cmake --build .
-
-# Run tests
-ctest                  # CTest with individual test discovery
-# OR
-make test              # CMake's test target
-# OR
-make check             # Custom target with verbose output
-```
-
 ### Using setup.sh
 ```bash
 ./setup.sh test        # Build and run all tests (uses Makefile)
