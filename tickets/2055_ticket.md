@@ -10,27 +10,27 @@ Implement the unified `VectorDatabase` class based on the approved design from t
 
 ## Acceptance Criteria
 
-- [ ] Create `src/lib/vector_database.h` and `src/lib/vector_database.cpp`
-- [ ] Implement `IVectorDatabase` interface:
-  - [ ] Constructor taking `Config` and creating appropriate index
-  - [ ] `insert(const VectorRecord& record)`
-  - [ ] `remove(uint64_t id)`
-  - [ ] `contains(uint64_t id)`
-  - [ ] `get(uint64_t id)`
-  - [ ] `search(std::span<const float> query, size_t k, const SearchParams& params)`
-  - [ ] `batch_insert(std::span<const VectorRecord> records)`
-  - [ ] `all_records()`
-  - [ ] `size()`, `dimension()`, `stats()`
-  - [ ] `save(const std::string& path)`, `load(const std::string& path)`
-- [ ] Common vector storage: `std::unordered_map<uint64_t, VectorRecord>`
-- [ ] Index factory logic in constructor:
-  - [ ] Create FlatIndex for IndexType::Flat
-  - [ ] Create HNSWIndex for IndexType::HNSW
-  - [ ] Create IVFIndex for IndexType::IVF
-- [ ] Statistics tracking (insert/search counts, timing)
-- [ ] Persistence implementation
-- [ ] Initial implementation without threading (single-threaded)
-- [ ] Unit tests for all operations with all three index types
+- [x] Create `src/lib/vector_database.h` and `src/lib/vector_database.cpp`
+- [x] Implement `IVectorDatabase` interface:
+  - [x] Constructor taking `Config` and creating appropriate index
+  - [x] `insert(const VectorRecord& record)`
+  - [x] `remove(uint64_t id)`
+  - [x] `contains(uint64_t id)`
+  - [x] `get(uint64_t id)`
+  - [x] `search(std::span<const float> query, size_t k, const SearchParams& params)`
+  - [x] `batch_insert(std::span<const VectorRecord> records)`
+  - [x] `all_records()`
+  - [x] `size()`, `dimension()`, `stats()`
+  - [x] `save(const std::string& path)`, `load(const std::string& path)`
+- [x] Common vector storage: `std::unordered_map<uint64_t, VectorRecord>`
+- [x] Index factory logic in constructor:
+  - [x] Create FlatIndex for IndexType::Flat
+  - [x] Create HNSWIndex for IndexType::HNSW
+  - [x] Create IVFIndex for IndexType::IVF
+- [x] Statistics tracking (insert/search counts, timing)
+- [x] Persistence implementation
+- [x] Initial implementation without threading (single-threaded)
+- [x] Unit tests for all operations with all three index types
 
 ## Notes
 
