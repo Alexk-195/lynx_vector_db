@@ -48,12 +48,16 @@ ErrorCode IVFIndex::add(std::uint64_t id, std::span<const float> vector) {
         return ErrorCode::DimensionMismatch;
     }
 
-    // Check if centroids have been initialized
-    if (!has_centroids()) {
-        return ErrorCode::InvalidState;
-    }
-
     std::unique_lock lock(mutex_);
+
+    // Auto-initialize centroids if not present
+    // This handles the case where single inserts are done before batch_insert
+    if (centroids_.empty()) {
+        // Initialize with a single cluster using this vector as centroid
+        centroids_.resize(1);
+        centroids_[0] = std::vector<float>(vector.begin(), vector.end());
+        inverted_lists_.resize(1);
+    }
 
     // Check if ID already exists
     if (id_to_cluster_.contains(id)) {
@@ -194,7 +198,12 @@ std::vector<SearchResultItem> IVFIndex::search(
 
 ErrorCode IVFIndex::build(std::span<const VectorRecord> vectors) {
     if (vectors.empty()) {
-        return ErrorCode::InvalidParameter;
+        // Empty build is valid - just clear existing data
+        std::unique_lock lock(mutex_);
+        inverted_lists_.clear();
+        centroids_.clear();
+        id_to_cluster_.clear();
+        return ErrorCode::Ok;
     }
 
     // Validate all vectors have correct dimension

@@ -14,6 +14,7 @@
 #include <stdexcept>
 #include <filesystem>
 #include <algorithm>
+#include <unordered_set>
 
 namespace lynx {
 
@@ -437,6 +438,14 @@ bool VectorDatabase::should_rebuild_ivf(std::size_t batch_size) const {
 }
 
 ErrorCode VectorDatabase::bulk_build(std::span<const VectorRecord> records) {
+    // Check for duplicate IDs within the batch
+    std::unordered_set<std::uint64_t> seen_ids;
+    for (const auto& record : records) {
+        if (!seen_ids.insert(record.id).second) {
+            return ErrorCode::InvalidParameter;  // Duplicate within batch
+        }
+    }
+
     ErrorCode result = index_->build(records);
     if (result == ErrorCode::Ok) {
         for (const auto& record : records) {
@@ -448,6 +457,13 @@ ErrorCode VectorDatabase::bulk_build(std::span<const VectorRecord> records) {
 }
 
 ErrorCode VectorDatabase::rebuild_with_merge(std::span<const VectorRecord> records) {
+    // Check for duplicate IDs in new records vs existing
+    for (const auto& record : records) {
+        if (vectors_.contains(record.id)) {
+            return ErrorCode::InvalidParameter;
+        }
+    }
+
     // Merge existing + new vectors
     std::vector<VectorRecord> all_records;
     all_records.reserve(vectors_.size() + records.size());

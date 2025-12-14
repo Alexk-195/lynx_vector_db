@@ -248,9 +248,14 @@ TEST(IVFIndexTest, AddWithoutCentroids) {
 
     IVFIndex index(8, DistanceMetric::L2, params);
 
-    // Try to add without setting centroids
+    // Add without pre-setting centroids should auto-initialize with single centroid
     std::vector<float> vec(8, 1.0f);
-    EXPECT_EQ(index.add(1, vec), ErrorCode::InvalidState);
+    EXPECT_EQ(index.add(1, vec), ErrorCode::Ok);
+
+    // Verify centroid was auto-initialized
+    EXPECT_TRUE(index.has_centroids());
+    EXPECT_EQ(index.size(), 1);
+    EXPECT_TRUE(index.contains(1));
 }
 
 TEST(IVFIndexTest, AddDimensionMismatch) {
@@ -928,8 +933,11 @@ TEST(IVFIndexTest, BuildWithEmptyDataset) {
 
     IVFIndex index(8, DistanceMetric::L2, params);
 
+    // Build with empty dataset should succeed and clear the index
     std::vector<VectorRecord> records;
-    EXPECT_EQ(index.build(records), ErrorCode::InvalidParameter);
+    EXPECT_EQ(index.build(records), ErrorCode::Ok);
+    EXPECT_EQ(index.size(), 0);
+    EXPECT_FALSE(index.has_centroids());
 }
 
 TEST(IVFIndexTest, BuildWithDimensionMismatch) {
