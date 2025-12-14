@@ -334,6 +334,34 @@ private:
      */
     double get_time_ms() const;
 
+    /**
+     * @brief Check if IVF index should be rebuilt with new data
+     * @param batch_size Size of batch to insert
+     * @return true if rebuild would improve clustering quality
+     */
+    bool should_rebuild_ivf(std::size_t batch_size) const;
+
+    /**
+     * @brief Bulk build index from records (for empty index)
+     * @param records Records to build index from
+     * @return ErrorCode indicating success or failure
+     */
+    ErrorCode bulk_build(std::span<const VectorRecord> records);
+
+    /**
+     * @brief Rebuild IVF index with existing + new data
+     * @param records New records to merge with existing data
+     * @return ErrorCode indicating success or failure
+     */
+    ErrorCode rebuild_with_merge(std::span<const VectorRecord> records);
+
+    /**
+     * @brief Incremental insert (add vectors one by one)
+     * @param records Records to insert incrementally
+     * @return ErrorCode indicating success or failure
+     */
+    ErrorCode incremental_insert(std::span<const VectorRecord> records);
+
     // -------------------------------------------------------------------------
     // Member Variables
     // -------------------------------------------------------------------------
@@ -574,6 +602,8 @@ ErrorCode VectorDatabase::remove(std::uint64_t id) {
 
 ### Batch Insert Operation
 
+**Strategy**: Use a hybrid approach based on index state and type.
+
 ```cpp
 ErrorCode VectorDatabase::batch_insert(std::span<const VectorRecord> records) {
     // 1. Validate all dimensions first
@@ -586,21 +616,39 @@ ErrorCode VectorDatabase::batch_insert(std::span<const VectorRecord> records) {
     // 2. Acquire exclusive lock
     std::unique_lock<std::shared_mutex> lock(mutex_);
 
-    // 3. Option A: Insert one by one
-    for (const auto& record : records) {
-        vectors_[record.id] = record;
-        ErrorCode result = index_->add(record.id, record.vector);
-        if (result != ErrorCode::Ok) {
-            // Handle error - partial insert or rollback?
-            return result;
-        }
-        total_inserts_.fetch_add(1, std::memory_order_relaxed);
+    // 3. HYBRID STRATEGY: Choose based on current state and index type
+
+    // Strategy 1: Empty index → use bulk build (fastest)
+    if (vectors_.empty()) {
+        return bulk_build(records);
     }
 
-    // 3. Option B: Bulk insert via index->build()
-    // If index is empty or small, use build() for better performance
-    if (vectors_.empty()) {
-        // Clear and rebuild
+    // Strategy 2: IVF with large batch → rebuild for better clustering
+    if (config_.index_type == IndexType::IVF &&
+        should_rebuild_ivf(records.size())) {
+        return rebuild_with_merge(records);
+    }
+
+    // Strategy 3: Default → incremental insert (safest)
+    return incremental_insert(records);
+}
+
+private:
+    /**
+     * @brief Check if IVF index should be rebuilt with new data
+     * @param batch_size Size of batch to insert
+     * @return true if rebuild would improve clustering quality
+     */
+    bool should_rebuild_ivf(size_t batch_size) const {
+        // Rebuild if batch adds >50% more data
+        // Rationale: k-means clustering with all data produces better centroids
+        return batch_size > vectors_.size() * 0.5;
+    }
+
+    /**
+     * @brief Bulk build index from records (for empty index)
+     */
+    ErrorCode bulk_build(std::span<const VectorRecord> records) {
         ErrorCode result = index_->build(records);
         if (result == ErrorCode::Ok) {
             for (const auto& record : records) {
@@ -611,9 +659,90 @@ ErrorCode VectorDatabase::batch_insert(std::span<const VectorRecord> records) {
         return result;
     }
 
-    return ErrorCode::Ok;
-}
+    /**
+     * @brief Rebuild IVF index with existing + new data
+     *
+     * For IVF, rebuilding with all data produces better k-means clusters
+     * than incremental insertion. This is expensive (re-runs k-means) but
+     * improves search quality.
+     */
+    ErrorCode rebuild_with_merge(std::span<const VectorRecord> records) {
+        // Merge existing + new vectors
+        std::vector<VectorRecord> all_records;
+        all_records.reserve(vectors_.size() + records.size());
+
+        // Add existing vectors
+        for (const auto& [id, record] : vectors_) {
+            all_records.push_back(record);
+        }
+
+        // Add new vectors
+        all_records.insert(all_records.end(), records.begin(), records.end());
+
+        // Rebuild index with all data
+        ErrorCode result = index_->build(all_records);
+        if (result == ErrorCode::Ok) {
+            // Update vector storage
+            for (const auto& record : records) {
+                vectors_[record.id] = record;
+            }
+            total_inserts_.fetch_add(records.size(), std::memory_order_relaxed);
+        }
+        return result;
+    }
+
+    /**
+     * @brief Incremental insert (add vectors one by one)
+     *
+     * Used for HNSW and Flat indices, or when IVF batch is small.
+     * Maintains index structure incrementally.
+     */
+    ErrorCode incremental_insert(std::span<const VectorRecord> records) {
+        for (const auto& record : records) {
+            // Check for duplicate ID
+            if (vectors_.contains(record.id)) {
+                // Could allow updates or return error
+                return ErrorCode::InvalidParameter;
+            }
+
+            // Store vector
+            vectors_[record.id] = record;
+
+            // Add to index
+            ErrorCode result = index_->add(record.id, record.vector);
+            if (result != ErrorCode::Ok) {
+                // Rollback this insert
+                vectors_.erase(record.id);
+                // Return error (partial insert occurred for previous records)
+                return result;
+            }
+
+            total_inserts_.fetch_add(1, std::memory_order_relaxed);
+        }
+        return ErrorCode::Ok;
+    }
 ```
+
+**Decision Matrix**:
+
+| Condition | Strategy | Reason |
+|-----------|----------|--------|
+| `vectors_.empty()` | **Bulk Build** | Fastest - optimized construction |
+| IVF + large batch (>50% existing) | **Rebuild with Merge** | Better k-means clustering quality |
+| HNSW/Flat or small batch | **Incremental Insert** | Safe, maintains structure |
+
+**Index-Specific Tradeoffs**:
+
+| Index Type | Incremental | Bulk Build | Rebuild |
+|------------|-------------|------------|---------|
+| **Flat** | O(1) per insert | O(N) total | No difference |
+| **HNSW** | O(log N) per insert | O(N log N) optimized | Usually not worth it |
+| **IVF** | O(1) assignment | O(N·D·k·iters) | **Produces better clusters** |
+
+**Why this matters for IVF**:
+- K-means clustering quality depends on having all data
+- Incremental adds assign to nearest centroid (may be suboptimal)
+- Rebuilding recalculates centroids with all data → better partitioning → better search recall
 
 ---
 
