@@ -10,7 +10,9 @@ A fast and light weight vector database implemented in modern C++20 with support
   - **HNSW**: Hierarchical Navigable Small World graphs for O(log N) query time and high recall
   - **IVF**: Inverted File Index for fast construction and memory-efficient approximate search
   - **Flat**: Brute-force exact search for small datasets
-- **Multi-threaded**: Built on MPS (Message Processing System) for concurrent operations
+- **Thread-Safe Operations**:
+  - **Default**: Simple `std::shared_mutex` for concurrent reads/writes (sufficient for most use cases)
+  - **Advanced**: MPS (Message Processing System) for extreme concurrency and non-blocking maintenance
 - **Modern C++20**: Concepts, spans, ranges, and coroutines
 - **Flexible Distance Metrics**: L2 (Euclidean), Cosine, Dot Product
 - **Persistence**: Save and load indices to/from disk
@@ -234,6 +236,40 @@ cd build
 ./bin/lynx_tests --gtest_filter="ThreadingTest.*" --gtest_repeat=10
 ```
 
+### Choosing a Database Implementation
+
+Lynx provides two implementations of `IVectorDatabase`:
+
+| Implementation | Threading Model | Best For | Complexity |
+|----------------|----------------|----------|------------|
+| **VectorDatabase** (Default) | `std::shared_mutex` | Most use cases, embedded systems, < 50 concurrent queries | Low |
+| **VectorDatabase_MPS** (Advanced) | Message passing (MPS) | Very high concurrency (100+ queries), non-blocking maintenance, strict latency SLAs | High |
+
+**Quick Start**:
+```cpp
+// Default (recommended for most use cases)
+Config config;
+config.index_type = IndexType::HNSW;
+auto db = std::make_shared<VectorDatabase>(config);
+
+// Advanced (for extreme performance requirements)
+auto db = std::make_shared<VectorDatabase_MPS>(config);
+```
+
+**When to use VectorDatabase_MPS**:
+- ✅ 100+ concurrent queries
+- ✅ Non-blocking index maintenance required
+- ✅ Multi-core system (8+ cores)
+- ✅ Production systems with high load
+
+**When to use VectorDatabase** (default):
+- ✅ Low to medium concurrency (< 50 queries)
+- ✅ Small to medium datasets (< 1M vectors)
+- ✅ Embedded systems
+- ✅ Development and prototyping
+
+See [doc/MPS_ARCHITECTURE.md](doc/MPS_ARCHITECTURE.md) for detailed comparison and migration guide.
+
 ### Choosing an Index Type
 
 | Index Type | Best For | Query Speed | Memory | Construction | Recall |
@@ -310,6 +346,7 @@ Lynx uses a layered architecture:
 ## Documentation
 
 - [doc/research.md](doc/research.md) - ANN algorithm research
+- [doc/MPS_ARCHITECTURE.md](doc/MPS_ARCHITECTURE.md) - MPS infrastructure and when to use it
 - [tests/README.md](tests/README.md) - Infos about unit testing
 - [tickets/README.md](tickets/README.md) - File-based ticketing system
 
