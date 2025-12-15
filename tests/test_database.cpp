@@ -133,20 +133,21 @@ TEST(VectorDatabaseTest, InsertWithMetadata) {
     EXPECT_EQ(retrieved->metadata.value(), "{\"name\": \"test\"}");
 }
 
-TEST(VectorDatabaseTest, InsertDuplicateIdOverwrites) {
+TEST(VectorDatabaseTest, InsertDuplicateIdRejected) {
     lynx::Config config;
     config.dimension = 2;
     auto db = lynx::IVectorDatabase::create(config);
 
     EXPECT_EQ(db->insert({1, {1.0f, 0.0f}, std::nullopt}), lynx::ErrorCode::Ok);
-    EXPECT_EQ(db->insert({1, {0.0f, 1.0f}, std::nullopt}), lynx::ErrorCode::Ok);
+    EXPECT_EQ(db->insert({1, {0.0f, 1.0f}, std::nullopt}), lynx::ErrorCode::InvalidParameter);
 
     EXPECT_EQ(db->size(), 1); // Still only 1 vector
 
     auto retrieved = db->get(1);
     ASSERT_TRUE(retrieved.has_value());
-    EXPECT_FLOAT_EQ(retrieved->vector[0], 0.0f);
-    EXPECT_FLOAT_EQ(retrieved->vector[1], 1.0f);
+    // Original vector should still be there
+    EXPECT_FLOAT_EQ(retrieved->vector[0], 1.0f);
+    EXPECT_FLOAT_EQ(retrieved->vector[1], 0.0f);
 }
 
 TEST(VectorDatabaseTest, InsertWrongDimensionReturnsError) {

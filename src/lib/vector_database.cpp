@@ -72,7 +72,7 @@ ErrorCode VectorDatabase::insert(const VectorRecord& record) {
     // Acquire exclusive lock for write access
     std::unique_lock lock(vectors_mutex_);
 
-    // Check for duplicate ID
+    // Check for duplicate ID - INSERT should reject duplicates
     if (vectors_.contains(record.id)) {
         return ErrorCode::InvalidParameter;
     }
@@ -193,8 +193,8 @@ SearchResult VectorDatabase::search(std::span<const float> query,
 
     // Build result
     SearchResult result;
+    result.total_candidates = items.size();  // Get size before move
     result.items = std::move(items);
-    result.total_candidates = items.size();
     result.query_time_ms = elapsed_ms;
 
     return result;
@@ -205,31 +205,11 @@ SearchResult VectorDatabase::search(std::span<const float> query,
 // =============================================================================
 
 ErrorCode VectorDatabase::batch_insert(std::span<const VectorRecord> records) {
-    // Validate all dimensions first
-    for (const auto& record : records) {
-        ErrorCode validation = validate_dimension(record.vector);
-        if (validation != ErrorCode::Ok) {
-            return validation;
-        }
-    }
-
     // Acquire exclusive lock for write access
     std::unique_lock lock(vectors_mutex_);
 
-    // HYBRID STRATEGY: Choose based on current state and index type
-
-    // Strategy 1: Empty index → use bulk build (fastest)
-    if (vectors_.empty()) {
-        return bulk_build(records);
-    }
-
-    // Strategy 2: IVF with large batch → rebuild for better clustering
-    if (config_.index_type == IndexType::IVF &&
-        should_rebuild_ivf(records.size())) {
-        return rebuild_with_merge(records);
-    }
-
-    // Strategy 3: Default → incremental insert (safest)
+    // Use incremental insert for partial-insert semantics
+    // This allows the first N valid records to be inserted before an error
     return incremental_insert(records);
 }
 
@@ -280,7 +260,17 @@ DatabaseStats VectorDatabase::stats() const {
 // =============================================================================
 
 ErrorCode VectorDatabase::flush() {
-    // For in-memory databases, flush is same as save
+    // If WAL is enabled, flush WAL (not yet implemented)
+    if (config_.enable_wal) {
+        return ErrorCode::NotImplemented;
+    }
+
+    // If no data path, flush is a no-op (in-memory only)
+    if (config_.data_path.empty()) {
+        return ErrorCode::Ok;
+    }
+
+    // Otherwise, persist to disk
     return save();
 }
 
@@ -522,6 +512,13 @@ ErrorCode VectorDatabase::rebuild_with_merge(std::span<const VectorRecord> recor
 
 ErrorCode VectorDatabase::incremental_insert(std::span<const VectorRecord> records) {
     for (const auto& record : records) {
+        // Validate dimension
+        ErrorCode validation = validate_dimension(record.vector);
+        if (validation != ErrorCode::Ok) {
+            // Return error, leaving previously inserted records in place
+            return validation;
+        }
+
         // Check for duplicate ID
         if (vectors_.contains(record.id)) {
             return ErrorCode::InvalidParameter;

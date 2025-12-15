@@ -54,8 +54,8 @@ TEST_F(PersistenceTest, SaveEmptyDatabase) {
     EXPECT_EQ(result, ErrorCode::Ok);
 
     // Verify files were created
-    EXPECT_TRUE(std::filesystem::exists(test_data_path_ + "/index.hnsw"));
-    EXPECT_TRUE(std::filesystem::exists(test_data_path_ + "/metadata.dat"));
+    EXPECT_TRUE(std::filesystem::exists(test_data_path_ + "/index.bin"));
+    EXPECT_TRUE(std::filesystem::exists(test_data_path_ + "/vectors.bin"));
 }
 
 TEST_F(PersistenceTest, SaveAndLoadEmptyDatabase) {
