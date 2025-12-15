@@ -1,4 +1,4 @@
-# Ticket 2063: Release Preparation and Communication
+# Ticket 2090: Release Preparation and Communication
 
 **Priority**: Medium
 **Created**: 2025-12-14
