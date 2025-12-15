@@ -32,12 +32,6 @@ Prepare for release of the refactored codebase with unified VectorDatabase archi
   - [ ] Include built artifacts (if applicable)
 - [ ] Communication:
   - [ ] Update project README badges
-  - [ ] Announce on project channels
-  - [ ] Update documentation site (if exists)
-- [ ] Post-release monitoring:
-  - [ ] Monitor for issues in first week
-  - [ ] Quick response to bug reports
-  - [ ] Prepare hotfix process if needed
 
 ## Notes
 

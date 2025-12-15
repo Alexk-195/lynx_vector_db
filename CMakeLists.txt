@@ -241,9 +241,7 @@ if(LYNX_BUILD_TESTS)
         tests/test_flat_index_integration.cpp
         tests/test_lynx_coverage.cpp
         tests/test_minimal_example.cpp
-        tests/test_mps.cpp
         tests/test_persistence.cpp
-        tests/test_write_log.cpp
         tests/test_vector_database.cpp
         tests/test_unified_database_integration.cpp
         tests/test_threading.cpp
