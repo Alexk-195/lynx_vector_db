@@ -6,9 +6,11 @@
 
 ## Description
 
-Remove the old database implementations (`VectorDatabase_Impl` and `VectorDatabase_IVF`) now that the unified `VectorDatabase` class is complete, tested, and documented. Keep `VectorDatabase_MPS` for advanced MPS-based use cases.
+Remove the old database implementations (`VectorDatabase_MPS`, `VectorDatabase_Impl` and `VectorDatabase_IVF`) now that the unified `VectorDatabase` class is complete, tested, and documented. 
 
-**Note**: Based on ticket 2051 recommendations, no backward compatibility is required. We will cleanly remove the old implementations.
+**Note**: Based on ticket 2051 recommendations, no backward compatibility is required. We will cleanly remove the old implementations. Also in opposite to previous information the decision was now met to remove VectorDatabase_MPS completely.
+
+
 
 ## Acceptance Criteria
 
