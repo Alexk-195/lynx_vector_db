@@ -207,74 +207,6 @@ TEST_F(UnifiedDatabaseFlatParityTest, RemoveOperation) {
 }
 
 // ============================================================================
-// Feature Parity Tests - HNSW Index
-// ============================================================================
-
-class UnifiedDatabaseHNSWParityTest : public ::testing::Test {
-protected:
-    void SetUp() override {
-        config_.dimension = 128;
-        config_.distance_metric = DistanceMetric::L2;
-        config_.index_type = IndexType::HNSW;
-        config_.hnsw_params.m = 16;
-        config_.hnsw_params.ef_construction = 200;
-        config_.hnsw_params.ef_search = 100;
-
-        unified_db_ = std::make_shared<VectorDatabase>(config_);
-        old_db_ = std::make_shared<VectorDatabase_MPS>(config_);
-    }
-
-    Config config_;
-    std::shared_ptr<VectorDatabase> unified_db_;
-    std::shared_ptr<VectorDatabase_MPS> old_db_;
-};
-
-TEST_F(UnifiedDatabaseHNSWParityTest, SearchRecall) {
-    // Insert vectors
-    auto vectors = generate_random_vectors(10000, 128);
-    for (std::size_t i = 0; i < vectors.size(); ++i) {
-        VectorRecord record{i, vectors[i], std::nullopt};
-        unified_db_->insert(record);
-        old_db_->insert(record);
-    }
-
-    // Compare search results (should have similar recall)
-    auto query = generate_random_vectors(1, 128)[0];
-    auto unified_results = unified_db_->search(query, 50);
-    auto old_results = old_db_->search(query, 50);
-
-    // Calculate overlap
-    double recall = calculate_recall(old_results.items, unified_results.items);
-
-    std::cout << "\n[HNSW Parity] Search recall between unified and old: "
-              << std::fixed << std::setprecision(2) << (recall * 100) << "%\n";
-
-    // Recall should be high (both use same HNSW algorithm)
-    EXPECT_GT(recall, 0.90);  // At least 90% recall
-}
-
-TEST_F(UnifiedDatabaseHNSWParityTest, BatchInsertRecall) {
-    std::vector<VectorRecord> records;
-    auto vectors = generate_random_vectors(5000, 128);
-    for (std::size_t i = 0; i < vectors.size(); ++i) {
-        records.push_back({i, vectors[i], std::nullopt});
-    }
-
-    unified_db_->batch_insert(records);
-    old_db_->batch_insert(records);
-
-    EXPECT_EQ(unified_db_->size(), old_db_->size());
-
-    // Verify search recall
-    auto query = generate_random_vectors(1, 128)[0];
-    auto unified_results = unified_db_->search(query, 30);
-    auto old_results = old_db_->search(query, 30);
-
-    double recall = calculate_recall(old_results.items, unified_results.items);
-    EXPECT_GT(recall, 0.85);
-}
-
-// ============================================================================
 // Feature Parity Tests - IVF Index
 // ============================================================================
 
@@ -370,12 +302,11 @@ protected:
             case IndexType::Flat:
                 old_db = std::make_shared<VectorDatabase_Impl>(config_);
                 break;
-            case IndexType::HNSW:
-                old_db = std::make_shared<VectorDatabase_MPS>(config_);
-                break;
             case IndexType::IVF:
                 old_db = std::make_shared<VectorDatabase_IVF>(config_);
                 break;
+            default:
+                throw std::runtime_error("Unsupported index type for benchmark");
         }
 
         // Insert data
@@ -656,14 +587,14 @@ TEST_P(UnifiedDatabaseDistanceMetricsTest, SearchWithAllMetrics) {
 // Test Instantiation
 // ============================================================================
 
+// Note: HNSW excluded from benchmarking as VectorDatabase_MPS has been removed
 INSTANTIATE_TEST_SUITE_P(
     AllIndexTypes,
     UnifiedDatabaseBenchmarkTest,
-    ::testing::Values(IndexType::Flat, IndexType::HNSW, IndexType::IVF),
+    ::testing::Values(IndexType::Flat, IndexType::IVF),
     [](const ::testing::TestParamInfo<IndexType>& info) {
         switch (info.param) {
             case IndexType::Flat: return "Flat";
-            case IndexType::HNSW: return "HNSW";
             case IndexType::IVF: return "IVF";
             default: return "Unknown";
         }
