@@ -5,14 +5,13 @@
  * Tests for ticket #2053: Test FlatIndex Integration
  *
  * This file contains integration tests that validate FlatIndex provides
- * feature parity with VectorDatabase_Impl flat search implementation,
+ * feature parity with VectorDatabase flat search implementation,
  * along with performance benchmarks and end-to-end testing.
  *
  * @copyright MIT License
  */
 
 #include "../src/lib/flat_index.h"
-#include "../src/lib/vector_database_flat.h"
 #include <gtest/gtest.h>
 #include <vector>
 #include <random>
@@ -111,7 +110,7 @@ bool results_equal(const std::vector<SearchResultItem>& a,
 } // anonymous namespace
 
 // ============================================================================
-// Integration Tests: FlatIndex vs VectorDatabase_Impl
+// Integration Tests: FlatIndex vs VectorDatabase
 // ============================================================================
 
 class FlatIndexIntegrationTest : public ::testing::Test {

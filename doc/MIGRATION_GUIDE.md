@@ -1,8 +1,10 @@
 # Migration Guide: Unified VectorDatabase Architecture
 
+> **Note**: As of 2025, the old database implementations (`VectorDatabase_Impl`, `VectorDatabase_MPS`, and `VectorDatabase_IVF`) have been removed from the codebase. This guide is retained for historical reference.
+
 ## Overview
 
-Lynx has been unified around a single `VectorDatabase` class that works with all three index types (Flat, HNSW, IVF). This guide explains how to migrate from the old architecture to the new unified approach.
+Lynx has been unified around a single `VectorDatabase` class that works with all three index types (Flat, HNSW, IVF). This guide explains the migration from the old architecture to the new unified approach.
 
 ## What Changed?
 

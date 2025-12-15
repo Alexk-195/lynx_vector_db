@@ -1,5 +1,7 @@
 # MPS Architecture Documentation
 
+> **DEPRECATED**: As of 2025, `VectorDatabase_MPS` has been removed from the codebase. The unified `VectorDatabase` class (using `std::shared_mutex`) is now the only database implementation. This document is retained for historical reference only.
+
 ## Table of Contents
 
 1. [Overview](#overview)
