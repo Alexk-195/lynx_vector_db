@@ -11,6 +11,8 @@
 #include <set>
 #include <chrono>
 
+static constexpr size_t NUM_VECTORS = 2000;  // Number of vectors to insert and compare
+
 // Helper function to generate random vectors
 std::vector<float> generate_random_vector(size_t dim, std::mt19937& gen) {
     std::uniform_real_distribution<float> dis(-1.0f, 1.0f);
@@ -135,7 +137,7 @@ int main() {
     std::mt19937 gen(42);
 
     const size_t dimension = 512;
-    const size_t num_vectors = 10000;
+    const size_t num_vectors = NUM_VECTORS;
     const size_t k = 10;
 
     // Configuration

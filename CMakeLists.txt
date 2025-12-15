@@ -112,9 +112,6 @@ add_library(lynx_static STATIC
         src/lib/utils.cpp
         src/lib/record_iterator.cpp
         src/lib/vector_database.cpp
-        src/lib/vector_database_flat.cpp
-        src/lib/vector_database_hnsw.cpp
-        src/lib/vector_database_ivf.cpp
         src/lib/hnsw_index.cpp
         src/lib/kmeans.cpp
         src/lib/ivf_index.cpp
@@ -141,9 +138,7 @@ add_library(lynx SHARED
         src/lib/lynx.cpp
         src/lib/utils.cpp
         src/lib/record_iterator.cpp
-        src/lib/vector_database_flat.cpp
-        src/lib/vector_database_hnsw.cpp
-        src/lib/vector_database_ivf.cpp
+        src/lib/vector_database.cpp
         src/lib/hnsw_index.cpp
         src/lib/kmeans.cpp
         src/lib/ivf_index.cpp
