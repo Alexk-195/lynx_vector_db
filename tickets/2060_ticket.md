@@ -10,7 +10,7 @@ Update all project documentation to reflect the new unified `VectorDatabase` arc
 
 ## Acceptance Criteria
 
-- [ ] Update CONCEPT.md:
+- [ ] Update README.md:
   - [ ] New architecture diagram showing unified VectorDatabase
   - [ ] Updated "Database Layer" section
   - [ ] Threading model explanation (std::shared_mutex)

@@ -119,68 +119,7 @@ sudo cmake --install .
 
 ## Usage
 
-### Quick Example - HNSW Index
-
-```cpp
-#include <lynx/lynx.h>
-
-int main() {
-    // Create database with HNSW index
-    lynx::Config config;
-    config.dimension = 128;
-    config.index_type = lynx::IndexType::HNSW;
-    config.hnsw_params.M = 16;
-    config.hnsw_params.ef_construction = 200;
-
-    auto db = lynx::IVectorDatabase::create(config);
-
-    // Insert vectors
-    std::vector<float> vec1(128, 0.5f);
-    db->insert({1, vec1, std::nullopt});
-
-    // Search
-    std::vector<float> query(128, 0.5f);
-    auto results = db->search(query, 10);
-
-    return 0;
-}
-```
-
-### IVF Index Example
-
-```cpp
-#include <lynx/lynx.h>
-
-int main() {
-    // Create database with IVF index
-    lynx::Config config;
-    config.dimension = 128;
-    config.index_type = lynx::IndexType::IVF;
-    config.ivf_params.n_clusters = 100;     // Number of clusters
-    config.ivf_params.n_probe = 10;         // Clusters to search
-
-    auto db = lynx::IVectorDatabase::create(config);
-
-    // Build index from batch data
-    std::vector<lynx::VectorRecord> records;
-    for (size_t i = 0; i < 10000; ++i) {
-        std::vector<float> vec(128);
-        // ... fill vector ...
-        records.push_back({i, vec, std::nullopt});
-    }
-    db->batch_insert(records);
-
-    // Search with custom n_probe
-    std::vector<float> query(128, 0.5f);
-    lynx::SearchParams params;
-    params.n_probe = 20;  // Search more clusters for higher recall
-    auto results = db->search(query, 10, params);
-
-    return 0;
-}
-```
-
-For more examples see [src/main_minimal.cpp](src/main_minimal.cpp) and [src/main.cpp](src/main.cpp)
+For examples see [src/main_minimal.cpp](src/main_minimal.cpp) and [src/main.cpp](src/main.cpp) and [src/compare_indices.cpp](src/compare_indices.cpp)
 
 ## Testing
 
@@ -342,7 +281,6 @@ lynx_vector_db/
 ├── Makefile             # Build configuration
 ├── setup.sh             # Build script
 ├── CLAUDE.md            # AI assistant instructions
-├── CONCEPT.md           # Architecture and design
 ├── README.md            # This file
 ├── LICENSE              # MIT License
 ├── doc/
@@ -366,17 +304,11 @@ lynx_vector_db/
 
 Lynx uses a layered architecture:
 
-1. **API Layer**: Pure virtual interface (`IVectorDatabase`)
-2. **Index Layer**: HNSW implementations
-3. **Threading Layer**: MPS pools and workers
-4. **Storage Layer**: Memory-mapped persistence
-
-See [CONCEPT.md](CONCEPT.md) for detailed design documentation.
+1. **API Layer**: Pure virtual interface (`IVectorDatabase`) defined in [src/include/lynx/lynx.h](src/include/lynx/lynx.h)
+2. **Index Layer**: Index interface and implementations
 
 ## Documentation
 
-- [CONCEPT.md](CONCEPT.md) - Design concept
-- [doc/STATE.md](STATE.md) - Current implementation state
 - [doc/research.md](doc/research.md) - ANN algorithm research
 - [tests/README.md](tests/README.md) - Infos about unit testing
 - [tickets/README.md](tickets/README.md) - File-based ticketing system

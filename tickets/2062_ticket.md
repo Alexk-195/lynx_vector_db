@@ -41,7 +41,6 @@ Comprehensive validation of the refactored codebase after completing the unified
   - [ ] No broken references
   - [ ] Examples compile and run
   - [ ] README.md accurate
-  - [ ] CONCEPT.md reflects new architecture
 - [ ] Code cleanliness:
   - [ ] No commented-out code
   - [ ] No TODOs or FIXMEs (or documented in tickets)

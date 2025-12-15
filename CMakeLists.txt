@@ -245,6 +245,7 @@ if(LYNX_BUILD_TESTS)
         tests/test_persistence.cpp
         tests/test_write_log.cpp
         tests/test_vector_database.cpp
+        tests/test_unified_database_integration.cpp
         tests/test_threading.cpp
     )
 
