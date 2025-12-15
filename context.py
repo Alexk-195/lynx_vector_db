@@ -15,9 +15,8 @@ def dump_file(filepath):
 
 print("You are AI agent working on a C++ software project. Here is your context which contains relevant files and infos:")
 dump_file("README.md")
-dump_file("CONCEPT.md")
 dump_file("tickets/README.md")
-dump_file("src/include/lynx/lynx.h")
+#dump_file("src/include/lynx/lynx.h")
 
 
 ticket_files_pat = os.path.join("./tickets", '*_ticket.md')

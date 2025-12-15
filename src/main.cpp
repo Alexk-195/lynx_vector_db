@@ -446,8 +446,6 @@ int main(int argc, char* argv[]) {
               << " MB\n";
     std::cout << "\nFor more information, see:\n";
     std::cout << "  - README.md for usage guide\n";
-    std::cout << "  - CONCEPT.md for architecture details\n";
-    std::cout << "  - STATE.md for implementation status\n";
     std::cout << "\n";
 
     return 0;

@@ -25,7 +25,7 @@ Keep the MPS infrastructure in the codebase for future high-performance use case
   - [ ] Very high concurrency requirements
   - [ ] Need for non-blocking operations
   - [ ] Advanced optimization scenarios
-- [ ] Update CONCEPT.md to clarify:
+- [ ] Update README.md to clarify:
   - [ ] Default: unified VectorDatabase with std::shared_mutex
   - [ ] Advanced: VectorDatabase_MPS for extreme performance needs
   - [ ] MPS available but not required for most use cases

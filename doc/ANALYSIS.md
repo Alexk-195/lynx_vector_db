@@ -219,8 +219,6 @@ double calculate_recall(const SearchResult& approximate,
 ```
 
 ### 3. Provide Parameter Tuning Guidance
-Add to `CONCEPT.md`:
-```markdown
 ## HNSW Parameter Tuning
 
 | Parameter | Default | Low | High | Effect |
