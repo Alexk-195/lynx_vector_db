@@ -17,6 +17,35 @@ The MPS (Message Processing System) infrastructure in Lynx provides a high-perfo
 
 **Key Principle**: Message passing instead of shared state with locks.
 
+### Why MPS Remains a Required Dependency
+
+Although `VectorDatabase` (with `std::shared_mutex`) is now the default implementation, **MPS remains a required dependency** for the following reasons:
+
+1. **Future High-Performance Use Cases**: MPS provides critical capabilities for applications requiring:
+   - Very high concurrency (100+ concurrent queries)
+   - Non-blocking index maintenance
+   - Strict latency SLAs in production environments
+
+2. **Preserves Advanced Functionality**: The `VectorDatabase_MPS` implementation is production-ready and tested. Keeping MPS ensures these capabilities remain available when needed.
+
+3. **Simpler Build Configuration**: Making MPS optional would:
+   - Add significant complexity to the build system (CMake/Makefile conditionals)
+   - Require conditional compilation throughout the codebase
+   - Create two different build configurations to maintain and test
+   - Provide minimal benefit since MPS is lightweight and well-maintained
+
+4. **Migration Path**: Users can start with the simple `VectorDatabase` and seamlessly migrate to `VectorDatabase_MPS` when requirements demand it, without rebuilding or reconfiguring.
+
+5. **Well-Managed Dependency**: MPS is automatically handled by the build system:
+   - Auto-cloning to `external/mps` if not found
+   - Custom location support via `MPS_PATH` or `MPS_DIR` environment variables
+   - Minimal overhead (single-header + implementation file)
+   - No external dependencies beyond standard C++20
+
+**Decision**: Keep MPS as a required dependency rather than making it optional. This decision prioritizes simplicity and maintains flexibility for future high-performance requirements.
+
+For detailed analysis, see tickets [#2051](../tickets/done/2051_analysis.md) (Database Architecture Analysis) and [#2058](../tickets/done/2058_ticket.md) (Keep MPS Infrastructure).
+
 ## MPS Core Components
 
 ### 1. MPS Pool (`mps::pool`)
