@@ -32,12 +32,14 @@ int main() {
     std::cout << "  Metric: " << lynx::distance_metric_string(config.distance_metric) << "\n\n";
 
     // 2. Create database
+    // The factory method creates a unified VectorDatabase that works with
+    // all index types (Flat, HNSW, IVF) using std::shared_mutex for thread safety.
     auto db = lynx::IVectorDatabase::create(config);
     if (!db) {
         std::cerr << "ERROR: Failed to create database\n";
         return 1;
     }
-    std::cout << "Database created\n\n";
+    std::cout << "Database created (using unified VectorDatabase)\n\n";
 
     // 3. Insert vectors
     std::cout << "Inserting vectors:\n";

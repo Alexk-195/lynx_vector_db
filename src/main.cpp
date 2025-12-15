@@ -77,6 +77,9 @@ bool parse_index_type(const std::string& str, lynx::IndexType& type) {
     } else if (lower == "hnsw") {
         type = lynx::IndexType::HNSW;
         return true;
+    } else if (lower == "ivf") {
+        type = lynx::IndexType::IVF;
+        return true;
     }
     return false;
 }
@@ -87,12 +90,23 @@ void print_usage(const char* program_name) {
     std::cout << "Lynx Vector Database - Example Application\n\n";
     std::cout << "OPTIONS:\n";
     std::cout << "  --index-type TYPE    Specify the index type to use\n";
-    std::cout << "                       Available types: flat, hnsw (default: hnsw)\n";
+    std::cout << "                       Available types: flat, hnsw, ivf (default: hnsw)\n";
     std::cout << "  --help, -h           Display this help message\n\n";
+    std::cout << "INDEX TYPES:\n";
+    std::cout << "  flat    Brute-force exact search\n";
+    std::cout << "          - Best for: Small datasets (<1K vectors), exact search required\n";
+    std::cout << "          - Speed: Slow (O(N)), Recall: 100%\n\n";
+    std::cout << "  hnsw    Hierarchical Navigable Small World (default)\n";
+    std::cout << "          - Best for: High-performance ANN, low latency critical\n";
+    std::cout << "          - Speed: Fast (O(log N)), Recall: 95-99%\n\n";
+    std::cout << "  ivf     Inverted File Index\n";
+    std::cout << "          - Best for: Memory-constrained, fast construction needed\n";
+    std::cout << "          - Speed: Medium, Recall: 85-98%\n\n";
     std::cout << "EXAMPLES:\n";
     std::cout << "  " << program_name << "                      # Use default HNSW index\n";
     std::cout << "  " << program_name << " --index-type flat   # Use Flat (brute-force) index\n";
     std::cout << "  " << program_name << " --index-type hnsw   # Use HNSW index\n";
+    std::cout << "  " << program_name << " --index-type ivf    # Use IVF index\n";
     std::cout << "\n";
 }
 
@@ -111,7 +125,7 @@ int main(int argc, char* argv[]) {
                 ++i;
                 if (!parse_index_type(argv[i], index_type)) {
                     std::cerr << "ERROR: Invalid index type '" << argv[i] << "'\n";
-                    std::cerr << "Valid types are: flat, hnsw\n\n";
+                    std::cerr << "Valid types are: flat, hnsw, ivf\n\n";
                     print_usage(argv[0]);
                     return 1;
                 }
@@ -135,10 +149,13 @@ int main(int argc, char* argv[]) {
     // 1. DISPLAY CAPABILITIES
     // =========================================================================
     std::cout << "1. SUPPORTED FEATURES\n";
-    std::cout << "   Index Types:\n";
-    std::cout << "     - " << lynx::index_type_string(lynx::IndexType::Flat) << "\n";
-    std::cout << "     - " << lynx::index_type_string(lynx::IndexType::HNSW) << "\n";
-    //std::cout << "     - " << lynx::index_type_string(lynx::IndexType::IVF) << "\n";
+    std::cout << "   Index Types (all through unified VectorDatabase):\n";
+    std::cout << "     - " << lynx::index_type_string(lynx::IndexType::Flat)
+              << " - Exact search, best for <1K vectors\n";
+    std::cout << "     - " << lynx::index_type_string(lynx::IndexType::HNSW)
+              << " - Fast ANN search, best for low latency\n";
+    std::cout << "     - " << lynx::index_type_string(lynx::IndexType::IVF)
+              << " - Memory-efficient ANN, fast construction\n";
     std::cout << "\n   Distance Metrics:\n";
     std::cout << "     - " << lynx::distance_metric_string(lynx::DistanceMetric::L2) << "\n";
     std::cout << "     - " << lynx::distance_metric_string(lynx::DistanceMetric::Cosine) << "\n";
@@ -154,18 +171,33 @@ int main(int argc, char* argv[]) {
     config.dimension = 128;
     config.index_type = index_type;  // Use the parsed index type from command line
     config.distance_metric = lynx::DistanceMetric::L2;
+
+    // Configure HNSW parameters
     config.hnsw_params.m = 16;
     config.hnsw_params.ef_construction = 200;
     config.hnsw_params.ef_search = 50;
+
+    // Configure IVF parameters (for ~1000 vectors, use sqrt(N) ≈ 32 clusters)
+    config.ivf_params.n_clusters = 32;
+    config.ivf_params.n_probe = 4;
+
     config.data_path = "/tmp/lynx_example_db";
 
     std::cout << "   Dimension: " << config.dimension << "\n";
     std::cout << "   Index Type: " << lynx::index_type_string(config.index_type) << "\n";
     std::cout << "   Distance Metric: " << lynx::distance_metric_string(config.distance_metric) << "\n";
-    std::cout << "   HNSW Parameters:\n";
-    std::cout << "     - M: " << config.hnsw_params.m << "\n";
-    std::cout << "     - ef_construction: " << config.hnsw_params.ef_construction << "\n";
-    std::cout << "     - ef_search: " << config.hnsw_params.ef_search << "\n";
+
+    if (config.index_type == lynx::IndexType::HNSW) {
+        std::cout << "   HNSW Parameters:\n";
+        std::cout << "     - M: " << config.hnsw_params.m << "\n";
+        std::cout << "     - ef_construction: " << config.hnsw_params.ef_construction << "\n";
+        std::cout << "     - ef_search: " << config.hnsw_params.ef_search << "\n";
+    } else if (config.index_type == lynx::IndexType::IVF) {
+        std::cout << "   IVF Parameters:\n";
+        std::cout << "     - n_clusters: " << config.ivf_params.n_clusters << "\n";
+        std::cout << "     - n_probe: " << config.ivf_params.n_probe << "\n";
+    }
+
     std::cout << "   Data Path: " << config.data_path << "\n";
     std::cout << "\n";
 

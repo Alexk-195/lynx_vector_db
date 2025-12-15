@@ -6,16 +6,21 @@ A fast and light weight vector database implemented in modern C++20 with support
 
 ## Features
 
-- **Multiple Index Types**:
-  - **HNSW**: Hierarchical Navigable Small World graphs for O(log N) query time and high recall
-  - **IVF**: Inverted File Index for fast construction and memory-efficient approximate search
-  - **Flat**: Brute-force exact search for small datasets
+- **Unified Database Architecture**:
+  - Single `VectorDatabase` class works with all index types
+  - Clean, simple API via `IVectorDatabase::create(config)`
+  - Consistent threading model using `std::shared_mutex`
+- **Multiple Index Types** (all through unified VectorDatabase):
+  - **Flat**: Brute-force exact search - best for <1K vectors, 100% recall
+  - **HNSW**: Hierarchical Navigable Small World graphs - O(log N), 95-99% recall
+  - **IVF**: Inverted File Index - memory-efficient, fast construction, 85-98% recall
 - **Thread-Safe Operations**:
-  - **Default**: Simple `std::shared_mutex` for concurrent reads/writes (sufficient for most use cases)
-  - **Advanced**: MPS (Message Processing System) for extreme concurrency and non-blocking maintenance
-- **Modern C++20**: Concepts, spans, ranges, and coroutines
+  - **Concurrent reads**: Multiple threads can search simultaneously
+  - **Exclusive writes**: Inserts/removes are properly serialized
+  - **Advanced option**: `VectorDatabase_MPS` for extreme concurrency (100+ queries)
+- **Modern C++20**: Concepts, spans, smart pointers, RAII
 - **Flexible Distance Metrics**: L2 (Euclidean), Cosine, Dot Product
-- **Persistence**: Save and load indices to/from disk
+- **Persistence**: Save and load database to/from disk
 
 ## Requirements
 
@@ -338,15 +343,114 @@ lynx_vector_db/
 
 ## Architecture
 
-Lynx uses a layered architecture:
+Lynx uses a clean, layered architecture with a unified database implementation:
 
-1. **API Layer**: Pure virtual interface (`IVectorDatabase`) defined in [src/include/lynx/lynx.h](src/include/lynx/lynx.h)
-2. **Index Layer**: Index interface and implementations
+### Layers
+
+1. **API Layer**: Pure virtual interface (`IVectorDatabase`) in [src/include/lynx/lynx.h](src/include/lynx/lynx.h)
+   - Provides factory method: `IVectorDatabase::create(config)`
+   - All operations (insert, search, remove, persistence)
+   - Thread-safe by design
+
+2. **Database Layer**: Unified `VectorDatabase` implementation
+   - Single class that works with all index types
+   - Thread-safe using `std::shared_mutex`:
+     - Concurrent reads (multiple searches simultaneously)
+     - Exclusive writes (inserts/removes serialized)
+   - Manages vector storage and metadata
+   - Delegates search to the appropriate index
+
+3. **Index Layer**: Pluggable index implementations
+   - `FlatIndex` - Brute-force exact search (O(N))
+   - `HNSWIndex` - Hierarchical graphs for fast ANN (O(log N))
+   - `IVFIndex` - Inverted file with k-means clustering
+
+### Architecture Diagram
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                  User Application                        │
+└────────────────────┬────────────────────────────────────┘
+                     │
+                     ▼
+┌─────────────────────────────────────────────────────────┐
+│              IVectorDatabase (Interface)                 │
+│  - create()     - insert()    - search()                 │
+│  - remove()     - batch_insert()                         │
+│  - get()        - save()/load()                          │
+└────────────────────┬────────────────────────────────────┘
+                     │
+                     ▼
+┌─────────────────────────────────────────────────────────┐
+│           VectorDatabase (Unified Implementation)        │
+│                                                           │
+│  ┌─────────────────────────────────────────────────┐    │
+│  │  Thread Safety: std::shared_mutex               │    │
+│  │  - Concurrent reads (search, get, contains)     │    │
+│  │  - Exclusive writes (insert, remove)            │    │
+│  └─────────────────────────────────────────────────┘    │
+│                                                           │
+│  ┌─────────────────────────────────────────────────┐    │
+│  │  Vector Storage                                  │    │
+│  │  - std::unordered_map<id, VectorRecord>         │    │
+│  │  - Metadata management                           │    │
+│  └─────────────────────────────────────────────────┘    │
+│                                                           │
+│                        │                                  │
+│                        ▼                                  │
+│  ┌──────────────────────────────────────────────────┐   │
+│  │         Index Selection (via Config)             │   │
+│  │  - IndexType::Flat   → FlatIndex                 │   │
+│  │  - IndexType::HNSW   → HNSWIndex                 │   │
+│  │  - IndexType::IVF    → IVFIndex                  │   │
+│  └──────────────────────────────────────────────────┘   │
+└─────────────────────┬───────────────────────────────────┘
+                      │
+        ┌─────────────┼─────────────┐
+        ▼             ▼             ▼
+┌─────────────┐ ┌───────────┐ ┌──────────┐
+│  FlatIndex  │ │ HNSWIndex │ │ IVFIndex │
+├─────────────┤ ├───────────┤ ├──────────┤
+│ Exact       │ │ Graph-    │ │ Cluster- │
+│ search      │ │ based ANN │ │ based ANN│
+│ O(N)        │ │ O(log N)  │ │ O(k)     │
+└─────────────┘ └───────────┘ └──────────┘
+```
+
+### Threading Model
+
+All operations are thread-safe using `std::shared_mutex`:
+
+```cpp
+// Multiple threads can search concurrently
+std::thread t1([&]() { db->search(query1, k); });
+std::thread t2([&]() { db->search(query2, k); });  // Concurrent with t1
+
+// Writes are exclusive
+std::thread t3([&]() { db->insert(record); });     // Blocks during write
+
+t1.join(); t2.join(); t3.join();
+```
+
+**Performance characteristics**:
+- Low to medium concurrency (< 50 queries): Excellent performance
+- High concurrency (100+ queries): Consider `VectorDatabase_MPS` (see below)
+- Embedded systems: Low overhead, simple threading model
+
+### Advanced: VectorDatabase_MPS
+
+For extreme performance requirements, Lynx provides `VectorDatabase_MPS`:
+- Message-passing architecture with dedicated thread pools
+- Non-blocking index optimization
+- Best for: 100+ concurrent queries, strict latency SLAs
+
+See [doc/MPS_ARCHITECTURE.md](doc/MPS_ARCHITECTURE.md) for detailed comparison and when to use it.
 
 ## Documentation
 
-- [doc/research.md](doc/research.md) - ANN algorithm research
+- [doc/MIGRATION_GUIDE.md](doc/MIGRATION_GUIDE.md) - Migration guide for unified VectorDatabase
 - [doc/MPS_ARCHITECTURE.md](doc/MPS_ARCHITECTURE.md) - MPS infrastructure and when to use it
+- [doc/research.md](doc/research.md) - ANN algorithm research
 - [tests/README.md](tests/README.md) - Infos about unit testing
 - [tickets/README.md](tickets/README.md) - File-based ticketing system
 
