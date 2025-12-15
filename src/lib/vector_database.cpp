@@ -193,7 +193,7 @@ SearchResult VectorDatabase::search(std::span<const float> query,
 
     // Build result
     SearchResult result;
-    result.total_candidates = items.size();  // Get size before move
+    result.total_candidates = vectors_.size();  // Total vectors examined
     result.items = std::move(items);
     result.query_time_ms = elapsed_ms;
 
