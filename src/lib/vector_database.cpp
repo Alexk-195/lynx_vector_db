@@ -261,6 +261,10 @@ ErrorCode VectorDatabase::batch_insert(std::span<const VectorRecord> records) {
 
     // For non-empty database, use incremental insert with per-record locking
     // This allows concurrent searches during batch insert
+
+    // Step 1: Validate ALL records before inserting ANY of them
+    // This ensures no partial inserts occur if validation fails
+    std::unordered_set<std::uint64_t> seen_ids;
     for (const auto& record : records) {
         // Validate dimension
         ErrorCode validation = validate_dimension(record.vector);
@@ -268,12 +272,27 @@ ErrorCode VectorDatabase::batch_insert(std::span<const VectorRecord> records) {
             return validation;
         }
 
-        // Check for duplicate ID and store vector (with lock)
-        {
-            std::unique_lock lock(vectors_mutex_);
+        // Check for duplicate IDs within the batch
+        if (!seen_ids.insert(record.id).second) {
+            return ErrorCode::InvalidParameter;
+        }
+    }
+
+    // Step 2: Check for existing IDs in database
+    {
+        std::shared_lock lock(vectors_mutex_);
+        for (const auto& record : records) {
             if (vectors_.contains(record.id)) {
                 return ErrorCode::InvalidParameter;
             }
+        }
+    }
+
+    // Step 3: All validations passed, now insert records
+    for (const auto& record : records) {
+        // Store vector (with lock)
+        {
+            std::unique_lock lock(vectors_mutex_);
             vectors_[record.id] = record;
         } // Release lock before calling into index
 
