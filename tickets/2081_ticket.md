@@ -1,8 +1,8 @@
-# Ticket: [Fix tests]
+# Ticket: Fix tests
 
 *Important*: Read README.md and tickets/README.md if not yet done.
 
-**Priority**: [High]
+**Priority**: High
 
 ## Description
 
