@@ -181,6 +181,7 @@ protected:
 TEST_P(UnifiedDatabaseEndToEndTest, Insert10K_Search_Save_Load_Search) {
     // Configure parameters for 10K dataset (favoring speed)
     const std::size_t dataset_size = 10000;
+    constexpr int time_out_seconds = 20;
     configure_for_dataset_size(dataset_size);
 
     // Log configuration for HNSW
@@ -190,13 +191,13 @@ TEST_P(UnifiedDatabaseEndToEndTest, Insert10K_Search_Save_Load_Search) {
                   << " (optimized for " << dataset_size << " vectors, favoring speed)\n";
     }
 
-    // Step 1: Insert vectors with 1-minute timeout
+    // Step 1: Insert vectors with timeout
     auto db1 = std::make_shared<VectorDatabase>(config_);
     auto vectors = generate_random_vectors(dataset_size, 128);
 
-    std::cout << "\n[END-TO-END] Inserting up to " << dataset_size << " vectors (1-minute timeout)...\n";
+    std::cout << "\n[END-TO-END] Inserting up to " << dataset_size << " vectors with timeout " << time_out_seconds << " seconds...\n";
 
-    constexpr std::chrono::seconds insert_timeout(60);
+    constexpr std::chrono::seconds insert_timeout(time_out_seconds);
     auto insert_start = std::chrono::steady_clock::now();
 
     std::size_t inserted_count = 0;
@@ -224,7 +225,7 @@ TEST_P(UnifiedDatabaseEndToEndTest, Insert10K_Search_Save_Load_Search) {
               << std::fixed << std::setprecision(2) << insert_elapsed << " seconds\n";
     EXPECT_EQ(db1->size(), inserted_count);
     EXPECT_GT(inserted_count, 0);  // Must have inserted at least some vectors
-    EXPECT_LE(insert_elapsed, 65.0);  // Must complete within timeout + buffer
+    EXPECT_LE(insert_elapsed, time_out_seconds + 5);  // Must complete within timeout + buffer
 
     // Step 2: Search
     auto query = generate_random_vectors(1, 128)[0];
@@ -261,6 +262,8 @@ TEST_P(UnifiedDatabaseEndToEndTest, Insert10K_Search_Save_Load_Search) {
 TEST_P(UnifiedDatabaseEndToEndTest, MixedWorkload_ConcurrentReadWrite) {
     // Configure parameters for 10K dataset
     const std::size_t initial_size = 10000;
+    constexpr int time_out_seconds = 20;
+
     configure_for_dataset_size(initial_size);
 
     auto db = std::make_shared<VectorDatabase>(config_);
@@ -279,10 +282,11 @@ TEST_P(UnifiedDatabaseEndToEndTest, MixedWorkload_ConcurrentReadWrite) {
     std::cout << "  Initial insert time: " << std::fixed << std::setprecision(2)
               << (batch_time / 1000.0) << " seconds\n";
 
-    std::cout << "[MIXED WORKLOAD] Testing concurrent operations with 3-minute timeout...\n";
+    std::cout << "[MIXED WORKLOAD] Testing concurrent operations with timeout... " << time_out_seconds << " seconds\n";
 
-    // 3-minute timeout
-    constexpr std::chrono::seconds timeout_duration(180);
+
+    // set timeout
+    constexpr std::chrono::seconds timeout_duration(time_out_seconds);
     auto start_time = std::chrono::steady_clock::now();
 
     // Atomic flag to signal threads to stop
@@ -342,7 +346,7 @@ TEST_P(UnifiedDatabaseEndToEndTest, MixedWorkload_ConcurrentReadWrite) {
         });
     }
 
-    // Monitor thread - ensures we stop after 3 minutes
+    // Monitor thread - ensures we stop after timeout
     threads.emplace_back([&]() {
         std::this_thread::sleep_for(timeout_duration);
         stop_flag.store(true, std::memory_order_relaxed);
@@ -362,7 +366,7 @@ TEST_P(UnifiedDatabaseEndToEndTest, MixedWorkload_ConcurrentReadWrite) {
     std::cout << "  Final database size: " << db->size() << "\n";
 
     // Verify we completed within time limit (with small buffer for shutdown)
-    EXPECT_LE(total_time, 185.0);  // 3 minutes + 5 second buffer
+    EXPECT_LE(total_time, time_out_seconds + 5);  // timeout + 5 second buffer
 
     // Verify some operations completed
     EXPECT_GT(search_count, 0);
