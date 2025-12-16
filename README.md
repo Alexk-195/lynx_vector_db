@@ -80,7 +80,15 @@ export MPS_DIR=/path/to/mps
 ./setup.sh rebuild  # Clean and rebuild
 ./setup.sh test     # Run unit tests
 ./setup.sh install  # Install to system (requires sudo)
-./setup.sh coverage  # Do test coverage
+
+# Quality Assurance and Validation (Ticket #2072)
+./setup.sh coverage    # Generate code coverage report
+./setup.sh tsan        # Run ThreadSanitizer (data race detection)
+./setup.sh asan        # Run AddressSanitizer (memory error detection)
+./setup.sh ubsan       # Run UndefinedBehaviorSanitizer + AddressSanitizer
+./setup.sh valgrind    # Run Valgrind memory leak check (requires valgrind)
+./setup.sh clang-tidy  # Run clang-tidy static analysis (requires clang-tidy)
+./setup.sh benchmark   # Run performance benchmarks only
 ```
 
 ### Build Options - Make
@@ -314,6 +322,110 @@ params.n_probe = 5;   // Faster, lower recall
 // For datasets with natural clusters, fewer clusters may work better
 config.ivf_params.n_clusters = 50;  // Try fewer clusters
 ```
+
+## Code Quality and Validation Tools
+
+Lynx provides comprehensive validation tools through `setup.sh` for ensuring code quality, thread safety, memory safety, and performance. These tools are essential for production-ready code and are part of the quality assurance process documented in **Ticket #2072**.
+
+### Available Validation Tools
+
+| Tool | Command | Purpose | When to Use |
+|------|---------|---------|-------------|
+| **Code Coverage** | `./setup.sh coverage` | Measure test coverage, identify untested code paths | Before releases, to ensure comprehensive testing |
+| **ThreadSanitizer** | `./setup.sh tsan` | Detect data races and threading issues | After threading changes, before production |
+| **AddressSanitizer** | `./setup.sh asan` | Detect memory errors (buffer overflows, use-after-free) | During development, before commits |
+| **UBSanitizer** | `./setup.sh ubsan` | Detect undefined behavior + memory errors | For comprehensive safety checks |
+| **Valgrind** | `./setup.sh valgrind` | Thorough memory leak detection | Final validation, investigating memory issues |
+| **clang-tidy** | `./setup.sh clang-tidy` | Static code analysis, best practices | Code review, quality improvements |
+| **Benchmarks** | `./setup.sh benchmark` | Performance testing | After optimizations, regression testing |
+
+### Validation Tool Details
+
+**Code Coverage** (`./setup.sh coverage`):
+- Generates HTML coverage report in `build-coverage/coverage_report/`
+- Target: >85% overall, >95% on critical paths
+- Results saved to `tickets/2072_coverage_report.txt`
+
+**ThreadSanitizer** (`./setup.sh tsan`):
+- Detects data races, deadlocks, and thread safety issues
+- Essential for multi-threaded code validation
+- Results saved to `tickets/2072_tsan_results.txt`
+- ⚠️ Note: Slower execution, ~2-5x overhead
+
+**AddressSanitizer** (`./setup.sh asan`):
+- Finds buffer overflows, use-after-free, memory corruption
+- Fast execution, low overhead (~2x)
+- Results saved to `tickets/2072_asan_results.txt`
+- Recommended for regular development use
+
+**UndefinedBehaviorSanitizer** (`./setup.sh ubsan`):
+- Combines AddressSanitizer + undefined behavior detection
+- Catches integer overflows, null pointer dereferences, etc.
+- Results saved to `tickets/2072_ubsan_results.txt`
+- Most comprehensive sanitizer check
+
+**Valgrind** (`./setup.sh valgrind`):
+- Definitive memory leak detection
+- Slower execution (~10-50x overhead)
+- Results saved to `tickets/2072_valgrind_results.txt`
+- Requires: `sudo apt-get install valgrind` (Ubuntu/Debian)
+
+**clang-tidy** (`./setup.sh clang-tidy`):
+- Static analysis for code quality
+- Enforces modern C++ best practices
+- Results saved to `tickets/2072_clang_tidy_results.txt`
+- Requires: `sudo apt-get install clang-tidy` (Ubuntu/Debian)
+
+**Benchmarks** (`./setup.sh benchmark`):
+- Runs performance benchmark tests only
+- Measures search latency, memory usage, throughput
+- Results saved to `tickets/2072_benchmark_results.txt`
+- Uses Release build for accurate performance metrics
+
+### Recommended Validation Workflow
+
+```bash
+# 1. Quick validation (during development)
+./setup.sh asan        # Check for memory errors
+
+# 2. Comprehensive validation (before commits)
+./setup.sh coverage    # Ensure good test coverage
+./setup.sh tsan        # Check threading safety
+./setup.sh asan        # Check memory safety
+
+# 3. Release validation (before production)
+./setup.sh coverage    # Final coverage check
+./setup.sh tsan        # Thread safety validation
+./setup.sh ubsan       # Comprehensive sanitizer check
+./setup.sh benchmark   # Performance validation
+./setup.sh clang-tidy  # Code quality review
+
+# 4. Deep investigation (if issues found)
+./setup.sh valgrind    # Thorough memory leak check
+```
+
+### Quality Targets
+
+Based on **Ticket #2070** quality assurance standards:
+
+- ✅ Code Coverage: >85% overall, >95% on critical paths
+- ✅ ThreadSanitizer: Clean (no race conditions)
+- ✅ AddressSanitizer: Clean (no memory errors)
+- ✅ UBSanitizer: Clean (no undefined behavior)
+- ✅ Valgrind: Zero memory leaks in application code
+- ✅ clang-tidy: No critical warnings
+- ✅ Benchmarks: No performance regression
+
+### Output Files
+
+All validation tools save their results to the `tickets/` directory:
+- `tickets/2072_coverage_report.txt` - Coverage analysis
+- `tickets/2072_tsan_results.txt` - ThreadSanitizer output
+- `tickets/2072_asan_results.txt` - AddressSanitizer output
+- `tickets/2072_ubsan_results.txt` - UBSanitizer output
+- `tickets/2072_valgrind_results.txt` - Valgrind output
+- `tickets/2072_clang_tidy_results.txt` - Static analysis
+- `tickets/2072_benchmark_results.txt` - Performance benchmarks
 
 ## Project Structure
 
