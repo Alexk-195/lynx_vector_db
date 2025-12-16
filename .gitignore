@@ -3,6 +3,7 @@ build/
 build-coverage/
 build-test/
 build-tsan/
+build-clang-tidy/
 cmake-build/
 cmake-build-debug/
 cmake-build-release/
