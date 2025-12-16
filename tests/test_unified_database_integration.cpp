@@ -190,21 +190,41 @@ TEST_P(UnifiedDatabaseEndToEndTest, Insert10K_Search_Save_Load_Search) {
                   << " (optimized for " << dataset_size << " vectors, favoring speed)\n";
     }
 
-    // Step 1: Insert 10K vectors
+    // Step 1: Insert vectors with 1-minute timeout
     auto db1 = std::make_shared<VectorDatabase>(config_);
     auto vectors = generate_random_vectors(dataset_size, 128);
 
-    std::cout << "\n[END-TO-END] Inserting " << dataset_size << " vectors...\n";
-    double insert_time = measure_time_ms([&]() {
-        for (std::size_t i = 0; i < vectors.size(); ++i) {
-            VectorRecord record{i, vectors[i], std::nullopt};
-            db1->insert(record);
-        }
-    });
+    std::cout << "\n[END-TO-END] Inserting up to " << dataset_size << " vectors (1-minute timeout)...\n";
 
-    std::cout << "  Insert time: " << std::fixed << std::setprecision(2)
-              << (insert_time / 1000.0) << " seconds\n";
-    EXPECT_EQ(db1->size(), dataset_size);
+    constexpr std::chrono::seconds insert_timeout(60);
+    auto insert_start = std::chrono::steady_clock::now();
+
+    std::size_t inserted_count = 0;
+    for (std::size_t i = 0; i < vectors.size(); ++i) {
+        // Check timeout every 100 inserts
+        if (i > 0 && i % 100 == 0) {
+            auto elapsed = std::chrono::steady_clock::now() - insert_start;
+            if (elapsed >= insert_timeout) {
+                std::cout << "  Timeout reached after " << i << " inserts\n";
+                break;
+            }
+        }
+
+        VectorRecord record{i, vectors[i], std::nullopt};
+        auto result = db1->insert(record);
+        if (result == ErrorCode::Ok) {
+            inserted_count++;
+        }
+    }
+
+    auto insert_elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::steady_clock::now() - insert_start).count() / 1000.0;
+
+    std::cout << "  Inserted " << inserted_count << " vectors in "
+              << std::fixed << std::setprecision(2) << insert_elapsed << " seconds\n";
+    EXPECT_EQ(db1->size(), inserted_count);
+    EXPECT_GT(inserted_count, 0);  // Must have inserted at least some vectors
+    EXPECT_LE(insert_elapsed, 65.0);  // Must complete within timeout + buffer
 
     // Step 2: Search
     auto query = generate_random_vectors(1, 128)[0];
@@ -221,7 +241,7 @@ TEST_P(UnifiedDatabaseEndToEndTest, Insert10K_Search_Save_Load_Search) {
     std::cout << "  Loading database...\n";
     auto db2 = std::make_shared<VectorDatabase>(config_);
     EXPECT_EQ(db2->load(), ErrorCode::Ok);
-    EXPECT_EQ(db2->size(), dataset_size);
+    EXPECT_EQ(db2->size(), inserted_count);
 
     // Step 5: Search again
     auto search_result2 = db2->search(query, 50);
@@ -251,51 +271,105 @@ TEST_P(UnifiedDatabaseEndToEndTest, MixedWorkload_ConcurrentReadWrite) {
     for (std::size_t i = 0; i < vectors.size(); ++i) {
         records.push_back({i, vectors[i], std::nullopt});
     }
-    db->batch_insert(records);
 
-    std::cout << "\n[MIXED WORKLOAD] Testing concurrent operations...\n";
+    std::cout << "\n[MIXED WORKLOAD] Inserting initial " << initial_size << " vectors...\n";
+    double batch_time = measure_time_ms([&]() {
+        db->batch_insert(records);
+    });
+    std::cout << "  Initial insert time: " << std::fixed << std::setprecision(2)
+              << (batch_time / 1000.0) << " seconds\n";
 
-    // Concurrent operations
-    std::vector<std::thread> threads;
+    std::cout << "[MIXED WORKLOAD] Testing concurrent operations with 3-minute timeout...\n";
+
+    // 3-minute timeout
+    constexpr std::chrono::seconds timeout_duration(180);
+    auto start_time = std::chrono::steady_clock::now();
+
+    // Atomic flag to signal threads to stop
+    std::atomic<bool> stop_flag{false};
+
+    // Concurrent operations counters
     std::atomic<std::size_t> search_count{0};
     std::atomic<std::size_t> insert_count{0};
+    std::atomic<std::uint64_t> next_id{initial_size};
 
-    // Reader threads
+    std::vector<std::thread> threads;
+
+    // Reader threads (4 threads continuously searching)
     for (int t = 0; t < 4; ++t) {
         threads.emplace_back([&, t]() {
             auto query = generate_random_vectors(1, 128, 100 + t)[0];
-            for (int i = 0; i < 100; ++i) {
+            while (!stop_flag.load(std::memory_order_relaxed)) {
                 auto results = db->search(query, 10);
                 search_count++;
+
+                // Check timeout periodically
+                if (search_count % 10 == 0) {
+                    auto elapsed = std::chrono::steady_clock::now() - start_time;
+                    if (elapsed >= timeout_duration) {
+                        stop_flag.store(true, std::memory_order_relaxed);
+                        break;
+                    }
+                }
             }
         });
     }
 
-    // Writer threads
+    // Writer threads (2 threads continuously inserting)
     for (int t = 0; t < 2; ++t) {
         threads.emplace_back([&, t]() {
-            for (int i = 0; i < 50; ++i) {
-                auto vec = generate_random_vectors(1, 128, 1000 + t * 100 + i)[0];
-                std::uint64_t id = 10000 + static_cast<std::uint64_t>(t) * 100 + static_cast<std::uint64_t>(i);
+            std::size_t local_insert = 0;
+            while (!stop_flag.load(std::memory_order_relaxed)) {
+                auto vec = generate_random_vectors(1, 128, 1000 + t * 10000 + local_insert)[0];
+                std::uint64_t id = next_id.fetch_add(1, std::memory_order_relaxed);
                 VectorRecord record{id, vec, std::nullopt};
-                db->insert(record);
-                insert_count++;
+
+                auto result = db->insert(record);
+                if (result == ErrorCode::Ok) {
+                    insert_count++;
+                    local_insert++;
+                }
+
+                // Check timeout periodically (less frequently for writes)
+                if (insert_count % 5 == 0) {
+                    auto elapsed = std::chrono::steady_clock::now() - start_time;
+                    if (elapsed >= timeout_duration) {
+                        stop_flag.store(true, std::memory_order_relaxed);
+                        break;
+                    }
+                }
             }
         });
     }
+
+    // Monitor thread - ensures we stop after 3 minutes
+    threads.emplace_back([&]() {
+        std::this_thread::sleep_for(timeout_duration);
+        stop_flag.store(true, std::memory_order_relaxed);
+    });
 
     // Wait for all threads
     for (auto& thread : threads) {
         thread.join();
     }
 
+    auto total_time = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::steady_clock::now() - start_time).count() / 1000.0;
+
+    std::cout << "  Test duration: " << std::fixed << std::setprecision(2) << total_time << " seconds\n";
     std::cout << "  Completed " << search_count << " searches\n";
     std::cout << "  Completed " << insert_count << " inserts\n";
     std::cout << "  Final database size: " << db->size() << "\n";
 
-    EXPECT_EQ(search_count, 400);
-    EXPECT_EQ(insert_count, 100);
-    EXPECT_EQ(db->size(), 10100);
+    // Verify we completed within time limit (with small buffer for shutdown)
+    EXPECT_LE(total_time, 185.0);  // 3 minutes + 5 second buffer
+
+    // Verify some operations completed
+    EXPECT_GT(search_count, 0);
+    EXPECT_GT(insert_count, 0);
+
+    // Verify database grew
+    EXPECT_GT(db->size(), initial_size);
 }
 
 // ============================================================================

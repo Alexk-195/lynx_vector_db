@@ -7,7 +7,8 @@
 ## Description
 
 Read FlatIndexBenchmarkTest. Implement this for all index types in the Test category "AllIndexTypes".
-Remove it then from FlatIndex.
+Implement so that individual tests runs maximum for 20 seconds. 
+Remove reduntant test FlatIndexBenchmarkTest.
 
 ## Acceptance Criteria
 
