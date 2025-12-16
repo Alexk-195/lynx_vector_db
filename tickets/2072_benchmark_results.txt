@@ -1,0 +1,120 @@
+Note: Google Test filter = *Benchmark*
+[==========] Running 15 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 15 tests from AllIndexTypes/UnifiedIndexBenchmarkTest
+[ RUN      ] AllIndexTypes/UnifiedIndexBenchmarkTest.SearchLatency_SmallDataset/Flat
+
+[BENCHMARK] Flat - Small Dataset (1K vectors):
+  Average query time: 0.083 ms
+  Total benchmark time: 0.00 seconds
+[       OK ] AllIndexTypes/UnifiedIndexBenchmarkTest.SearchLatency_SmallDataset/Flat (5 ms)
+[ RUN      ] AllIndexTypes/UnifiedIndexBenchmarkTest.SearchLatency_SmallDataset/HNSW
+
+[BENCHMARK] HNSW - Small Dataset (1K vectors):
+  Average query time: 0.076 ms
+  Total benchmark time: 0.00 seconds
+[       OK ] AllIndexTypes/UnifiedIndexBenchmarkTest.SearchLatency_SmallDataset/HNSW (282 ms)
+[ RUN      ] AllIndexTypes/UnifiedIndexBenchmarkTest.SearchLatency_SmallDataset/IVF
+
+[BENCHMARK] IVF - Small Dataset (1K vectors):
+  Average query time: 0.073 ms
+  Total benchmark time: 0.00 seconds
+[       OK ] AllIndexTypes/UnifiedIndexBenchmarkTest.SearchLatency_SmallDataset/IVF (4 ms)
+[ RUN      ] AllIndexTypes/UnifiedIndexBenchmarkTest.SearchLatency_MediumDataset/Flat
+
+[BENCHMARK] Flat - Medium Dataset (5K vectors): Inserting...
+  Inserted 5000 vectors
+  Average query time: 1.119 ms
+  Total benchmark time: 0.03 seconds
+[       OK ] AllIndexTypes/UnifiedIndexBenchmarkTest.SearchLatency_MediumDataset/Flat (40 ms)
+[ RUN      ] AllIndexTypes/UnifiedIndexBenchmarkTest.SearchLatency_MediumDataset/HNSW
+
+[BENCHMARK] HNSW - Medium Dataset (5K vectors): Inserting...
+  Inserted 5000 vectors
+  Average query time: 0.083 ms
+  Total benchmark time: 0.00 seconds
+[       OK ] AllIndexTypes/UnifiedIndexBenchmarkTest.SearchLatency_MediumDataset/HNSW (2119 ms)
+[ RUN      ] AllIndexTypes/UnifiedIndexBenchmarkTest.SearchLatency_MediumDataset/IVF
+
+[BENCHMARK] IVF - Medium Dataset (5K vectors): Inserting...
+  Inserted 5000 vectors
+  Average query time: 0.624 ms
+  Total benchmark time: 0.02 seconds
+[       OK ] AllIndexTypes/UnifiedIndexBenchmarkTest.SearchLatency_MediumDataset/IVF (23 ms)
+[ RUN      ] AllIndexTypes/UnifiedIndexBenchmarkTest.SearchLatency_VaryingK/Flat
+
+[BENCHMARK] Flat - Varying k (2K vectors):
+         k Avg Query Time (ms)       Results
+---------------------------------------------
+         1               0.207              1
+        10               0.180             10
+        50               0.164             50
+  Total benchmark time: 0.01 seconds
+[       OK ] AllIndexTypes/UnifiedIndexBenchmarkTest.SearchLatency_VaryingK/Flat (12 ms)
+[ RUN      ] AllIndexTypes/UnifiedIndexBenchmarkTest.SearchLatency_VaryingK/HNSW
+
+[BENCHMARK] HNSW - Varying k (2K vectors):
+         k Avg Query Time (ms)       Results
+---------------------------------------------
+         1               0.069              1
+        10               0.070             10
+        50               0.125             50
+  Total benchmark time: 0.01 seconds
+[       OK ] AllIndexTypes/UnifiedIndexBenchmarkTest.SearchLatency_VaryingK/HNSW (580 ms)
+[ RUN      ] AllIndexTypes/UnifiedIndexBenchmarkTest.SearchLatency_VaryingK/IVF
+
+[BENCHMARK] IVF - Varying k (2K vectors):
+         k Avg Query Time (ms)       Results
+---------------------------------------------
+         1               0.162              1
+        10               0.146             10
+        50               0.145             50
+  Total benchmark time: 0.01 seconds
+[       OK ] AllIndexTypes/UnifiedIndexBenchmarkTest.SearchLatency_VaryingK/IVF (11 ms)
+[ RUN      ] AllIndexTypes/UnifiedIndexBenchmarkTest.MemoryUsage_Comparison/Flat
+
+[BENCHMARK] Flat - Memory Usage (5000 vectors, dim=128):
+  Total memory: 5.42 MB
+  Raw data size: 2.44 MB
+  Overhead ratio: 2.22x
+[       OK ] AllIndexTypes/UnifiedIndexBenchmarkTest.MemoryUsage_Comparison/Flat (3 ms)
+[ RUN      ] AllIndexTypes/UnifiedIndexBenchmarkTest.MemoryUsage_Comparison/HNSW
+
+[BENCHMARK] HNSW - Memory Usage (5000 vectors, dim=128):
+  Total memory: 6.56 MB
+  Raw data size: 2.44 MB
+  Overhead ratio: 2.69x
+[       OK ] AllIndexTypes/UnifiedIndexBenchmarkTest.MemoryUsage_Comparison/HNSW (2315 ms)
+[ RUN      ] AllIndexTypes/UnifiedIndexBenchmarkTest.MemoryUsage_Comparison/IVF
+
+[BENCHMARK] IVF - Memory Usage (5000 vectors, dim=128):
+  Total memory: 5.34 MB
+  Raw data size: 2.44 MB
+  Overhead ratio: 2.19x
+[       OK ] AllIndexTypes/UnifiedIndexBenchmarkTest.MemoryUsage_Comparison/IVF (6 ms)
+[ RUN      ] AllIndexTypes/UnifiedIndexBenchmarkTest.ConstructionTime/Flat
+
+[BENCHMARK] Flat - Construction Time:
+  Inserted 5000 / 5000 vectors
+  Construction time: 0.00 seconds
+  Throughput: inf inserts/second
+[       OK ] AllIndexTypes/UnifiedIndexBenchmarkTest.ConstructionTime/Flat (5 ms)
+[ RUN      ] AllIndexTypes/UnifiedIndexBenchmarkTest.ConstructionTime/HNSW
+
+[BENCHMARK] HNSW - Construction Time:
+  Inserted 5000 / 5000 vectors
+  Construction time: 2.43 seconds
+  Throughput: 2060 inserts/second
+[       OK ] AllIndexTypes/UnifiedIndexBenchmarkTest.ConstructionTime/HNSW (2458 ms)
+[ RUN      ] AllIndexTypes/UnifiedIndexBenchmarkTest.ConstructionTime/IVF
+
+[BENCHMARK] IVF - Construction Time:
+  Inserted 5000 / 5000 vectors
+  Construction time: 0.00 seconds
+  Throughput: 2500000 inserts/second
+[       OK ] AllIndexTypes/UnifiedIndexBenchmarkTest.ConstructionTime/IVF (7 ms)
+[----------] 15 tests from AllIndexTypes/UnifiedIndexBenchmarkTest (7879 ms total)
+
+[----------] Global test environment tear-down
+[==========] 15 tests from 1 test suite ran. (7879 ms total)
+[  PASSED  ] 15 tests.
