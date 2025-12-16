@@ -7,6 +7,7 @@
 #include "utils.h"
 #include <algorithm>
 #include <cstring>
+#include <mutex>
 #include <istream>
 #include <ostream>
 
@@ -29,12 +30,14 @@ ErrorCode FlatIndex::add(std::uint64_t id, std::span<const float> vector) {
         return ErrorCode::DimensionMismatch;
     }
 
-    // Add or update the vector
+    // Add or update the vector with exclusive lock
+    std::unique_lock lock(mutex_);
     vectors_[id] = std::vector<float>(vector.begin(), vector.end());
     return ErrorCode::Ok;
 }
 
 ErrorCode FlatIndex::remove(std::uint64_t id) {
+    std::unique_lock lock(mutex_);
     auto it = vectors_.find(id);
     if (it == vectors_.end()) {
         return ErrorCode::VectorNotFound;
@@ -44,6 +47,7 @@ ErrorCode FlatIndex::remove(std::uint64_t id) {
 }
 
 bool FlatIndex::contains(std::uint64_t id) const {
+    std::shared_lock lock(mutex_);
     return vectors_.find(id) != vectors_.end();
 }
 
@@ -56,6 +60,8 @@ std::vector<SearchResultItem> FlatIndex::search(
     if (query.size() != dimension_) {
         return {};  // Return empty results on dimension mismatch
     }
+
+    std::shared_lock lock(mutex_);
 
     // Brute-force search: calculate distance to all vectors
     std::vector<SearchResultItem> results;
@@ -86,23 +92,28 @@ std::vector<SearchResultItem> FlatIndex::search(
 }
 
 ErrorCode FlatIndex::build(std::span<const VectorRecord> vectors) {
+    std::unique_lock lock(mutex_);
+
     // Clear existing data
     vectors_.clear();
 
-    // Add all vectors
+    // Add all vectors (lock already held, use direct access)
     for (const auto& record : vectors) {
-        ErrorCode err = add(record.id, record.vector);
-        if (err != ErrorCode::Ok) {
+        // Validate dimension
+        if (record.vector.size() != dimension_) {
             // On error, clear partially built index and return
             vectors_.clear();
-            return err;
+            return ErrorCode::DimensionMismatch;
         }
+        vectors_[record.id] = std::vector<float>(record.vector.begin(), record.vector.end());
     }
 
     return ErrorCode::Ok;
 }
 
 ErrorCode FlatIndex::serialize(std::ostream& out) const {
+    std::shared_lock lock(mutex_);
+
     try {
         // Write magic number and version
         out.write(reinterpret_cast<const char*>(&kMagicNumber), sizeof(kMagicNumber));
@@ -141,6 +152,8 @@ ErrorCode FlatIndex::serialize(std::ostream& out) const {
 }
 
 ErrorCode FlatIndex::deserialize(std::istream& in) {
+    std::unique_lock lock(mutex_);
+
     try {
         // Read and verify magic number
         std::uint32_t magic_number;
@@ -213,6 +226,7 @@ ErrorCode FlatIndex::deserialize(std::istream& in) {
 // ============================================================================
 
 std::size_t FlatIndex::size() const {
+    std::shared_lock lock(mutex_);
     return vectors_.size();
 }
 

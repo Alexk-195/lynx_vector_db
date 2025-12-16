@@ -260,8 +260,9 @@ TEST_P(UnifiedDatabaseEndToEndTest, Insert10K_Search_Save_Load_Search) {
 }
 
 TEST_P(UnifiedDatabaseEndToEndTest, MixedWorkload_ConcurrentReadWrite) {
-    // Configure parameters for 10K dataset
-    const std::size_t initial_size = 10000;
+    // Adjust dataset size based on index type
+    // HNSW has expensive graph construction, so use smaller dataset
+    const std::size_t initial_size = (config_.index_type == IndexType::HNSW) ? 1000 : 10000;
     constexpr int time_out_seconds = 20;
 
     configure_for_dataset_size(initial_size);

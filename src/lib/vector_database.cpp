@@ -70,20 +70,23 @@ ErrorCode VectorDatabase::insert(const VectorRecord& record) {
     }
 
     // Acquire exclusive lock for write access
-    std::unique_lock lock(vectors_mutex_);
+    {
+        std::unique_lock lock(vectors_mutex_);
 
-    // Check for duplicate ID - INSERT should reject duplicates
-    if (vectors_.contains(record.id)) {
-        return ErrorCode::InvalidParameter;
-    }
+        // Check for duplicate ID - INSERT should reject duplicates
+        if (vectors_.contains(record.id)) {
+            return ErrorCode::InvalidParameter;
+        }
 
-    // Store vector in vectors_
-    vectors_[record.id] = record;
+        // Store vector in vectors_
+        vectors_[record.id] = record;
+    } // Release lock before calling into index
 
-    // Delegate to index
+    // Delegate to index (index has its own locking)
     ErrorCode result = index_->add(record.id, record.vector);
     if (result != ErrorCode::Ok) {
         // Rollback: remove from vectors_
+        std::unique_lock lock(vectors_mutex_);
         vectors_.erase(record.id);
         return result;
     }
@@ -95,23 +98,23 @@ ErrorCode VectorDatabase::insert(const VectorRecord& record) {
 }
 
 ErrorCode VectorDatabase::remove(std::uint64_t id) {
-    // Acquire exclusive lock for write access
-    std::unique_lock lock(vectors_mutex_);
+    // Check if exists with lock
+    {
+        std::shared_lock lock(vectors_mutex_);
+        if (vectors_.find(id) == vectors_.end()) {
+            return ErrorCode::VectorNotFound;
+        }
+    } // Release lock before calling into index
 
-    // Check if exists
-    auto it = vectors_.find(id);
-    if (it == vectors_.end()) {
-        return ErrorCode::VectorNotFound;
-    }
-
-    // Remove from index
+    // Remove from index (index has its own locking)
     ErrorCode result = index_->remove(id);
     if (result != ErrorCode::Ok) {
         return result;
     }
 
-    // Remove from vectors_
-    vectors_.erase(it);
+    // Remove from vectors_ with exclusive lock
+    std::unique_lock lock(vectors_mutex_);
+    vectors_.erase(id);
 
     return ErrorCode::Ok;
 }
@@ -174,6 +177,9 @@ SearchResult VectorDatabase::search(std::span<const float> query,
     // Delegate to index
     std::vector<SearchResultItem> items = index_->search(query, k, params);
 
+    // Capture vector count while holding lock
+    std::size_t total_candidates = vectors_.size();
+
     // Release lock before timing calculations
     lock.unlock();
 
@@ -193,7 +199,7 @@ SearchResult VectorDatabase::search(std::span<const float> query,
 
     // Build result
     SearchResult result;
-    result.total_candidates = vectors_.size();  // Total vectors examined
+    result.total_candidates = total_candidates;  // Use captured value (thread-safe)
     result.items = std::move(items);
     result.query_time_ms = elapsed_ms;
 
@@ -205,12 +211,85 @@ SearchResult VectorDatabase::search(std::span<const float> query,
 // =============================================================================
 
 ErrorCode VectorDatabase::batch_insert(std::span<const VectorRecord> records) {
-    // Acquire exclusive lock for write access
-    std::unique_lock lock(vectors_mutex_);
+    if (records.empty()) {
+        return ErrorCode::Ok;
+    }
 
-    // Use incremental insert for partial-insert semantics
-    // This allows the first N valid records to be inserted before an error
-    return incremental_insert(records);
+    // Optimization: If database is empty, use bulk build for better performance
+    // This is especially important for HNSW which can construct the graph more efficiently
+    bool is_empty = false;
+    {
+        std::shared_lock read_lock(vectors_mutex_);
+        is_empty = vectors_.empty();
+    }
+
+    if (is_empty) {
+        // Validate and prepare records with lock
+        std::unordered_set<std::uint64_t> seen_ids;
+        for (const auto& record : records) {
+            // Validate dimension
+            if (record.vector.size() != config_.dimension) {
+                return ErrorCode::DimensionMismatch;
+            }
+            if (!seen_ids.insert(record.id).second) {
+                return ErrorCode::InvalidParameter;  // Duplicate within batch
+            }
+        }
+
+        // Store all records in vectors_
+        {
+            std::unique_lock lock(vectors_mutex_);
+            for (const auto& record : records) {
+                vectors_[record.id] = record;
+            }
+        } // Release lock before calling into index
+
+        // Build index (index has its own locking)
+        ErrorCode result = index_->build(records);
+        if (result == ErrorCode::Ok) {
+            total_inserts_.fetch_add(records.size(), std::memory_order_relaxed);
+            return ErrorCode::Ok;
+        } else {
+            // Rollback: remove all records from vectors_
+            std::unique_lock lock(vectors_mutex_);
+            for (const auto& record : records) {
+                vectors_.erase(record.id);
+            }
+            return result;
+        }
+    }
+
+    // For non-empty database, use incremental insert with per-record locking
+    // This allows concurrent searches during batch insert
+    for (const auto& record : records) {
+        // Validate dimension
+        ErrorCode validation = validate_dimension(record.vector);
+        if (validation != ErrorCode::Ok) {
+            return validation;
+        }
+
+        // Check for duplicate ID and store vector (with lock)
+        {
+            std::unique_lock lock(vectors_mutex_);
+            if (vectors_.contains(record.id)) {
+                return ErrorCode::InvalidParameter;
+            }
+            vectors_[record.id] = record;
+        } // Release lock before calling into index
+
+        // Add to index (index has its own locking)
+        ErrorCode result = index_->add(record.id, record.vector);
+        if (result != ErrorCode::Ok) {
+            // Rollback this insert
+            std::unique_lock lock(vectors_mutex_);
+            vectors_.erase(record.id);
+            return result;
+        }
+
+        total_inserts_.fetch_add(1, std::memory_order_relaxed);
+    }
+
+    return ErrorCode::Ok;
 }
 
 // =============================================================================
@@ -460,20 +539,36 @@ bool VectorDatabase::should_rebuild_ivf(std::size_t batch_size) const {
 }
 
 ErrorCode VectorDatabase::bulk_build(std::span<const VectorRecord> records) {
-    // Check for duplicate IDs within the batch
+    // Validate and check for duplicate IDs within the batch
     std::unordered_set<std::uint64_t> seen_ids;
     for (const auto& record : records) {
+        // Validate dimension
+        if (record.vector.size() != config_.dimension) {
+            return ErrorCode::DimensionMismatch;
+        }
+
         if (!seen_ids.insert(record.id).second) {
             return ErrorCode::InvalidParameter;  // Duplicate within batch
         }
     }
 
+    // Store all records in vectors_ (we already hold the lock from batch_insert)
+    for (const auto& record : records) {
+        vectors_[record.id] = record;
+    }
+
+    // Release lock before calling into index (index has its own locking)
+    // Note: The lock is held by the caller (batch_insert), we can't release it here
+    // The index_->build() call is made with lock held, but index has its own locking
+
     ErrorCode result = index_->build(records);
     if (result == ErrorCode::Ok) {
-        for (const auto& record : records) {
-            vectors_[record.id] = record;
-        }
         total_inserts_.fetch_add(records.size(), std::memory_order_relaxed);
+    } else {
+        // Rollback: remove all records from vectors_
+        for (const auto& record : records) {
+            vectors_.erase(record.id);
+        }
     }
     return result;
 }
@@ -519,18 +614,20 @@ ErrorCode VectorDatabase::incremental_insert(std::span<const VectorRecord> recor
             return validation;
         }
 
-        // Check for duplicate ID
-        if (vectors_.contains(record.id)) {
-            return ErrorCode::InvalidParameter;
-        }
+        // Check for duplicate ID and store vector (with lock)
+        {
+            std::unique_lock lock(vectors_mutex_);
+            if (vectors_.contains(record.id)) {
+                return ErrorCode::InvalidParameter;
+            }
+            vectors_[record.id] = record;
+        } // Release lock before calling into index
 
-        // Store vector
-        vectors_[record.id] = record;
-
-        // Add to index
+        // Add to index (index has its own locking)
         ErrorCode result = index_->add(record.id, record.vector);
         if (result != ErrorCode::Ok) {
             // Rollback this insert
+            std::unique_lock lock(vectors_mutex_);
             vectors_.erase(record.id);
             return result;
         }
