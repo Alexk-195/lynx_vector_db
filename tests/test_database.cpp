@@ -300,12 +300,23 @@ TEST(VectorDatabaseTest, BatchInsertWithWrongDimension) {
 
     std::vector<lynx::VectorRecord> records;
     records.push_back({1, {1.0f, 0.0f}, std::nullopt});
-    records.push_back({2, {0.0f, 1.0f, 2.0f}, std::nullopt}); // Wrong dimension
+    records.push_back({2, {1.0f, 0.0f}, std::nullopt});
 
     auto result = db->batch_insert(records);
+    EXPECT_EQ(result, lynx::ErrorCode::Ok);
+    EXPECT_EQ(db->size(), 2);
+    
+
+    records.clear();
+    records.push_back({3, {1.0f, 0.0f}, std::nullopt});
+    records.push_back({4, {1.0f, 0.0f}, std::nullopt});
+    records.push_back({5, {0.0f, 1.0f, 2.0f}, std::nullopt}); // Wrong dimension
+
+    result = db->batch_insert(records);
     EXPECT_EQ(result, lynx::ErrorCode::DimensionMismatch);
-    // First record should have been inserted before error
-    EXPECT_EQ(db->size(), 1);
+    // Complete batch should be rejected
+    EXPECT_EQ(db->size(), 2);
+   
 }
 
 // ============================================================================

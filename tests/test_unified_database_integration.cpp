@@ -315,6 +315,7 @@ TEST_P(UnifiedDatabaseEndToEndTest, MixedWorkload_ConcurrentReadWrite) {
                         stop_flag.store(true, std::memory_order_relaxed);
                         break;
                     }
+                    std::this_thread::sleep_for(std::chrono::milliseconds(1));
                 }
             }
         });
@@ -335,13 +336,12 @@ TEST_P(UnifiedDatabaseEndToEndTest, MixedWorkload_ConcurrentReadWrite) {
                     local_insert++;
                 }
 
-                // Check timeout periodically (less frequently for writes)
-                if (insert_count % 5 == 0) {
-                    auto elapsed = std::chrono::steady_clock::now() - start_time;
-                    if (elapsed >= timeout_duration) {
-                        stop_flag.store(true, std::memory_order_relaxed);
-                        break;
-                    }
+                // Check timeout periodically 
+                std::this_thread::sleep_for(std::chrono::milliseconds(1));
+                auto elapsed = std::chrono::steady_clock::now() - start_time;
+                if (elapsed >= timeout_duration) {
+                    stop_flag.store(true, std::memory_order_relaxed);
+                    break;
                 }
             }
         });
