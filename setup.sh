@@ -9,6 +9,12 @@
 #   ./setup.sh rebuild      # Clean and rebuild
 #   ./setup.sh test         # Run tests
 #   ./setup.sh coverage     # Build with coverage and generate report
+#   ./setup.sh tsan         # Run ThreadSanitizer (data race detection)
+#   ./setup.sh asan         # Run AddressSanitizer (memory error detection)
+#   ./setup.sh ubsan        # Run UndefinedBehaviorSanitizer + AddressSanitizer
+#   ./setup.sh valgrind     # Run Valgrind (memory leak detection)
+#   ./setup.sh clang-tidy   # Run clang-tidy static analysis
+#   ./setup.sh benchmark    # Run performance benchmarks only
 #   ./setup.sh install      # Install to system (requires sudo)
 #
 
@@ -219,8 +225,217 @@ case "${1}" in
     info)
         make info
         ;;
+    tsan)
+        check_dependencies
+        log_info "Building with ThreadSanitizer..."
+
+        # Create build directory for ThreadSanitizer
+        mkdir -p build-tsan
+        cd build-tsan
+
+        # Configure with ThreadSanitizer flags
+        log_info "Configuring CMake with ThreadSanitizer..."
+        cmake -DCMAKE_BUILD_TYPE=Debug \
+              -DCMAKE_CXX_FLAGS="-fsanitize=thread -g" \
+              -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=thread" \
+              -DLYNX_BUILD_TESTS=ON \
+              -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+              ..
+
+        # Build the project
+        log_info "Building project with ThreadSanitizer..."
+        cmake --build . -j$(nproc 2>/dev/null || echo 4)
+
+        # Run tests with ThreadSanitizer
+        log_info "Running tests with ThreadSanitizer..."
+        OUTPUT_FILE="${PROJECT_ROOT}/tickets/2072_tsan_results.txt"
+        log_info "Output will be saved to ${OUTPUT_FILE}"
+
+        ./bin/lynx_tests 2>&1 | tee "${OUTPUT_FILE}" || log_warn "Some tests failed or warnings detected"
+
+        cd ..
+        log_info "ThreadSanitizer check complete. Results saved to ${OUTPUT_FILE}"
+        ;;
+    asan)
+        check_dependencies
+        log_info "Building with AddressSanitizer..."
+
+        # Create build directory for AddressSanitizer
+        mkdir -p build-asan
+        cd build-asan
+
+        # Configure with AddressSanitizer flags
+        log_info "Configuring CMake with AddressSanitizer..."
+        cmake -DCMAKE_BUILD_TYPE=Debug \
+              -DCMAKE_CXX_FLAGS="-fsanitize=address -g" \
+              -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=address" \
+              -DLYNX_BUILD_TESTS=ON \
+              -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+              ..
+
+        # Build the project
+        log_info "Building project with AddressSanitizer..."
+        cmake --build . -j$(nproc 2>/dev/null || echo 4)
+
+        # Run tests with AddressSanitizer
+        log_info "Running tests with AddressSanitizer..."
+        OUTPUT_FILE="${PROJECT_ROOT}/tickets/2072_asan_results.txt"
+        log_info "Output will be saved to ${OUTPUT_FILE}"
+
+        ./bin/lynx_tests 2>&1 | tee "${OUTPUT_FILE}" || log_warn "Some tests failed or warnings detected"
+
+        cd ..
+        log_info "AddressSanitizer check complete. Results saved to ${OUTPUT_FILE}"
+        ;;
+    ubsan)
+        check_dependencies
+        log_info "Building with UndefinedBehaviorSanitizer + AddressSanitizer..."
+
+        # Create build directory for UBSan
+        mkdir -p build-ubsan
+        cd build-ubsan
+
+        # Configure with UBSan + ASan flags
+        log_info "Configuring CMake with UndefinedBehaviorSanitizer..."
+        cmake -DCMAKE_BUILD_TYPE=Debug \
+              -DCMAKE_CXX_FLAGS="-fsanitize=address,undefined -g" \
+              -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=address,undefined" \
+              -DLYNX_BUILD_TESTS=ON \
+              -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+              ..
+
+        # Build the project
+        log_info "Building project with UndefinedBehaviorSanitizer..."
+        cmake --build . -j$(nproc 2>/dev/null || echo 4)
+
+        # Run tests with UBSan
+        log_info "Running tests with UndefinedBehaviorSanitizer..."
+        OUTPUT_FILE="${PROJECT_ROOT}/tickets/2072_ubsan_results.txt"
+        log_info "Output will be saved to ${OUTPUT_FILE}"
+
+        ./bin/lynx_tests 2>&1 | tee "${OUTPUT_FILE}" || log_warn "Some tests failed or warnings detected"
+
+        cd ..
+        log_info "UndefinedBehaviorSanitizer check complete. Results saved to ${OUTPUT_FILE}"
+        ;;
+    valgrind)
+        check_dependencies
+
+        # Check if Valgrind is installed
+        if ! command -v valgrind &> /dev/null; then
+            log_error "Valgrind is not installed. Please install it first:"
+            log_error "  Ubuntu/Debian: sudo apt-get install valgrind"
+            log_error "  Fedora/RHEL:   sudo dnf install valgrind"
+            exit 1
+        fi
+
+        log_info "Running Valgrind memory leak check..."
+
+        # Use existing test build or create new one
+        if [ ! -d "build-test" ]; then
+            log_info "Test build not found, creating it..."
+            mkdir -p build-test
+            cd build-test
+            cmake -DCMAKE_BUILD_TYPE=Debug \
+                  -DLYNX_BUILD_TESTS=ON \
+                  -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+                  ..
+            cmake --build . -j$(nproc 2>/dev/null || echo 4)
+        else
+            cd build-test
+        fi
+
+        # Run tests with Valgrind
+        log_info "Running tests with Valgrind (this may take a while)..."
+        OUTPUT_FILE="${PROJECT_ROOT}/tickets/2072_valgrind_results.txt"
+        log_info "Output will be saved to ${OUTPUT_FILE}"
+
+        valgrind --leak-check=full \
+                 --show-leak-kinds=all \
+                 --track-origins=yes \
+                 --verbose \
+                 --log-file="${OUTPUT_FILE}" \
+                 ./bin/lynx_tests 2>&1 || log_warn "Some tests failed"
+
+        cd ..
+        log_info "Valgrind check complete. Results saved to ${OUTPUT_FILE}"
+        ;;
+    clang-tidy)
+        check_dependencies
+
+        # Check if clang-tidy is installed
+        if ! command -v clang-tidy &> /dev/null; then
+            log_error "clang-tidy is not installed. Please install it first:"
+            log_error "  Ubuntu/Debian: sudo apt-get install clang-tidy"
+            log_error "  Fedora/RHEL:   sudo dnf install clang-tools-extra"
+            exit 1
+        fi
+
+        log_info "Running clang-tidy static analysis..."
+
+        # Create build directory with compile commands
+        mkdir -p build-clang-tidy
+        cd build-clang-tidy
+
+        # Configure to generate compile_commands.json
+        log_info "Configuring CMake with compile commands export..."
+        cmake -DCMAKE_BUILD_TYPE=Debug \
+              -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+              -DLYNX_BUILD_TESTS=ON \
+              ..
+
+        # Build the project
+        log_info "Building project..."
+        cmake --build . -j$(nproc 2>/dev/null || echo 4)
+
+        # Run clang-tidy on all source files
+        log_info "Running clang-tidy analysis..."
+        OUTPUT_FILE="${PROJECT_ROOT}/tickets/2072_clang_tidy_results.txt"
+        log_info "Output will be saved to ${OUTPUT_FILE}"
+
+        # Run clang-tidy on lib files
+        echo "=== clang-tidy analysis ===" > "${OUTPUT_FILE}"
+        echo "Date: $(date)" >> "${OUTPUT_FILE}"
+        echo "" >> "${OUTPUT_FILE}"
+
+        for file in ../src/lib/*.cpp; do
+            echo "Analyzing $(basename $file)..." | tee -a "${OUTPUT_FILE}"
+            clang-tidy "$file" -p . -- -I../src/include -std=c++20 2>&1 | tee -a "${OUTPUT_FILE}" || true
+        done
+
+        cd ..
+        log_info "clang-tidy analysis complete. Results saved to ${OUTPUT_FILE}"
+        ;;
+    benchmark)
+        check_dependencies
+        log_info "Running performance benchmarks..."
+
+        # Use existing test build or create new one
+        if [ ! -d "build-test" ]; then
+            log_info "Test build not found, creating it..."
+            mkdir -p build-test
+            cd build-test
+            cmake -DCMAKE_BUILD_TYPE=Release \
+                  -DLYNX_BUILD_TESTS=ON \
+                  -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+                  ..
+            cmake --build . -j$(nproc 2>/dev/null || echo 4)
+        else
+            cd build-test
+        fi
+
+        # Run benchmark tests only
+        log_info "Running benchmark tests..."
+        OUTPUT_FILE="${PROJECT_ROOT}/tickets/2072_benchmark_results.txt"
+        log_info "Output will be saved to ${OUTPUT_FILE}"
+
+        ./bin/lynx_tests --gtest_filter="*Benchmark*" 2>&1 | tee "${OUTPUT_FILE}" || log_warn "Some benchmarks failed"
+
+        cd ..
+        log_info "Benchmark run complete. Results saved to ${OUTPUT_FILE}"
+        ;;
     *)
-        echo "Usage: $0 {release|debug|clean|rebuild|install|test|coverage|run|info}"
+        echo "Usage: $0 {release|debug|clean|rebuild|install|test|coverage|tsan|asan|ubsan|valgrind|clang-tidy|benchmark|run|info}"
         exit 1
         ;;
 esac
