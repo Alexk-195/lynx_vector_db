@@ -235,6 +235,8 @@ std::size_t FlatIndex::dimension() const {
 }
 
 std::size_t FlatIndex::memory_usage() const {
+    std::shared_lock lock(mutex_);
+
     // Calculate memory usage:
     // - Map overhead (estimated)
     // - Per-entry: key (uint64_t) + vector data (dimension * float)
