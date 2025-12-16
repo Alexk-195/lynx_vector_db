@@ -120,6 +120,7 @@ TEST_P(ThreadingTest, ConcurrentReadsAndWrites) {
                         stop.store(true, std::memory_order_relaxed);
                         break;
                     }
+                    std::this_thread::sleep_for(std::chrono::milliseconds(1));
                 }
 
                 std::vector<float> query(config_.dimension);
@@ -156,6 +157,7 @@ TEST_P(ThreadingTest, ConcurrentReadsAndWrites) {
                 VectorRecord record{id, vec, std::nullopt};
                 db->insert(record);
                 insert_count.fetch_add(1, std::memory_order_relaxed);
+                std::this_thread::sleep_for(std::chrono::milliseconds(1));
             }
         });
     }

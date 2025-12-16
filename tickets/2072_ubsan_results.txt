@@ -1,0 +1,1217 @@
+[==========] Running 472 tests from 30 test suites.
+[----------] Global test environment set-up.
+[----------] 17 tests from UtilityFunctionsTest
+[ RUN      ] UtilityFunctionsTest.ErrorStringOk
+[       OK ] UtilityFunctionsTest.ErrorStringOk (0 ms)
+[ RUN      ] UtilityFunctionsTest.ErrorStringDimensionMismatch
+[       OK ] UtilityFunctionsTest.ErrorStringDimensionMismatch (0 ms)
+[ RUN      ] UtilityFunctionsTest.ErrorStringVectorNotFound
+[       OK ] UtilityFunctionsTest.ErrorStringVectorNotFound (0 ms)
+[ RUN      ] UtilityFunctionsTest.ErrorStringIndexNotBuilt
+[       OK ] UtilityFunctionsTest.ErrorStringIndexNotBuilt (0 ms)
+[ RUN      ] UtilityFunctionsTest.ErrorStringInvalidParameter
+[       OK ] UtilityFunctionsTest.ErrorStringInvalidParameter (0 ms)
+[ RUN      ] UtilityFunctionsTest.ErrorStringInvalidState
+[       OK ] UtilityFunctionsTest.ErrorStringInvalidState (0 ms)
+[ RUN      ] UtilityFunctionsTest.ErrorStringOutOfMemory
+[       OK ] UtilityFunctionsTest.ErrorStringOutOfMemory (0 ms)
+[ RUN      ] UtilityFunctionsTest.ErrorStringIOError
+[       OK ] UtilityFunctionsTest.ErrorStringIOError (0 ms)
+[ RUN      ] UtilityFunctionsTest.ErrorStringNotImplemented
+[       OK ] UtilityFunctionsTest.ErrorStringNotImplemented (0 ms)
+[ RUN      ] UtilityFunctionsTest.IndexTypeStringFlat
+[       OK ] UtilityFunctionsTest.IndexTypeStringFlat (0 ms)
+[ RUN      ] UtilityFunctionsTest.IndexTypeStringHNSW
+[       OK ] UtilityFunctionsTest.IndexTypeStringHNSW (0 ms)
+[ RUN      ] UtilityFunctionsTest.IndexTypeStringIVF
+[       OK ] UtilityFunctionsTest.IndexTypeStringIVF (0 ms)
+[ RUN      ] UtilityFunctionsTest.DistanceMetricStringL2
+[       OK ] UtilityFunctionsTest.DistanceMetricStringL2 (0 ms)
+[ RUN      ] UtilityFunctionsTest.DistanceMetricStringCosine
+[       OK ] UtilityFunctionsTest.DistanceMetricStringCosine (0 ms)
+[ RUN      ] UtilityFunctionsTest.DistanceMetricStringDotProduct
+[       OK ] UtilityFunctionsTest.DistanceMetricStringDotProduct (0 ms)
+[ RUN      ] UtilityFunctionsTest.VersionNotNull
+[       OK ] UtilityFunctionsTest.VersionNotNull (0 ms)
+[ RUN      ] UtilityFunctionsTest.VersionFormat
+[       OK ] UtilityFunctionsTest.VersionFormat (0 ms)
+[----------] 17 tests from UtilityFunctionsTest (1 ms total)
+
+[----------] 13 tests from ConfigTest
+[ RUN      ] ConfigTest.DefaultDimension
+[       OK ] ConfigTest.DefaultDimension (0 ms)
+[ RUN      ] ConfigTest.DefaultDistanceMetric
+[       OK ] ConfigTest.DefaultDistanceMetric (0 ms)
+[ RUN      ] ConfigTest.DefaultIndexType
+[       OK ] ConfigTest.DefaultIndexType (0 ms)
+[ RUN      ] ConfigTest.DefaultNumQueryThreads
+[       OK ] ConfigTest.DefaultNumQueryThreads (0 ms)
+[ RUN      ] ConfigTest.DefaultNumIndexThreads
+[       OK ] ConfigTest.DefaultNumIndexThreads (0 ms)
+[ RUN      ] ConfigTest.DefaultDataPath
+[       OK ] ConfigTest.DefaultDataPath (0 ms)
+[ RUN      ] ConfigTest.DefaultEnableWAL
+[       OK ] ConfigTest.DefaultEnableWAL (0 ms)
+[ RUN      ] ConfigTest.DefaultEnableMmap
+[       OK ] ConfigTest.DefaultEnableMmap (0 ms)
+[ RUN      ] ConfigTest.CustomDimension
+[       OK ] ConfigTest.CustomDimension (0 ms)
+[ RUN      ] ConfigTest.CustomDistanceMetric
+[       OK ] ConfigTest.CustomDistanceMetric (0 ms)
+[ RUN      ] ConfigTest.CustomIndexType
+[       OK ] ConfigTest.CustomIndexType (0 ms)
+[ RUN      ] ConfigTest.CustomDataPath
+[       OK ] ConfigTest.CustomDataPath (0 ms)
+[ RUN      ] ConfigTest.CustomEnableWAL
+[       OK ] ConfigTest.CustomEnableWAL (0 ms)
+[----------] 13 tests from ConfigTest (0 ms total)
+
+[----------] 4 tests from HNSWParamsTest
+[ RUN      ] HNSWParamsTest.DefaultM
+[       OK ] HNSWParamsTest.DefaultM (0 ms)
+[ RUN      ] HNSWParamsTest.DefaultEfConstruction
+[       OK ] HNSWParamsTest.DefaultEfConstruction (0 ms)
+[ RUN      ] HNSWParamsTest.DefaultEfSearch
+[       OK ] HNSWParamsTest.DefaultEfSearch (0 ms)
+[ RUN      ] HNSWParamsTest.DefaultMaxElements
+[       OK ] HNSWParamsTest.DefaultMaxElements (0 ms)
+[----------] 4 tests from HNSWParamsTest (0 ms total)
+
+[----------] 4 tests from IVFParamsTest
+[ RUN      ] IVFParamsTest.DefaultNClusters
+[       OK ] IVFParamsTest.DefaultNClusters (0 ms)
+[ RUN      ] IVFParamsTest.DefaultNProbe
+[       OK ] IVFParamsTest.DefaultNProbe (0 ms)
+[ RUN      ] IVFParamsTest.DefaultUsePQ
+[       OK ] IVFParamsTest.DefaultUsePQ (0 ms)
+[ RUN      ] IVFParamsTest.DefaultPQSubvectors
+[       OK ] IVFParamsTest.DefaultPQSubvectors (0 ms)
+[----------] 4 tests from IVFParamsTest (0 ms total)
+
+[----------] 3 tests from SearchParamsTest
+[ RUN      ] SearchParamsTest.DefaultEfSearch
+[       OK ] SearchParamsTest.DefaultEfSearch (0 ms)
+[ RUN      ] SearchParamsTest.DefaultNProbe
+[       OK ] SearchParamsTest.DefaultNProbe (0 ms)
+[ RUN      ] SearchParamsTest.DefaultFilter
+[       OK ] SearchParamsTest.DefaultFilter (0 ms)
+[----------] 3 tests from SearchParamsTest (0 ms total)
+
+[----------] 2 tests from SearchResultItemTest
+[ RUN      ] SearchResultItemTest.Construction
+[       OK ] SearchResultItemTest.Construction (0 ms)
+[ RUN      ] SearchResultItemTest.ZeroDistance
+[       OK ] SearchResultItemTest.ZeroDistance (0 ms)
+[----------] 2 tests from SearchResultItemTest (0 ms total)
+
+[----------] 2 tests from SearchResultTest
+[ RUN      ] SearchResultTest.EmptyResult
+[       OK ] SearchResultTest.EmptyResult (0 ms)
+[ RUN      ] SearchResultTest.WithItems
+[       OK ] SearchResultTest.WithItems (0 ms)
+[----------] 2 tests from SearchResultTest (0 ms total)
+
+[----------] 3 tests from VectorRecordTest
+[ RUN      ] VectorRecordTest.WithoutMetadata
+[       OK ] VectorRecordTest.WithoutMetadata (0 ms)
+[ RUN      ] VectorRecordTest.WithMetadata
+[       OK ] VectorRecordTest.WithMetadata (0 ms)
+[ RUN      ] VectorRecordTest.EmptyVector
+[       OK ] VectorRecordTest.EmptyVector (0 ms)
+[----------] 3 tests from VectorRecordTest (0 ms total)
+
+[----------] 2 tests from DatabaseStatsTest
+[ RUN      ] DatabaseStatsTest.DefaultInitialization
+[       OK ] DatabaseStatsTest.DefaultInitialization (0 ms)
+[ RUN      ] DatabaseStatsTest.CustomValues
+[       OK ] DatabaseStatsTest.CustomValues (0 ms)
+[----------] 2 tests from DatabaseStatsTest (0 ms total)
+
+[----------] 44 tests from VectorDatabaseTest
+[ RUN      ] VectorDatabaseTest.CreateWithDefaultConfig
+[       OK ] VectorDatabaseTest.CreateWithDefaultConfig (0 ms)
+[ RUN      ] VectorDatabaseTest.CreateWithCustomDimension
+[       OK ] VectorDatabaseTest.CreateWithCustomDimension (0 ms)
+[ RUN      ] VectorDatabaseTest.CreateWithDifferentIndexTypes
+[       OK ] VectorDatabaseTest.CreateWithDifferentIndexTypes (0 ms)
+[ RUN      ] VectorDatabaseTest.InitialSize
+[       OK ] VectorDatabaseTest.InitialSize (0 ms)
+[ RUN      ] VectorDatabaseTest.ConfigRetrieval
+[       OK ] VectorDatabaseTest.ConfigRetrieval (0 ms)
+[ RUN      ] VectorDatabaseTest.StatsRetrieval
+[       OK ] VectorDatabaseTest.StatsRetrieval (0 ms)
+[ RUN      ] VectorDatabaseTest.InsertSingleVector
+[       OK ] VectorDatabaseTest.InsertSingleVector (0 ms)
+[ RUN      ] VectorDatabaseTest.InsertMultipleVectors
+[       OK ] VectorDatabaseTest.InsertMultipleVectors (0 ms)
+[ RUN      ] VectorDatabaseTest.InsertWithMetadata
+[       OK ] VectorDatabaseTest.InsertWithMetadata (0 ms)
+[ RUN      ] VectorDatabaseTest.InsertDuplicateIdRejected
+[       OK ] VectorDatabaseTest.InsertDuplicateIdRejected (0 ms)
+[ RUN      ] VectorDatabaseTest.InsertWrongDimensionReturnsError
+[       OK ] VectorDatabaseTest.InsertWrongDimensionReturnsError (0 ms)
+[ RUN      ] VectorDatabaseTest.ContainsReturnsFalseForEmpty
+[       OK ] VectorDatabaseTest.ContainsReturnsFalseForEmpty (0 ms)
+[ RUN      ] VectorDatabaseTest.ContainsReturnsTrueAfterInsert
+[       OK ] VectorDatabaseTest.ContainsReturnsTrueAfterInsert (0 ms)
+[ RUN      ] VectorDatabaseTest.GetReturnsNulloptForNonexistent
+[       OK ] VectorDatabaseTest.GetReturnsNulloptForNonexistent (0 ms)
+[ RUN      ] VectorDatabaseTest.GetReturnsVectorAfterInsert
+[       OK ] VectorDatabaseTest.GetReturnsVectorAfterInsert (0 ms)
+[ RUN      ] VectorDatabaseTest.GetWithMetadata
+[       OK ] VectorDatabaseTest.GetWithMetadata (0 ms)
+[ RUN      ] VectorDatabaseTest.RemoveExistingVector
+[       OK ] VectorDatabaseTest.RemoveExistingVector (0 ms)
+[ RUN      ] VectorDatabaseTest.RemoveNonexistentVector
+[       OK ] VectorDatabaseTest.RemoveNonexistentVector (0 ms)
+[ RUN      ] VectorDatabaseTest.RemoveFromMultipleVectors
+[       OK ] VectorDatabaseTest.RemoveFromMultipleVectors (0 ms)
+[ RUN      ] VectorDatabaseTest.BatchInsertMultipleVectors
+[       OK ] VectorDatabaseTest.BatchInsertMultipleVectors (0 ms)
+[ RUN      ] VectorDatabaseTest.BatchInsertWithWrongDimension
+[       OK ] VectorDatabaseTest.BatchInsertWithWrongDimension (0 ms)
+[ RUN      ] VectorDatabaseTest.SearchEmptyDatabase
+[       OK ] VectorDatabaseTest.SearchEmptyDatabase (0 ms)
+[ RUN      ] VectorDatabaseTest.SearchSingleVector
+[       OK ] VectorDatabaseTest.SearchSingleVector (0 ms)
+[ RUN      ] VectorDatabaseTest.SearchReturnsKNearestNeighbors
+[       OK ] VectorDatabaseTest.SearchReturnsKNearestNeighbors (0 ms)
+[ RUN      ] VectorDatabaseTest.SearchResultsSortedByDistance
+[       OK ] VectorDatabaseTest.SearchResultsSortedByDistance (0 ms)
+[ RUN      ] VectorDatabaseTest.SearchWithCosineDistance
+[       OK ] VectorDatabaseTest.SearchWithCosineDistance (0 ms)
+[ RUN      ] VectorDatabaseTest.SearchWithDotProductDistance
+[       OK ] VectorDatabaseTest.SearchWithDotProductDistance (0 ms)
+[ RUN      ] VectorDatabaseTest.SearchWithParams
+[       OK ] VectorDatabaseTest.SearchWithParams (0 ms)
+[ RUN      ] VectorDatabaseTest.SearchWithFilter
+[       OK ] VectorDatabaseTest.SearchWithFilter (0 ms)
+[ RUN      ] VectorDatabaseTest.SearchWrongDimensionReturnsEmpty
+[       OK ] VectorDatabaseTest.SearchWrongDimensionReturnsEmpty (0 ms)
+[ RUN      ] VectorDatabaseTest.StatsTrackInserts
+[       OK ] VectorDatabaseTest.StatsTrackInserts (0 ms)
+[ RUN      ] VectorDatabaseTest.StatsTrackQueries
+[       OK ] VectorDatabaseTest.StatsTrackQueries (0 ms)
+[ RUN      ] VectorDatabaseTest.StatsTrackMemoryUsage
+[       OK ] VectorDatabaseTest.StatsTrackMemoryUsage (0 ms)
+[ RUN      ] VectorDatabaseTest.FlushWithoutWALReturnsOk
+[       OK ] VectorDatabaseTest.FlushWithoutWALReturnsOk (0 ms)
+[ RUN      ] VectorDatabaseTest.SaveWithoutDataPathReturnsError
+[       OK ] VectorDatabaseTest.SaveWithoutDataPathReturnsError (0 ms)
+[ RUN      ] VectorDatabaseTest.LoadWithoutDataPathReturnsError
+[       OK ] VectorDatabaseTest.LoadWithoutDataPathReturnsError (0 ms)
+[ RUN      ] VectorDatabaseTest.SaveAndLoadWithDataPath
+[       OK ] VectorDatabaseTest.SaveAndLoadWithDataPath (3 ms)
+[ RUN      ] VectorDatabaseTest.SaveAndLoadWithMetadata
+[       OK ] VectorDatabaseTest.SaveAndLoadWithMetadata (2 ms)
+[ RUN      ] VectorDatabaseTest.SaveAndLoadPreservesSearchResults
+[       OK ] VectorDatabaseTest.SaveAndLoadPreservesSearchResults (2 ms)
+[ RUN      ] VectorDatabaseTest.SaveAndLoadEmptyDatabase
+[       OK ] VectorDatabaseTest.SaveAndLoadEmptyDatabase (2 ms)
+[ RUN      ] VectorDatabaseTest.SaveAndLoadWithDifferentIndexTypes
+[       OK ] VectorDatabaseTest.SaveAndLoadWithDifferentIndexTypes (4 ms)
+[ RUN      ] VectorDatabaseTest.SaveAndLoadLargeDatabase
+[       OK ] VectorDatabaseTest.SaveAndLoadLargeDatabase (19149 ms)
+[ RUN      ] VectorDatabaseTest.SaveAndLoadWithDifferentDistanceMetrics
+[       OK ] VectorDatabaseTest.SaveAndLoadWithDifferentDistanceMetrics (8 ms)
+[ RUN      ] VectorDatabaseTest.LoadNonexistentPathReturnsError
+[       OK ] VectorDatabaseTest.LoadNonexistentPathReturnsError (1 ms)
+[----------] 44 tests from VectorDatabaseTest (19182 ms total)
+
+[----------] 9 tests from IVFDatabaseTest
+[ RUN      ] IVFDatabaseTest.CreateWithDefaultParams
+[       OK ] IVFDatabaseTest.CreateWithDefaultParams (0 ms)
+[ RUN      ] IVFDatabaseTest.BatchInsertAndSearch
+[       OK ] IVFDatabaseTest.BatchInsertAndSearch (30 ms)
+[ RUN      ] IVFDatabaseTest.BatchInsertThenIncrementalInsert
+[       OK ] IVFDatabaseTest.BatchInsertThenIncrementalInsert (1 ms)
+[ RUN      ] IVFDatabaseTest.IncrementalInsertWithoutBuildAutoInitializes
+[       OK ] IVFDatabaseTest.IncrementalInsertWithoutBuildAutoInitializes (0 ms)
+[ RUN      ] IVFDatabaseTest.SearchWithDifferentNProbe
+[       OK ] IVFDatabaseTest.SearchWithDifferentNProbe (9 ms)
+[ RUN      ] IVFDatabaseTest.RemoveAfterBatchInsert
+[       OK ] IVFDatabaseTest.RemoveAfterBatchInsert (1 ms)
+[ RUN      ] IVFDatabaseTest.StatsAfterOperations
+[       OK ] IVFDatabaseTest.StatsAfterOperations (4 ms)
+[ RUN      ] IVFDatabaseTest.DifferentDistanceMetrics
+[       OK ] IVFDatabaseTest.DifferentDistanceMetrics (0 ms)
+[ RUN      ] IVFDatabaseTest.PersistenceRoundTrip
+[       OK ] IVFDatabaseTest.PersistenceRoundTrip (6 ms)
+[----------] 9 tests from IVFDatabaseTest (55 ms total)
+
+[----------] 36 tests from DistanceMetricsTest
+[ RUN      ] DistanceMetricsTest.L2IdenticalVectors
+[       OK ] DistanceMetricsTest.L2IdenticalVectors (0 ms)
+[ RUN      ] DistanceMetricsTest.L2SimpleCase
+[       OK ] DistanceMetricsTest.L2SimpleCase (0 ms)
+[ RUN      ] DistanceMetricsTest.L2Symmetric
+[       OK ] DistanceMetricsTest.L2Symmetric (0 ms)
+[ RUN      ] DistanceMetricsTest.L2HighDimensional
+[       OK ] DistanceMetricsTest.L2HighDimensional (0 ms)
+[ RUN      ] DistanceMetricsTest.L2DimensionMismatch
+[       OK ] DistanceMetricsTest.L2DimensionMismatch (0 ms)
+[ RUN      ] DistanceMetricsTest.L2EmptyVectors
+[       OK ] DistanceMetricsTest.L2EmptyVectors (0 ms)
+[ RUN      ] DistanceMetricsTest.L2SquaredIdenticalVectors
+[       OK ] DistanceMetricsTest.L2SquaredIdenticalVectors (0 ms)
+[ RUN      ] DistanceMetricsTest.L2SquaredSimpleCase
+[       OK ] DistanceMetricsTest.L2SquaredSimpleCase (0 ms)
+[ RUN      ] DistanceMetricsTest.L2SquaredConsistentWithL2
+[       OK ] DistanceMetricsTest.L2SquaredConsistentWithL2 (0 ms)
+[ RUN      ] DistanceMetricsTest.L2SquaredDimensionMismatch
+[       OK ] DistanceMetricsTest.L2SquaredDimensionMismatch (0 ms)
+[ RUN      ] DistanceMetricsTest.CosineIdenticalVectors
+[       OK ] DistanceMetricsTest.CosineIdenticalVectors (0 ms)
+[ RUN      ] DistanceMetricsTest.CosineOrthogonalVectors
+[       OK ] DistanceMetricsTest.CosineOrthogonalVectors (0 ms)
+[ RUN      ] DistanceMetricsTest.CosineOppositeVectors
+[       OK ] DistanceMetricsTest.CosineOppositeVectors (0 ms)
+[ RUN      ] DistanceMetricsTest.CosineScaleInvariant
+[       OK ] DistanceMetricsTest.CosineScaleInvariant (0 ms)
+[ RUN      ] DistanceMetricsTest.CosineSymmetric
+[       OK ] DistanceMetricsTest.CosineSymmetric (0 ms)
+[ RUN      ] DistanceMetricsTest.CosineNormalizedVectors
+[       OK ] DistanceMetricsTest.CosineNormalizedVectors (0 ms)
+[ RUN      ] DistanceMetricsTest.CosineZeroVector
+[       OK ] DistanceMetricsTest.CosineZeroVector (0 ms)
+[ RUN      ] DistanceMetricsTest.CosineBothZeroVectors
+[       OK ] DistanceMetricsTest.CosineBothZeroVectors (0 ms)
+[ RUN      ] DistanceMetricsTest.CosineDimensionMismatch
+[       OK ] DistanceMetricsTest.CosineDimensionMismatch (0 ms)
+[ RUN      ] DistanceMetricsTest.CosineHighDimensional
+[       OK ] DistanceMetricsTest.CosineHighDimensional (0 ms)
+[ RUN      ] DistanceMetricsTest.DotProductIdenticalVectors
+[       OK ] DistanceMetricsTest.DotProductIdenticalVectors (0 ms)
+[ RUN      ] DistanceMetricsTest.DotProductOrthogonalVectors
+[       OK ] DistanceMetricsTest.DotProductOrthogonalVectors (0 ms)
+[ RUN      ] DistanceMetricsTest.DotProductSimpleCase
+[       OK ] DistanceMetricsTest.DotProductSimpleCase (0 ms)
+[ RUN      ] DistanceMetricsTest.DotProductSymmetric
+[       OK ] DistanceMetricsTest.DotProductSymmetric (0 ms)
+[ RUN      ] DistanceMetricsTest.DotProductNormalizedVectors
+[       OK ] DistanceMetricsTest.DotProductNormalizedVectors (0 ms)
+[ RUN      ] DistanceMetricsTest.DotProductNegativeValues
+[       OK ] DistanceMetricsTest.DotProductNegativeValues (0 ms)
+[ RUN      ] DistanceMetricsTest.DotProductDimensionMismatch
+[       OK ] DistanceMetricsTest.DotProductDimensionMismatch (0 ms)
+[ RUN      ] DistanceMetricsTest.DotProductHighDimensional
+[       OK ] DistanceMetricsTest.DotProductHighDimensional (0 ms)
+[ RUN      ] DistanceMetricsTest.CalculateDistanceL2
+[       OK ] DistanceMetricsTest.CalculateDistanceL2 (0 ms)
+[ RUN      ] DistanceMetricsTest.CalculateDistanceCosine
+[       OK ] DistanceMetricsTest.CalculateDistanceCosine (0 ms)
+[ RUN      ] DistanceMetricsTest.CalculateDistanceDotProduct
+[       OK ] DistanceMetricsTest.CalculateDistanceDotProduct (0 ms)
+[ RUN      ] DistanceMetricsTest.CalculateDistanceAllMetricsConsistent
+[       OK ] DistanceMetricsTest.CalculateDistanceAllMetricsConsistent (0 ms)
+[ RUN      ] DistanceMetricsTest.SingleDimensionVectors
+[       OK ] DistanceMetricsTest.SingleDimensionVectors (0 ms)
+[ RUN      ] DistanceMetricsTest.LargeVectorValues
+[       OK ] DistanceMetricsTest.LargeVectorValues (0 ms)
+[ RUN      ] DistanceMetricsTest.SmallVectorValues
+[       OK ] DistanceMetricsTest.SmallVectorValues (0 ms)
+[ RUN      ] DistanceMetricsTest.MixedPositiveNegativeValues
+[       OK ] DistanceMetricsTest.MixedPositiveNegativeValues (0 ms)
+[----------] 36 tests from DistanceMetricsTest (2 ms total)
+
+[----------] 38 tests from HNSWIndexTest
+[ RUN      ] HNSWIndexTest.ConstructorBasic
+[       OK ] HNSWIndexTest.ConstructorBasic (0 ms)
+[ RUN      ] HNSWIndexTest.ConstructorDifferentDimensions
+[       OK ] HNSWIndexTest.ConstructorDifferentDimensions (0 ms)
+[ RUN      ] HNSWIndexTest.InsertSingleVector
+[       OK ] HNSWIndexTest.InsertSingleVector (0 ms)
+[ RUN      ] HNSWIndexTest.InsertMultipleVectors
+[       OK ] HNSWIndexTest.InsertMultipleVectors (0 ms)
+[ RUN      ] HNSWIndexTest.InsertDimensionMismatch
+[       OK ] HNSWIndexTest.InsertDimensionMismatch (0 ms)
+[ RUN      ] HNSWIndexTest.InsertDuplicateId
+[       OK ] HNSWIndexTest.InsertDuplicateId (0 ms)
+[ RUN      ] HNSWIndexTest.SearchEmptyIndex
+[       OK ] HNSWIndexTest.SearchEmptyIndex (0 ms)
+[ RUN      ] HNSWIndexTest.SearchSingleVector
+[       OK ] HNSWIndexTest.SearchSingleVector (0 ms)
+[ RUN      ] HNSWIndexTest.SearchExactMatch
+[       OK ] HNSWIndexTest.SearchExactMatch (0 ms)
+[ RUN      ] HNSWIndexTest.SearchMultipleVectorsOrdering
+[       OK ] HNSWIndexTest.SearchMultipleVectorsOrdering (0 ms)
+[ RUN      ] HNSWIndexTest.SearchWithDifferentK
+[       OK ] HNSWIndexTest.SearchWithDifferentK (1 ms)
+[ RUN      ] HNSWIndexTest.SearchDimensionMismatch
+[       OK ] HNSWIndexTest.SearchDimensionMismatch (0 ms)
+[ RUN      ] HNSWIndexTest.RemoveSingleVector
+[       OK ] HNSWIndexTest.RemoveSingleVector (0 ms)
+[ RUN      ] HNSWIndexTest.RemoveNonexistent
+[       OK ] HNSWIndexTest.RemoveNonexistent (0 ms)
+[ RUN      ] HNSWIndexTest.RemoveAndSearchAgain
+[       OK ] HNSWIndexTest.RemoveAndSearchAgain (0 ms)
+[ RUN      ] HNSWIndexTest.BatchBuildEmpty
+[       OK ] HNSWIndexTest.BatchBuildEmpty (0 ms)
+[ RUN      ] HNSWIndexTest.BatchBuildMultiple
+[       OK ] HNSWIndexTest.BatchBuildMultiple (0 ms)
+[ RUN      ] HNSWIndexTest.RecallTestSmallDataset
+[       OK ] HNSWIndexTest.RecallTestSmallDataset (939 ms)
+[ RUN      ] HNSWIndexTest.RecallTestWithDifferentEfSearch
+[       OK ] HNSWIndexTest.RecallTestWithDifferentEfSearch (714 ms)
+[ RUN      ] HNSWIndexTest.L2DistanceMetric
+[       OK ] HNSWIndexTest.L2DistanceMetric (0 ms)
+[ RUN      ] HNSWIndexTest.CosineDistanceMetric
+[       OK ] HNSWIndexTest.CosineDistanceMetric (0 ms)
+[ RUN      ] HNSWIndexTest.SearchWithKLargerThanSize
+[       OK ] HNSWIndexTest.SearchWithKLargerThanSize (0 ms)
+[ RUN      ] HNSWIndexTest.ZeroVectors
+[       OK ] HNSWIndexTest.ZeroVectors (0 ms)
+[ RUN      ] HNSWIndexTest.OptimizeGraphEmpty
+[       OK ] HNSWIndexTest.OptimizeGraphEmpty (0 ms)
+[ RUN      ] HNSWIndexTest.OptimizeGraphSmallIndex
+[       OK ] HNSWIndexTest.OptimizeGraphSmallIndex (0 ms)
+[ RUN      ] HNSWIndexTest.OptimizeGraphLargeIndex
+[       OK ] HNSWIndexTest.OptimizeGraphLargeIndex (717 ms)
+[ RUN      ] HNSWIndexTest.OptimizeGraphPreservesSearchability
+[       OK ] HNSWIndexTest.OptimizeGraphPreservesSearchability (157 ms)
+[ RUN      ] HNSWIndexTest.CompactIndexEmpty
+[       OK ] HNSWIndexTest.CompactIndexEmpty (0 ms)
+[ RUN      ] HNSWIndexTest.CompactIndexNormalOperation
+[       OK ] HNSWIndexTest.CompactIndexNormalOperation (0 ms)
+[ RUN      ] HNSWIndexTest.CompactIndexAfterRemovals
+[       OK ] HNSWIndexTest.CompactIndexAfterRemovals (3 ms)
+[ RUN      ] HNSWIndexTest.CompactIndexPreservesSearchQuality
+[       OK ] HNSWIndexTest.CompactIndexPreservesSearchQuality (167 ms)
+[ RUN      ] HNSWIndexTest.SerializeDeserializeEmpty
+[       OK ] HNSWIndexTest.SerializeDeserializeEmpty (0 ms)
+[ RUN      ] HNSWIndexTest.SerializeDeserializeSimple
+[       OK ] HNSWIndexTest.SerializeDeserializeSimple (0 ms)
+[ RUN      ] HNSWIndexTest.SerializeDeserializeLarger
+[       OK ] HNSWIndexTest.SerializeDeserializeLarger (776 ms)
+[ RUN      ] HNSWIndexTest.DeserializePreservesSearchQuality
+[       OK ] HNSWIndexTest.DeserializePreservesSearchQuality (707 ms)
+[ RUN      ] HNSWIndexTest.DeserializeDimensionMismatch
+[       OK ] HNSWIndexTest.DeserializeDimensionMismatch (0 ms)
+[ RUN      ] HNSWIndexTest.SerializeDeserializeWithDifferentMetrics
+[       OK ] HNSWIndexTest.SerializeDeserializeWithDifferentMetrics (0 ms)
+[ RUN      ] HNSWIndexTest.SerializeDeserializePreservesParameters
+[       OK ] HNSWIndexTest.SerializeDeserializePreservesParameters (0 ms)
+[----------] 38 tests from HNSWIndexTest (4191 ms total)
+
+[----------] 20 tests from KMeansTest
+[ RUN      ] KMeansTest.ConstructorValid
+[       OK ] KMeansTest.ConstructorValid (0 ms)
+[ RUN      ] KMeansTest.ConstructorInvalid
+[       OK ] KMeansTest.ConstructorInvalid (0 ms)
+[ RUN      ] KMeansTest.FitBasic
+[       OK ] KMeansTest.FitBasic (0 ms)
+[ RUN      ] KMeansTest.FitEmptyVectors
+[       OK ] KMeansTest.FitEmptyVectors (0 ms)
+[ RUN      ] KMeansTest.FitDimensionMismatch
+[       OK ] KMeansTest.FitDimensionMismatch (0 ms)
+[ RUN      ] KMeansTest.PredictBeforeFit
+[       OK ] KMeansTest.PredictBeforeFit (0 ms)
+[ RUN      ] KMeansTest.CentroidsBeforeFit
+[       OK ] KMeansTest.CentroidsBeforeFit (0 ms)
+[ RUN      ] KMeansTest.KMeansPlusPlusInitialization
+[       OK ] KMeansTest.KMeansPlusPlusInitialization (0 ms)
+[ RUN      ] KMeansTest.ClusteringQualityL2
+[       OK ] KMeansTest.ClusteringQualityL2 (1 ms)
+[ RUN      ] KMeansTest.ClusteringQualityCosine
+[       OK ] KMeansTest.ClusteringQualityCosine (2 ms)
+[ RUN      ] KMeansTest.ClusteringQualityDotProduct
+[       OK ] KMeansTest.ClusteringQualityDotProduct (1 ms)
+[ RUN      ] KMeansTest.EdgeCaseKGreaterThanN
+Warning: k (10) is greater than number of vectors (5). Reducing k to 5
+[       OK ] KMeansTest.EdgeCaseKGreaterThanN (0 ms)
+[ RUN      ] KMeansTest.EdgeCaseKEqualsOne
+[       OK ] KMeansTest.EdgeCaseKEqualsOne (1 ms)
+[ RUN      ] KMeansTest.EdgeCaseKEqualsN
+[       OK ] KMeansTest.EdgeCaseKEqualsN (0 ms)
+[ RUN      ] KMeansTest.EdgeCaseSingleVectorClusters
+[       OK ] KMeansTest.EdgeCaseSingleVectorClusters (0 ms)
+[ RUN      ] KMeansTest.ConvergenceThreshold
+[       OK ] KMeansTest.ConvergenceThreshold (0 ms)
+[ RUN      ] KMeansTest.ReproducibilityWithSeed
+[       OK ] KMeansTest.ReproducibilityWithSeed (2 ms)
+[ RUN      ] KMeansTest.VariousDimensions
+[       OK ] KMeansTest.VariousDimensions (16 ms)
+[ RUN      ] KMeansTest.PredictAfterFit
+[       OK ] KMeansTest.PredictAfterFit (1 ms)
+[ RUN      ] KMeansTest.PredictDimensionMismatch
+[       OK ] KMeansTest.PredictDimensionMismatch (4 ms)
+[----------] 20 tests from KMeansTest (35 ms total)
+
+[----------] 15 tests from RecordIteratorTest
+[ RUN      ] RecordIteratorTest.FlatDatabase_EmptyDatabase
+[       OK ] RecordIteratorTest.FlatDatabase_EmptyDatabase (0 ms)
+[ RUN      ] RecordIteratorTest.FlatDatabase_SingleRecord
+[       OK ] RecordIteratorTest.FlatDatabase_SingleRecord (0 ms)
+[ RUN      ] RecordIteratorTest.FlatDatabase_MultipleRecords
+[       OK ] RecordIteratorTest.FlatDatabase_MultipleRecords (0 ms)
+[ RUN      ] RecordIteratorTest.FlatDatabase_RangeBasedForLoop
+[       OK ] RecordIteratorTest.FlatDatabase_RangeBasedForLoop (0 ms)
+[ RUN      ] RecordIteratorTest.FlatDatabase_AfterRemove
+[       OK ] RecordIteratorTest.FlatDatabase_AfterRemove (0 ms)
+[ RUN      ] RecordIteratorTest.FlatDatabase_ManualIteration
+[       OK ] RecordIteratorTest.FlatDatabase_ManualIteration (0 ms)
+[ RUN      ] RecordIteratorTest.FlatDatabase_IteratorCopy
+[       OK ] RecordIteratorTest.FlatDatabase_IteratorCopy (0 ms)
+[ RUN      ] RecordIteratorTest.IVFDatabase_BasicIteration
+[       OK ] RecordIteratorTest.IVFDatabase_BasicIteration (0 ms)
+[ RUN      ] RecordIteratorTest.IVFDatabase_EmptyDatabase
+[       OK ] RecordIteratorTest.IVFDatabase_EmptyDatabase (0 ms)
+[ RUN      ] RecordIteratorTest.IVFDatabase_AfterRemove
+[       OK ] RecordIteratorTest.IVFDatabase_AfterRemove (0 ms)
+[ RUN      ] RecordIteratorTest.HNSWDatabase_BasicIteration
+[       OK ] RecordIteratorTest.HNSWDatabase_BasicIteration (2 ms)
+[ RUN      ] RecordIteratorTest.HNSWDatabase_EmptyDatabase
+[       OK ] RecordIteratorTest.HNSWDatabase_EmptyDatabase (0 ms)
+[ RUN      ] RecordIteratorTest.HNSWDatabase_WithMetadata
+[       OK ] RecordIteratorTest.HNSWDatabase_WithMetadata (0 ms)
+[ RUN      ] RecordIteratorTest.IVFDatabase_ThreadSafetyBasic
+[       OK ] RecordIteratorTest.IVFDatabase_ThreadSafetyBasic (0 ms)
+[ RUN      ] RecordIteratorTest.HNSWDatabase_ThreadSafetyBasic
+[       OK ] RecordIteratorTest.HNSWDatabase_ThreadSafetyBasic (0 ms)
+[----------] 15 tests from RecordIteratorTest (6 ms total)
+
+[----------] 60 tests from IVFIndexTest
+[ RUN      ] IVFIndexTest.ConstructorValid
+[       OK ] IVFIndexTest.ConstructorValid (0 ms)
+[ RUN      ] IVFIndexTest.ConstructorDifferentMetrics
+[       OK ] IVFIndexTest.ConstructorDifferentMetrics (0 ms)
+[ RUN      ] IVFIndexTest.ConstructorInvalidDimension
+[       OK ] IVFIndexTest.ConstructorInvalidDimension (0 ms)
+[ RUN      ] IVFIndexTest.ConstructorInvalidClusters
+[       OK ] IVFIndexTest.ConstructorInvalidClusters (0 ms)
+[ RUN      ] IVFIndexTest.SetCentroidsValid
+[       OK ] IVFIndexTest.SetCentroidsValid (0 ms)
+[ RUN      ] IVFIndexTest.SetCentroidsEmpty
+[       OK ] IVFIndexTest.SetCentroidsEmpty (0 ms)
+[ RUN      ] IVFIndexTest.SetCentroidsDimensionMismatch
+[       OK ] IVFIndexTest.SetCentroidsDimensionMismatch (0 ms)
+[ RUN      ] IVFIndexTest.SetCentroidsOverwrite
+[       OK ] IVFIndexTest.SetCentroidsOverwrite (0 ms)
+[ RUN      ] IVFIndexTest.AddSingleVector
+[       OK ] IVFIndexTest.AddSingleVector (0 ms)
+[ RUN      ] IVFIndexTest.AddMultipleVectors
+[       OK ] IVFIndexTest.AddMultipleVectors (0 ms)
+[ RUN      ] IVFIndexTest.AddWithoutCentroids
+[       OK ] IVFIndexTest.AddWithoutCentroids (0 ms)
+[ RUN      ] IVFIndexTest.AddDimensionMismatch
+[       OK ] IVFIndexTest.AddDimensionMismatch (0 ms)
+[ RUN      ] IVFIndexTest.AddDuplicateId
+[       OK ] IVFIndexTest.AddDuplicateId (0 ms)
+[ RUN      ] IVFIndexTest.AddToCorrectCluster
+[       OK ] IVFIndexTest.AddToCorrectCluster (0 ms)
+[ RUN      ] IVFIndexTest.ContainsExisting
+[       OK ] IVFIndexTest.ContainsExisting (0 ms)
+[ RUN      ] IVFIndexTest.ContainsNonExisting
+[       OK ] IVFIndexTest.ContainsNonExisting (0 ms)
+[ RUN      ] IVFIndexTest.ContainsEmptyIndex
+[       OK ] IVFIndexTest.ContainsEmptyIndex (0 ms)
+[ RUN      ] IVFIndexTest.SizeEmpty
+[       OK ] IVFIndexTest.SizeEmpty (0 ms)
+[ RUN      ] IVFIndexTest.SizeAfterAdd
+[       OK ] IVFIndexTest.SizeAfterAdd (0 ms)
+[ RUN      ] IVFIndexTest.DimensionReturnsCorrectValue
+[       OK ] IVFIndexTest.DimensionReturnsCorrectValue (0 ms)
+[ RUN      ] IVFIndexTest.MemoryUsageIncreases
+[       OK ] IVFIndexTest.MemoryUsageIncreases (1 ms)
+[ RUN      ] IVFIndexTest.SearchBasic
+[       OK ] IVFIndexTest.SearchBasic (0 ms)
+[ RUN      ] IVFIndexTest.SearchEmptyIndex
+[       OK ] IVFIndexTest.SearchEmptyIndex (0 ms)
+[ RUN      ] IVFIndexTest.SearchWithoutCentroids
+[       OK ] IVFIndexTest.SearchWithoutCentroids (0 ms)
+[ RUN      ] IVFIndexTest.SearchDimensionMismatch
+[       OK ] IVFIndexTest.SearchDimensionMismatch (0 ms)
+[ RUN      ] IVFIndexTest.SearchKLargerThanVectors
+[       OK ] IVFIndexTest.SearchKLargerThanVectors (0 ms)
+[ RUN      ] IVFIndexTest.SearchWithNProbe1
+[       OK ] IVFIndexTest.SearchWithNProbe1 (0 ms)
+[ RUN      ] IVFIndexTest.SearchWithNProbeAll
+[       OK ] IVFIndexTest.SearchWithNProbeAll (0 ms)
+[ RUN      ] IVFIndexTest.SearchNProbeGreaterThanClusters
+[       OK ] IVFIndexTest.SearchNProbeGreaterThanClusters (0 ms)
+[ RUN      ] IVFIndexTest.SearchExactMatch
+[       OK ] IVFIndexTest.SearchExactMatch (0 ms)
+[ RUN      ] IVFIndexTest.SearchL2Metric
+[       OK ] IVFIndexTest.SearchL2Metric (0 ms)
+[ RUN      ] IVFIndexTest.SearchCosineMetric
+[       OK ] IVFIndexTest.SearchCosineMetric (0 ms)
+[ RUN      ] IVFIndexTest.SearchDotProductMetric
+[       OK ] IVFIndexTest.SearchDotProductMetric (0 ms)
+[ RUN      ] IVFIndexTest.SearchRecallVsNProbe
+[       OK ] IVFIndexTest.SearchRecallVsNProbe (33 ms)
+[ RUN      ] IVFIndexTest.SearchConcurrent
+[       OK ] IVFIndexTest.SearchConcurrent (45 ms)
+[ RUN      ] IVFIndexTest.RemoveExistingVector
+[       OK ] IVFIndexTest.RemoveExistingVector (0 ms)
+[ RUN      ] IVFIndexTest.RemoveNonExistentVector
+[       OK ] IVFIndexTest.RemoveNonExistentVector (0 ms)
+[ RUN      ] IVFIndexTest.RemoveFromDifferentClusters
+[       OK ] IVFIndexTest.RemoveFromDifferentClusters (0 ms)
+[ RUN      ] IVFIndexTest.RemoveAndSearch
+[       OK ] IVFIndexTest.RemoveAndSearch (0 ms)
+[ RUN      ] IVFIndexTest.BuildWithSmallDataset
+[       OK ] IVFIndexTest.BuildWithSmallDataset (2 ms)
+[ RUN      ] IVFIndexTest.BuildWithEmptyDataset
+[       OK ] IVFIndexTest.BuildWithEmptyDataset (0 ms)
+[ RUN      ] IVFIndexTest.BuildWithDimensionMismatch
+[       OK ] IVFIndexTest.BuildWithDimensionMismatch (0 ms)
+[ RUN      ] IVFIndexTest.BuildAndSearch
+[       OK ] IVFIndexTest.BuildAndSearch (221 ms)
+[ RUN      ] IVFIndexTest.BuildOverwritesExistingData
+[       OK ] IVFIndexTest.BuildOverwritesExistingData (0 ms)
+[ RUN      ] IVFIndexTest.SerializeEmptyIndex
+[       OK ] IVFIndexTest.SerializeEmptyIndex (0 ms)
+[ RUN      ] IVFIndexTest.SerializeWithData
+[       OK ] IVFIndexTest.SerializeWithData (0 ms)
+[ RUN      ] IVFIndexTest.DeserializeValidData
+[       OK ] IVFIndexTest.DeserializeValidData (4 ms)
+[ RUN      ] IVFIndexTest.SerializeDeserializeRoundTrip
+[       OK ] IVFIndexTest.SerializeDeserializeRoundTrip (21 ms)
+[ RUN      ] IVFIndexTest.DeserializeDimensionMismatch
+[       OK ] IVFIndexTest.DeserializeDimensionMismatch (1 ms)
+[ RUN      ] IVFIndexTest.DeserializeInvalidMagic
+[       OK ] IVFIndexTest.DeserializeInvalidMagic (0 ms)
+[ RUN      ] IVFIndexTest.SerializePreservesAllVectors
+[       OK ] IVFIndexTest.SerializePreservesAllVectors (1 ms)
+[ RUN      ] IVFIndexTest.FullWorkflowBuildAddSearchRemoveSave
+[       OK ] IVFIndexTest.FullWorkflowBuildAddSearchRemoveSave (82 ms)
+[ RUN      ] IVFIndexTest.AddWithL2Metric
+[       OK ] IVFIndexTest.AddWithL2Metric (0 ms)
+[ RUN      ] IVFIndexTest.AddWithCosineMetric
+[       OK ] IVFIndexTest.AddWithCosineMetric (0 ms)
+[ RUN      ] IVFIndexTest.AddWithDotProductMetric
+[       OK ] IVFIndexTest.AddWithDotProductMetric (0 ms)
+[ RUN      ] IVFIndexTest.ConcurrentReads
+[       OK ] IVFIndexTest.ConcurrentReads (3 ms)
+[ RUN      ] IVFIndexTest.VariousDimensions
+[       OK ] IVFIndexTest.VariousDimensions (4 ms)
+[ RUN      ] IVFIndexTest.SingleCluster
+[       OK ] IVFIndexTest.SingleCluster (0 ms)
+[ RUN      ] IVFIndexTest.ManyClusters
+[       OK ] IVFIndexTest.ManyClusters (7 ms)
+[ RUN      ] IVFIndexTest.LargeIds
+[       OK ] IVFIndexTest.LargeIds (0 ms)
+[----------] 60 tests from IVFIndexTest (442 ms total)
+
+[----------] 45 tests from FlatIndexTest
+[ RUN      ] FlatIndexTest.ConstructorValid
+[       OK ] FlatIndexTest.ConstructorValid (0 ms)
+[ RUN      ] FlatIndexTest.ConstructorDifferentMetrics
+[       OK ] FlatIndexTest.ConstructorDifferentMetrics (0 ms)
+[ RUN      ] FlatIndexTest.ConstructorSmallDimension
+[       OK ] FlatIndexTest.ConstructorSmallDimension (0 ms)
+[ RUN      ] FlatIndexTest.AddSingleVector
+[       OK ] FlatIndexTest.AddSingleVector (0 ms)
+[ RUN      ] FlatIndexTest.AddMultipleVectors
+[       OK ] FlatIndexTest.AddMultipleVectors (0 ms)
+[ RUN      ] FlatIndexTest.AddDimensionMismatch
+[       OK ] FlatIndexTest.AddDimensionMismatch (0 ms)
+[ RUN      ] FlatIndexTest.AddDuplicateId
+[       OK ] FlatIndexTest.AddDuplicateId (0 ms)
+[ RUN      ] FlatIndexTest.AddEmptyVector
+[       OK ] FlatIndexTest.AddEmptyVector (0 ms)
+[ RUN      ] FlatIndexTest.RemoveExistingVector
+[       OK ] FlatIndexTest.RemoveExistingVector (0 ms)
+[ RUN      ] FlatIndexTest.RemoveNonExistingVector
+[       OK ] FlatIndexTest.RemoveNonExistingVector (0 ms)
+[ RUN      ] FlatIndexTest.RemoveMultipleTimes
+[       OK ] FlatIndexTest.RemoveMultipleTimes (0 ms)
+[ RUN      ] FlatIndexTest.RemoveFromMultipleVectors
+[       OK ] FlatIndexTest.RemoveFromMultipleVectors (0 ms)
+[ RUN      ] FlatIndexTest.ContainsExisting
+[       OK ] FlatIndexTest.ContainsExisting (0 ms)
+[ RUN      ] FlatIndexTest.ContainsNonExisting
+[       OK ] FlatIndexTest.ContainsNonExisting (0 ms)
+[ RUN      ] FlatIndexTest.ContainsAfterRemove
+[       OK ] FlatIndexTest.ContainsAfterRemove (0 ms)
+[ RUN      ] FlatIndexTest.SearchL2Empty
+[       OK ] FlatIndexTest.SearchL2Empty (0 ms)
+[ RUN      ] FlatIndexTest.SearchL2SingleVector
+[       OK ] FlatIndexTest.SearchL2SingleVector (0 ms)
+[ RUN      ] FlatIndexTest.SearchL2MultipleVectors
+[       OK ] FlatIndexTest.SearchL2MultipleVectors (0 ms)
+[ RUN      ] FlatIndexTest.SearchL2LimitK
+[       OK ] FlatIndexTest.SearchL2LimitK (0 ms)
+[ RUN      ] FlatIndexTest.SearchL2DimensionMismatch
+[       OK ] FlatIndexTest.SearchL2DimensionMismatch (0 ms)
+[ RUN      ] FlatIndexTest.SearchCosineIdentical
+[       OK ] FlatIndexTest.SearchCosineIdentical (0 ms)
+[ RUN      ] FlatIndexTest.SearchCosineMultiple
+[       OK ] FlatIndexTest.SearchCosineMultiple (0 ms)
+[ RUN      ] FlatIndexTest.SearchDotProductIdentical
+[       OK ] FlatIndexTest.SearchDotProductIdentical (0 ms)
+[ RUN      ] FlatIndexTest.SearchDotProductMultiple
+[       OK ] FlatIndexTest.SearchDotProductMultiple (0 ms)
+[ RUN      ] FlatIndexTest.SearchWithFilter
+[       OK ] FlatIndexTest.SearchWithFilter (0 ms)
+[ RUN      ] FlatIndexTest.SearchWithFilterNoMatches
+[       OK ] FlatIndexTest.SearchWithFilterNoMatches (0 ms)
+[ RUN      ] FlatIndexTest.BuildFromEmpty
+[       OK ] FlatIndexTest.BuildFromEmpty (0 ms)
+[ RUN      ] FlatIndexTest.BuildFromBatch
+[       OK ] FlatIndexTest.BuildFromBatch (0 ms)
+[ RUN      ] FlatIndexTest.BuildClearsExistingData
+[       OK ] FlatIndexTest.BuildClearsExistingData (0 ms)
+[ RUN      ] FlatIndexTest.BuildDimensionMismatch
+[       OK ] FlatIndexTest.BuildDimensionMismatch (0 ms)
+[ RUN      ] FlatIndexTest.SerializeEmpty
+[       OK ] FlatIndexTest.SerializeEmpty (0 ms)
+[ RUN      ] FlatIndexTest.SerializeAndDeserialize
+[       OK ] FlatIndexTest.SerializeAndDeserialize (0 ms)
+[ RUN      ] FlatIndexTest.DeserializeDimensionMismatch
+[       OK ] FlatIndexTest.DeserializeDimensionMismatch (0 ms)
+[ RUN      ] FlatIndexTest.DeserializeMetricMismatch
+[       OK ] FlatIndexTest.DeserializeMetricMismatch (0 ms)
+[ RUN      ] FlatIndexTest.DeserializeInvalidMagicNumber
+[       OK ] FlatIndexTest.DeserializeInvalidMagicNumber (0 ms)
+[ RUN      ] FlatIndexTest.DeserializeInvalidVersion
+[       OK ] FlatIndexTest.DeserializeInvalidVersion (0 ms)
+[ RUN      ] FlatIndexTest.SerializeDifferentMetrics
+[       OK ] FlatIndexTest.SerializeDifferentMetrics (0 ms)
+[ RUN      ] FlatIndexTest.SizeProperty
+[       OK ] FlatIndexTest.SizeProperty (0 ms)
+[ RUN      ] FlatIndexTest.DimensionProperty
+[       OK ] FlatIndexTest.DimensionProperty (0 ms)
+[ RUN      ] FlatIndexTest.MemoryUsage
+[       OK ] FlatIndexTest.MemoryUsage (0 ms)
+[ RUN      ] FlatIndexTest.EdgeCaseZeroDimension
+[       OK ] FlatIndexTest.EdgeCaseZeroDimension (0 ms)
+[ RUN      ] FlatIndexTest.EdgeCaseSingleVectorDimension
+[       OK ] FlatIndexTest.EdgeCaseSingleVectorDimension (0 ms)
+[ RUN      ] FlatIndexTest.EdgeCaseLargeK
+[       OK ] FlatIndexTest.EdgeCaseLargeK (0 ms)
+[ RUN      ] FlatIndexTest.EdgeCaseKEqualsZero
+[       OK ] FlatIndexTest.EdgeCaseKEqualsZero (0 ms)
+[ RUN      ] FlatIndexTest.EdgeCaseDuplicateIdWithDifferentVectors
+[       OK ] FlatIndexTest.EdgeCaseDuplicateIdWithDifferentVectors (0 ms)
+[----------] 45 tests from FlatIndexTest (5 ms total)
+
+[----------] 7 tests from FlatIndexIntegrationTest
+[ RUN      ] FlatIndexIntegrationTest.IdenticalSearchResults_EmptyIndex
+[       OK ] FlatIndexIntegrationTest.IdenticalSearchResults_EmptyIndex (0 ms)
+[ RUN      ] FlatIndexIntegrationTest.IdenticalSearchResults_SingleVector
+[       OK ] FlatIndexIntegrationTest.IdenticalSearchResults_SingleVector (0 ms)
+[ RUN      ] FlatIndexIntegrationTest.IdenticalSearchResults_MultipleVectors
+[       OK ] FlatIndexIntegrationTest.IdenticalSearchResults_MultipleVectors (11 ms)
+[ RUN      ] FlatIndexIntegrationTest.IdenticalSearchResults_AllMetrics
+[       OK ] FlatIndexIntegrationTest.IdenticalSearchResults_AllMetrics (9 ms)
+[ RUN      ] FlatIndexIntegrationTest.IdenticalSearchResults_WithFiltering
+[       OK ] FlatIndexIntegrationTest.IdenticalSearchResults_WithFiltering (5 ms)
+[ RUN      ] FlatIndexIntegrationTest.IdenticalBehavior_EdgeCases
+[       OK ] FlatIndexIntegrationTest.IdenticalBehavior_EdgeCases (0 ms)
+[ RUN      ] FlatIndexIntegrationTest.ConsistentErrorHandling_DimensionMismatch
+[       OK ] FlatIndexIntegrationTest.ConsistentErrorHandling_DimensionMismatch (0 ms)
+[----------] 7 tests from FlatIndexIntegrationTest (28 ms total)
+
+[----------] 1 test from FlatIndexDocumentationTest
+[ RUN      ] FlatIndexDocumentationTest.PerformanceCharacteristics
+
+===============================================================
+           FlatIndex Performance Characteristics              
+===============================================================
+
+Query Complexity:       O(N·D)
+  N = number of vectors
+  D = vector dimension
+
+Construction Complexity: O(1)
+  No index building required
+
+Memory Usage:           O(N·D)
+  Stores only raw vector data
+
+Recall:                 100%
+  Exact nearest neighbor search
+
+Best Use Cases:
+  - Small datasets (<10K vectors)
+  - Validation/ground truth for approximate methods
+  - Applications requiring exact search
+  - Fast index construction critical
+
+===============================================================
+
+[       OK ] FlatIndexDocumentationTest.PerformanceCharacteristics (0 ms)
+[----------] 1 test from FlatIndexDocumentationTest (0 ms total)
+
+[----------] 2 tests from LynxCoverageTest
+[ RUN      ] LynxCoverageTest.VectorIndex_D0Ev_Coverage
+[       OK ] LynxCoverageTest.VectorIndex_D0Ev_Coverage (0 ms)
+[ RUN      ] LynxCoverageTest.VectorDatabase_D0Ev_Coverage
+[       OK ] LynxCoverageTest.VectorDatabase_D0Ev_Coverage (0 ms)
+[----------] 2 tests from LynxCoverageTest (0 ms total)
+
+[----------] 4 tests from MinimalExampleTest
+[ RUN      ] MinimalExampleTest.BasicWorkflow
+[       OK ] MinimalExampleTest.BasicWorkflow (0 ms)
+[ RUN      ] MinimalExampleTest.ErrorHandling
+[       OK ] MinimalExampleTest.ErrorHandling (0 ms)
+[ RUN      ] MinimalExampleTest.ContainsCheck
+[       OK ] MinimalExampleTest.ContainsCheck (0 ms)
+[ RUN      ] MinimalExampleTest.Repeatability
+[       OK ] MinimalExampleTest.Repeatability (0 ms)
+[----------] 4 tests from MinimalExampleTest (1 ms total)
+
+[----------] 14 tests from PersistenceTest
+[ RUN      ] PersistenceTest.SaveEmptyDatabase
+[       OK ] PersistenceTest.SaveEmptyDatabase (0 ms)
+[ RUN      ] PersistenceTest.SaveAndLoadEmptyDatabase
+[       OK ] PersistenceTest.SaveAndLoadEmptyDatabase (0 ms)
+[ RUN      ] PersistenceTest.SaveAndLoadSingleVector
+[       OK ] PersistenceTest.SaveAndLoadSingleVector (0 ms)
+[ RUN      ] PersistenceTest.SaveAndLoadMultipleVectors
+[       OK ] PersistenceTest.SaveAndLoadMultipleVectors (703 ms)
+[ RUN      ] PersistenceTest.SaveAndLoadPreservesSearchQuality
+[       OK ] PersistenceTest.SaveAndLoadPreservesSearchQuality (4674 ms)
+[ RUN      ] PersistenceTest.SaveWithoutDataPath
+[       OK ] PersistenceTest.SaveWithoutDataPath (0 ms)
+[ RUN      ] PersistenceTest.LoadWithoutDataPath
+[       OK ] PersistenceTest.LoadWithoutDataPath (0 ms)
+[ RUN      ] PersistenceTest.LoadNonexistentFile
+[       OK ] PersistenceTest.LoadNonexistentFile (0 ms)
+[ RUN      ] PersistenceTest.FlushWithoutWAL
+[       OK ] PersistenceTest.FlushWithoutWAL (0 ms)
+[ RUN      ] PersistenceTest.FlushWithWALNotImplemented
+[       OK ] PersistenceTest.FlushWithWALNotImplemented (0 ms)
+[ RUN      ] PersistenceTest.SaveAndLoadWithDifferentDistanceMetrics
+[       OK ] PersistenceTest.SaveAndLoadWithDifferentDistanceMetrics (163 ms)
+[ RUN      ] PersistenceTest.MultipleSavesOverwritePrevious
+[       OK ] PersistenceTest.MultipleSavesOverwritePrevious (1 ms)
+[ RUN      ] PersistenceTest.SaveAndLoadLargeVectorDimension
+[       OK ] PersistenceTest.SaveAndLoadLargeVectorDimension (0 ms)
+[ RUN      ] PersistenceTest.SaveAndLoadVectorsWithoutMetadata
+[       OK ] PersistenceTest.SaveAndLoadVectorsWithoutMetadata (1 ms)
+[----------] 14 tests from PersistenceTest (5549 ms total)
+
+[----------] 1 test from UnifiedVectorDatabaseIVFTest
+[ RUN      ] UnifiedVectorDatabaseIVFTest.BatchInsertRebuild
+[       OK ] UnifiedVectorDatabaseIVFTest.BatchInsertRebuild (0 ms)
+[----------] 1 test from UnifiedVectorDatabaseIVFTest (0 ms total)
+
+[----------] 12 tests from DatasetSizes/FlatIndexEndToEndTest
+[ RUN      ] DatasetSizes/FlatIndexEndToEndTest.InsertAndSearch/0
+[       OK ] DatasetSizes/FlatIndexEndToEndTest.InsertAndSearch/0 (29 ms)
+[ RUN      ] DatasetSizes/FlatIndexEndToEndTest.InsertAndSearch/1
+[       OK ] DatasetSizes/FlatIndexEndToEndTest.InsertAndSearch/1 (313 ms)
+[ RUN      ] DatasetSizes/FlatIndexEndToEndTest.InsertAndSearch/2
+[       OK ] DatasetSizes/FlatIndexEndToEndTest.InsertAndSearch/2 (3248 ms)
+[ RUN      ] DatasetSizes/FlatIndexEndToEndTest.BatchInsertAndSearch/0
+[       OK ] DatasetSizes/FlatIndexEndToEndTest.BatchInsertAndSearch/0 (24 ms)
+[ RUN      ] DatasetSizes/FlatIndexEndToEndTest.BatchInsertAndSearch/1
+[       OK ] DatasetSizes/FlatIndexEndToEndTest.BatchInsertAndSearch/1 (251 ms)
+[ RUN      ] DatasetSizes/FlatIndexEndToEndTest.BatchInsertAndSearch/2
+[       OK ] DatasetSizes/FlatIndexEndToEndTest.BatchInsertAndSearch/2 (2680 ms)
+[ RUN      ] DatasetSizes/FlatIndexEndToEndTest.SerializationRoundTrip/0
+[       OK ] DatasetSizes/FlatIndexEndToEndTest.SerializationRoundTrip/0 (29 ms)
+[ RUN      ] DatasetSizes/FlatIndexEndToEndTest.SerializationRoundTrip/1
+[       OK ] DatasetSizes/FlatIndexEndToEndTest.SerializationRoundTrip/1 (313 ms)
+[ RUN      ] DatasetSizes/FlatIndexEndToEndTest.SerializationRoundTrip/2
+[       OK ] DatasetSizes/FlatIndexEndToEndTest.SerializationRoundTrip/2 (3348 ms)
+[ RUN      ] DatasetSizes/FlatIndexEndToEndTest.AllDistanceMetrics/0
+[       OK ] DatasetSizes/FlatIndexEndToEndTest.AllDistanceMetrics/0 (76 ms)
+[ RUN      ] DatasetSizes/FlatIndexEndToEndTest.AllDistanceMetrics/1
+[       OK ] DatasetSizes/FlatIndexEndToEndTest.AllDistanceMetrics/1 (791 ms)
+[ RUN      ] DatasetSizes/FlatIndexEndToEndTest.AllDistanceMetrics/2
+[       OK ] DatasetSizes/FlatIndexEndToEndTest.AllDistanceMetrics/2 (8162 ms)
+[----------] 12 tests from DatasetSizes/FlatIndexEndToEndTest (19271 ms total)
+
+[----------] 54 tests from AllIndexTypes/UnifiedVectorDatabaseTest
+[ RUN      ] AllIndexTypes/UnifiedVectorDatabaseTest.InsertAndContains/Flat
+[       OK ] AllIndexTypes/UnifiedVectorDatabaseTest.InsertAndContains/Flat (0 ms)
+[ RUN      ] AllIndexTypes/UnifiedVectorDatabaseTest.InsertAndContains/HNSW
+[       OK ] AllIndexTypes/UnifiedVectorDatabaseTest.InsertAndContains/HNSW (0 ms)
+[ RUN      ] AllIndexTypes/UnifiedVectorDatabaseTest.InsertAndContains/IVF
+[       OK ] AllIndexTypes/UnifiedVectorDatabaseTest.InsertAndContains/IVF (0 ms)
+[ RUN      ] AllIndexTypes/UnifiedVectorDatabaseTest.InsertDuplicateId/Flat
+[       OK ] AllIndexTypes/UnifiedVectorDatabaseTest.InsertDuplicateId/Flat (0 ms)
+[ RUN      ] AllIndexTypes/UnifiedVectorDatabaseTest.InsertDuplicateId/HNSW
+[       OK ] AllIndexTypes/UnifiedVectorDatabaseTest.InsertDuplicateId/HNSW (0 ms)
+[ RUN      ] AllIndexTypes/UnifiedVectorDatabaseTest.InsertDuplicateId/IVF
+[       OK ] AllIndexTypes/UnifiedVectorDatabaseTest.InsertDuplicateId/IVF (0 ms)
+[ RUN      ] AllIndexTypes/UnifiedVectorDatabaseTest.InsertWrongDimension/Flat
+[       OK ] AllIndexTypes/UnifiedVectorDatabaseTest.InsertWrongDimension/Flat (0 ms)
+[ RUN      ] AllIndexTypes/UnifiedVectorDatabaseTest.InsertWrongDimension/HNSW
+[       OK ] AllIndexTypes/UnifiedVectorDatabaseTest.InsertWrongDimension/HNSW (0 ms)
+[ RUN      ] AllIndexTypes/UnifiedVectorDatabaseTest.InsertWrongDimension/IVF
+[       OK ] AllIndexTypes/UnifiedVectorDatabaseTest.InsertWrongDimension/IVF (0 ms)
+[ RUN      ] AllIndexTypes/UnifiedVectorDatabaseTest.Get/Flat
+[       OK ] AllIndexTypes/UnifiedVectorDatabaseTest.Get/Flat (0 ms)
+[ RUN      ] AllIndexTypes/UnifiedVectorDatabaseTest.Get/HNSW
+[       OK ] AllIndexTypes/UnifiedVectorDatabaseTest.Get/HNSW (0 ms)
+[ RUN      ] AllIndexTypes/UnifiedVectorDatabaseTest.Get/IVF
+[       OK ] AllIndexTypes/UnifiedVectorDatabaseTest.Get/IVF (0 ms)
+[ RUN      ] AllIndexTypes/UnifiedVectorDatabaseTest.Remove/Flat
+[       OK ] AllIndexTypes/UnifiedVectorDatabaseTest.Remove/Flat (0 ms)
+[ RUN      ] AllIndexTypes/UnifiedVectorDatabaseTest.Remove/HNSW
+[       OK ] AllIndexTypes/UnifiedVectorDatabaseTest.Remove/HNSW (0 ms)
+[ RUN      ] AllIndexTypes/UnifiedVectorDatabaseTest.Remove/IVF
+[       OK ] AllIndexTypes/UnifiedVectorDatabaseTest.Remove/IVF (0 ms)
+[ RUN      ] AllIndexTypes/UnifiedVectorDatabaseTest.RemoveNonExistent/Flat
+[       OK ] AllIndexTypes/UnifiedVectorDatabaseTest.RemoveNonExistent/Flat (0 ms)
+[ RUN      ] AllIndexTypes/UnifiedVectorDatabaseTest.RemoveNonExistent/HNSW
+[       OK ] AllIndexTypes/UnifiedVectorDatabaseTest.RemoveNonExistent/HNSW (0 ms)
+[ RUN      ] AllIndexTypes/UnifiedVectorDatabaseTest.RemoveNonExistent/IVF
+[       OK ] AllIndexTypes/UnifiedVectorDatabaseTest.RemoveNonExistent/IVF (0 ms)
+[ RUN      ] AllIndexTypes/UnifiedVectorDatabaseTest.SearchExactMatch/Flat
+[       OK ] AllIndexTypes/UnifiedVectorDatabaseTest.SearchExactMatch/Flat (0 ms)
+[ RUN      ] AllIndexTypes/UnifiedVectorDatabaseTest.SearchExactMatch/HNSW
+[       OK ] AllIndexTypes/UnifiedVectorDatabaseTest.SearchExactMatch/HNSW (0 ms)
+[ RUN      ] AllIndexTypes/UnifiedVectorDatabaseTest.SearchExactMatch/IVF
+[       OK ] AllIndexTypes/UnifiedVectorDatabaseTest.SearchExactMatch/IVF (0 ms)
+[ RUN      ] AllIndexTypes/UnifiedVectorDatabaseTest.SearchMultipleResults/Flat
+[       OK ] AllIndexTypes/UnifiedVectorDatabaseTest.SearchMultipleResults/Flat (0 ms)
+[ RUN      ] AllIndexTypes/UnifiedVectorDatabaseTest.SearchMultipleResults/HNSW
+[       OK ] AllIndexTypes/UnifiedVectorDatabaseTest.SearchMultipleResults/HNSW (1 ms)
+[ RUN      ] AllIndexTypes/UnifiedVectorDatabaseTest.SearchMultipleResults/IVF
+[       OK ] AllIndexTypes/UnifiedVectorDatabaseTest.SearchMultipleResults/IVF (0 ms)
+[ RUN      ] AllIndexTypes/UnifiedVectorDatabaseTest.SearchWrongDimension/Flat
+[       OK ] AllIndexTypes/UnifiedVectorDatabaseTest.SearchWrongDimension/Flat (0 ms)
+[ RUN      ] AllIndexTypes/UnifiedVectorDatabaseTest.SearchWrongDimension/HNSW
+[       OK ] AllIndexTypes/UnifiedVectorDatabaseTest.SearchWrongDimension/HNSW (0 ms)
+[ RUN      ] AllIndexTypes/UnifiedVectorDatabaseTest.SearchWrongDimension/IVF
+[       OK ] AllIndexTypes/UnifiedVectorDatabaseTest.SearchWrongDimension/IVF (0 ms)
+[ RUN      ] AllIndexTypes/UnifiedVectorDatabaseTest.SearchEmptyDatabase/Flat
+[       OK ] AllIndexTypes/UnifiedVectorDatabaseTest.SearchEmptyDatabase/Flat (0 ms)
+[ RUN      ] AllIndexTypes/UnifiedVectorDatabaseTest.SearchEmptyDatabase/HNSW
+[       OK ] AllIndexTypes/UnifiedVectorDatabaseTest.SearchEmptyDatabase/HNSW (0 ms)
+[ RUN      ] AllIndexTypes/UnifiedVectorDatabaseTest.SearchEmptyDatabase/IVF
+[       OK ] AllIndexTypes/UnifiedVectorDatabaseTest.SearchEmptyDatabase/IVF (0 ms)
+[ RUN      ] AllIndexTypes/UnifiedVectorDatabaseTest.BatchInsertEmpty/Flat
+[       OK ] AllIndexTypes/UnifiedVectorDatabaseTest.BatchInsertEmpty/Flat (0 ms)
+[ RUN      ] AllIndexTypes/UnifiedVectorDatabaseTest.BatchInsertEmpty/HNSW
+[       OK ] AllIndexTypes/UnifiedVectorDatabaseTest.BatchInsertEmpty/HNSW (0 ms)
+[ RUN      ] AllIndexTypes/UnifiedVectorDatabaseTest.BatchInsertEmpty/IVF
+[       OK ] AllIndexTypes/UnifiedVectorDatabaseTest.BatchInsertEmpty/IVF (0 ms)
+[ RUN      ] AllIndexTypes/UnifiedVectorDatabaseTest.BatchInsertIntoEmpty/Flat
+[       OK ] AllIndexTypes/UnifiedVectorDatabaseTest.BatchInsertIntoEmpty/Flat (0 ms)
+[ RUN      ] AllIndexTypes/UnifiedVectorDatabaseTest.BatchInsertIntoEmpty/HNSW
+[       OK ] AllIndexTypes/UnifiedVectorDatabaseTest.BatchInsertIntoEmpty/HNSW (233 ms)
+[ RUN      ] AllIndexTypes/UnifiedVectorDatabaseTest.BatchInsertIntoEmpty/IVF
+[       OK ] AllIndexTypes/UnifiedVectorDatabaseTest.BatchInsertIntoEmpty/IVF (3 ms)
+[ RUN      ] AllIndexTypes/UnifiedVectorDatabaseTest.BatchInsertIncremental/Flat
+[       OK ] AllIndexTypes/UnifiedVectorDatabaseTest.BatchInsertIncremental/Flat (0 ms)
+[ RUN      ] AllIndexTypes/UnifiedVectorDatabaseTest.BatchInsertIncremental/HNSW
+[       OK ] AllIndexTypes/UnifiedVectorDatabaseTest.BatchInsertIncremental/HNSW (105 ms)
+[ RUN      ] AllIndexTypes/UnifiedVectorDatabaseTest.BatchInsertIncremental/IVF
+[       OK ] AllIndexTypes/UnifiedVectorDatabaseTest.BatchInsertIncremental/IVF (0 ms)
+[ RUN      ] AllIndexTypes/UnifiedVectorDatabaseTest.BatchInsertWithDuplicates/Flat
+[       OK ] AllIndexTypes/UnifiedVectorDatabaseTest.BatchInsertWithDuplicates/Flat (0 ms)
+[ RUN      ] AllIndexTypes/UnifiedVectorDatabaseTest.BatchInsertWithDuplicates/HNSW
+[       OK ] AllIndexTypes/UnifiedVectorDatabaseTest.BatchInsertWithDuplicates/HNSW (0 ms)
+[ RUN      ] AllIndexTypes/UnifiedVectorDatabaseTest.BatchInsertWithDuplicates/IVF
+[       OK ] AllIndexTypes/UnifiedVectorDatabaseTest.BatchInsertWithDuplicates/IVF (0 ms)
+[ RUN      ] AllIndexTypes/UnifiedVectorDatabaseTest.AllRecords/Flat
+[       OK ] AllIndexTypes/UnifiedVectorDatabaseTest.AllRecords/Flat (0 ms)
+[ RUN      ] AllIndexTypes/UnifiedVectorDatabaseTest.AllRecords/HNSW
+[       OK ] AllIndexTypes/UnifiedVectorDatabaseTest.AllRecords/HNSW (1 ms)
+[ RUN      ] AllIndexTypes/UnifiedVectorDatabaseTest.AllRecords/IVF
+[       OK ] AllIndexTypes/UnifiedVectorDatabaseTest.AllRecords/IVF (0 ms)
+[ RUN      ] AllIndexTypes/UnifiedVectorDatabaseTest.AllRecordsEmpty/Flat
+[       OK ] AllIndexTypes/UnifiedVectorDatabaseTest.AllRecordsEmpty/Flat (0 ms)
+[ RUN      ] AllIndexTypes/UnifiedVectorDatabaseTest.AllRecordsEmpty/HNSW
+[       OK ] AllIndexTypes/UnifiedVectorDatabaseTest.AllRecordsEmpty/HNSW (0 ms)
+[ RUN      ] AllIndexTypes/UnifiedVectorDatabaseTest.AllRecordsEmpty/IVF
+[       OK ] AllIndexTypes/UnifiedVectorDatabaseTest.AllRecordsEmpty/IVF (0 ms)
+[ RUN      ] AllIndexTypes/UnifiedVectorDatabaseTest.Statistics/Flat
+[       OK ] AllIndexTypes/UnifiedVectorDatabaseTest.Statistics/Flat (0 ms)
+[ RUN      ] AllIndexTypes/UnifiedVectorDatabaseTest.Statistics/HNSW
+[       OK ] AllIndexTypes/UnifiedVectorDatabaseTest.Statistics/HNSW (1 ms)
+[ RUN      ] AllIndexTypes/UnifiedVectorDatabaseTest.Statistics/IVF
+[       OK ] AllIndexTypes/UnifiedVectorDatabaseTest.Statistics/IVF (0 ms)
+[ RUN      ] AllIndexTypes/UnifiedVectorDatabaseTest.Config/Flat
+[       OK ] AllIndexTypes/UnifiedVectorDatabaseTest.Config/Flat (0 ms)
+[ RUN      ] AllIndexTypes/UnifiedVectorDatabaseTest.Config/HNSW
+[       OK ] AllIndexTypes/UnifiedVectorDatabaseTest.Config/HNSW (0 ms)
+[ RUN      ] AllIndexTypes/UnifiedVectorDatabaseTest.Config/IVF
+[       OK ] AllIndexTypes/UnifiedVectorDatabaseTest.Config/IVF (0 ms)
+[----------] 54 tests from AllIndexTypes/UnifiedVectorDatabaseTest (353 ms total)
+
+[----------] 9 tests from AllIndexTypes/UnifiedVectorDatabasePersistenceTest
+[ RUN      ] AllIndexTypes/UnifiedVectorDatabasePersistenceTest.SaveAndLoad/Flat
+[       OK ] AllIndexTypes/UnifiedVectorDatabasePersistenceTest.SaveAndLoad/Flat (1 ms)
+[ RUN      ] AllIndexTypes/UnifiedVectorDatabasePersistenceTest.SaveAndLoad/HNSW
+[       OK ] AllIndexTypes/UnifiedVectorDatabasePersistenceTest.SaveAndLoad/HNSW (10 ms)
+[ RUN      ] AllIndexTypes/UnifiedVectorDatabasePersistenceTest.SaveAndLoad/IVF
+[       OK ] AllIndexTypes/UnifiedVectorDatabasePersistenceTest.SaveAndLoad/IVF (0 ms)
+[ RUN      ] AllIndexTypes/UnifiedVectorDatabasePersistenceTest.SaveWithoutPath/Flat
+[       OK ] AllIndexTypes/UnifiedVectorDatabasePersistenceTest.SaveWithoutPath/Flat (0 ms)
+[ RUN      ] AllIndexTypes/UnifiedVectorDatabasePersistenceTest.SaveWithoutPath/HNSW
+[       OK ] AllIndexTypes/UnifiedVectorDatabasePersistenceTest.SaveWithoutPath/HNSW (0 ms)
+[ RUN      ] AllIndexTypes/UnifiedVectorDatabasePersistenceTest.SaveWithoutPath/IVF
+[       OK ] AllIndexTypes/UnifiedVectorDatabasePersistenceTest.SaveWithoutPath/IVF (0 ms)
+[ RUN      ] AllIndexTypes/UnifiedVectorDatabasePersistenceTest.Flush/Flat
+[       OK ] AllIndexTypes/UnifiedVectorDatabasePersistenceTest.Flush/Flat (0 ms)
+[ RUN      ] AllIndexTypes/UnifiedVectorDatabasePersistenceTest.Flush/HNSW
+[       OK ] AllIndexTypes/UnifiedVectorDatabasePersistenceTest.Flush/HNSW (0 ms)
+[ RUN      ] AllIndexTypes/UnifiedVectorDatabasePersistenceTest.Flush/IVF
+[       OK ] AllIndexTypes/UnifiedVectorDatabasePersistenceTest.Flush/IVF (0 ms)
+[----------] 9 tests from AllIndexTypes/UnifiedVectorDatabasePersistenceTest (14 ms total)
+
+[----------] 6 tests from AllIndexTypes/UnifiedDatabaseEndToEndTest
+[ RUN      ] AllIndexTypes/UnifiedDatabaseEndToEndTest.Insert10K_Search_Save_Load_Search/Flat
+
+[END-TO-END] Inserting up to 10000 vectors with timeout 20 seconds...
+  Inserted 10000 vectors in 0.05 seconds
+  Search returned 50 results
+  Saving database...
+  Loading database...
+  Search after load returned 50 results
+  Recall after save/load: 100.00%
+[       OK ] AllIndexTypes/UnifiedDatabaseEndToEndTest.Insert10K_Search_Save_Load_Search/Flat (369 ms)
+[ RUN      ] AllIndexTypes/UnifiedDatabaseEndToEndTest.Insert10K_Search_Save_Load_Search/HNSW
+
+[HNSW CONFIG] ef_construction=80, ef_search=40 (optimized for 10000 vectors, favoring speed)
+
+[END-TO-END] Inserting up to 10000 vectors with timeout 20 seconds...
+  Timeout reached after 900 inserts
+  Inserted 900 vectors in 22.60 seconds
+  Search returned 50 results
+  Saving database...
+  Loading database...
+  Search after load returned 50 results
+  Recall after save/load: 100.00%
+[       OK ] AllIndexTypes/UnifiedDatabaseEndToEndTest.Insert10K_Search_Save_Load_Search/HNSW (22870 ms)
+[ RUN      ] AllIndexTypes/UnifiedDatabaseEndToEndTest.Insert10K_Search_Save_Load_Search/IVF
+
+[END-TO-END] Inserting up to 10000 vectors with timeout 20 seconds...
+  Inserted 10000 vectors in 0.09 seconds
+  Search returned 50 results
+  Saving database...
+  Loading database...
+  Search after load returned 50 results
+  Recall after save/load: 100.00%
+[       OK ] AllIndexTypes/UnifiedDatabaseEndToEndTest.Insert10K_Search_Save_Load_Search/IVF (405 ms)
+[ RUN      ] AllIndexTypes/UnifiedDatabaseEndToEndTest.MixedWorkload_ConcurrentReadWrite/Flat
+
+[MIXED WORKLOAD] Inserting initial 10000 vectors...
+  Initial insert time: 0.05 seconds
+[MIXED WORKLOAD] Testing concurrent operations with timeout... 20 seconds
+  Test duration: 20.04 seconds
+  Completed 2362 searches
+  Completed 2 inserts
+  Final database size: 10002
+[       OK ] AllIndexTypes/UnifiedDatabaseEndToEndTest.MixedWorkload_ConcurrentReadWrite/Flat (20294 ms)
+[ RUN      ] AllIndexTypes/UnifiedDatabaseEndToEndTest.MixedWorkload_ConcurrentReadWrite/HNSW
+
+[MIXED WORKLOAD] Inserting initial 1000 vectors...
+  Initial insert time: 26.92 seconds
+[MIXED WORKLOAD] Testing concurrent operations with timeout... 20 seconds
+  Test duration: 20.08 seconds
+  Completed 19631 searches
+  Completed 2 inserts
+  Final database size: 1002
+[       OK ] AllIndexTypes/UnifiedDatabaseEndToEndTest.MixedWorkload_ConcurrentReadWrite/HNSW (47023 ms)
+[ RUN      ] AllIndexTypes/UnifiedDatabaseEndToEndTest.MixedWorkload_ConcurrentReadWrite/IVF
+
+[MIXED WORKLOAD] Inserting initial 1000 vectors...
+  Initial insert time: 0.73 seconds
+[MIXED WORKLOAD] Testing concurrent operations with timeout... 20 seconds
+  Test duration: 20.01 seconds
+  Completed 155463 searches
+  Completed 6 inserts
+  Final database size: 1006
+[       OK ] AllIndexTypes/UnifiedDatabaseEndToEndTest.MixedWorkload_ConcurrentReadWrite/IVF (20758 ms)
+[----------] 6 tests from AllIndexTypes/UnifiedDatabaseEndToEndTest (111722 ms total)
+
+[----------] 9 tests from AllCombinations/UnifiedDatabaseDistanceMetricsTest
+[ RUN      ] AllCombinations/UnifiedDatabaseDistanceMetricsTest.SearchWithAllMetrics/Flat_L2
+
+[DISTANCE METRIC] Flat with L2: Found 10 results
+[       OK ] AllCombinations/UnifiedDatabaseDistanceMetricsTest.SearchWithAllMetrics/Flat_L2 (33 ms)
+[ RUN      ] AllCombinations/UnifiedDatabaseDistanceMetricsTest.SearchWithAllMetrics/Flat_Cosine
+
+[DISTANCE METRIC] Flat with Cosine: Found 10 results
+[       OK ] AllCombinations/UnifiedDatabaseDistanceMetricsTest.SearchWithAllMetrics/Flat_Cosine (33 ms)
+[ RUN      ] AllCombinations/UnifiedDatabaseDistanceMetricsTest.SearchWithAllMetrics/Flat_DotProduct
+
+[DISTANCE METRIC] Flat with DotProduct: Found 10 results
+[       OK ] AllCombinations/UnifiedDatabaseDistanceMetricsTest.SearchWithAllMetrics/Flat_DotProduct (27 ms)
+[ RUN      ] AllCombinations/UnifiedDatabaseDistanceMetricsTest.SearchWithAllMetrics/HNSW_L2
+
+[DISTANCE METRIC] HNSW with L2: Found 10 results
+[       OK ] AllCombinations/UnifiedDatabaseDistanceMetricsTest.SearchWithAllMetrics/HNSW_L2 (25524 ms)
+[ RUN      ] AllCombinations/UnifiedDatabaseDistanceMetricsTest.SearchWithAllMetrics/HNSW_Cosine
+
+[DISTANCE METRIC] HNSW with Cosine: Found 10 results
+[       OK ] AllCombinations/UnifiedDatabaseDistanceMetricsTest.SearchWithAllMetrics/HNSW_Cosine (50738 ms)
+[ RUN      ] AllCombinations/UnifiedDatabaseDistanceMetricsTest.SearchWithAllMetrics/HNSW_DotProduct
+
+[DISTANCE METRIC] HNSW with DotProduct: Found 10 results
+[       OK ] AllCombinations/UnifiedDatabaseDistanceMetricsTest.SearchWithAllMetrics/HNSW_DotProduct (29707 ms)
+[ RUN      ] AllCombinations/UnifiedDatabaseDistanceMetricsTest.SearchWithAllMetrics/IVF_L2
+
+[DISTANCE METRIC] IVF with L2: Found 10 results
+[       OK ] AllCombinations/UnifiedDatabaseDistanceMetricsTest.SearchWithAllMetrics/IVF_L2 (30 ms)
+[ RUN      ] AllCombinations/UnifiedDatabaseDistanceMetricsTest.SearchWithAllMetrics/IVF_Cosine
+
+[DISTANCE METRIC] IVF with Cosine: Found 10 results
+[       OK ] AllCombinations/UnifiedDatabaseDistanceMetricsTest.SearchWithAllMetrics/IVF_Cosine (38 ms)
+[ RUN      ] AllCombinations/UnifiedDatabaseDistanceMetricsTest.SearchWithAllMetrics/IVF_DotProduct
+
+[DISTANCE METRIC] IVF with DotProduct: Found 10 results
+[       OK ] AllCombinations/UnifiedDatabaseDistanceMetricsTest.SearchWithAllMetrics/IVF_DotProduct (51 ms)
+[----------] 9 tests from AllCombinations/UnifiedDatabaseDistanceMetricsTest (106185 ms total)
+
+[----------] 15 tests from AllIndexTypes/UnifiedIndexBenchmarkTest
+[ RUN      ] AllIndexTypes/UnifiedIndexBenchmarkTest.SearchLatency_SmallDataset/Flat
+
+[BENCHMARK] Flat - Small Dataset (1K vectors):
+  Average query time: 2.802 ms
+  Total benchmark time: 0.14 seconds
+[       OK ] AllIndexTypes/UnifiedIndexBenchmarkTest.SearchLatency_SmallDataset/Flat (168 ms)
+[ RUN      ] AllIndexTypes/UnifiedIndexBenchmarkTest.SearchLatency_SmallDataset/HNSW
+
+[BENCHMARK] HNSW - Small Dataset (1K vectors):
+  Average query time: 2.151 ms
+  Total benchmark time: 0.11 seconds
+[       OK ] AllIndexTypes/UnifiedIndexBenchmarkTest.SearchLatency_SmallDataset/HNSW (8262 ms)
+[ RUN      ] AllIndexTypes/UnifiedIndexBenchmarkTest.SearchLatency_SmallDataset/IVF
+
+[BENCHMARK] IVF - Small Dataset (1K vectors):
+  Average query time: 2.204 ms
+  Total benchmark time: 0.11 seconds
+[       OK ] AllIndexTypes/UnifiedIndexBenchmarkTest.SearchLatency_SmallDataset/IVF (138 ms)
+[ RUN      ] AllIndexTypes/UnifiedIndexBenchmarkTest.SearchLatency_MediumDataset/Flat
+
+[BENCHMARK] Flat - Medium Dataset (5K vectors): Inserting...
+  Inserted 5000 vectors
+  Average query time: 14.998 ms
+  Total benchmark time: 0.45 seconds
+[       OK ] AllIndexTypes/UnifiedIndexBenchmarkTest.SearchLatency_MediumDataset/Flat (584 ms)
+[ RUN      ] AllIndexTypes/UnifiedIndexBenchmarkTest.SearchLatency_MediumDataset/HNSW
+
+[BENCHMARK] HNSW - Medium Dataset (5K vectors): Inserting...
+  Insert timeout after 1894 vectors
+  Inserted 1894 vectors
+  Average query time: 1.643 ms
+  Total benchmark time: 0.05 seconds
+[       OK ] AllIndexTypes/UnifiedIndexBenchmarkTest.SearchLatency_MediumDataset/HNSW (15175 ms)
+[ RUN      ] AllIndexTypes/UnifiedIndexBenchmarkTest.SearchLatency_MediumDataset/IVF
+
+[BENCHMARK] IVF - Medium Dataset (5K vectors): Inserting...
+  Inserted 5000 vectors
+  Average query time: 11.519 ms
+  Total benchmark time: 0.35 seconds
+[       OK ] AllIndexTypes/UnifiedIndexBenchmarkTest.SearchLatency_MediumDataset/IVF (493 ms)
+[ RUN      ] AllIndexTypes/UnifiedIndexBenchmarkTest.SearchLatency_VaryingK/Flat
+
+[BENCHMARK] Flat - Varying k (2K vectors):
+         k Avg Query Time (ms)       Results
+---------------------------------------------
+         1               5.812              1
+        10               5.679             10
+        50               5.590             50
+  Total benchmark time: 0.34 seconds
+[       OK ] AllIndexTypes/UnifiedIndexBenchmarkTest.SearchLatency_VaryingK/Flat (424 ms)
+[ RUN      ] AllIndexTypes/UnifiedIndexBenchmarkTest.SearchLatency_VaryingK/HNSW
+
+[BENCHMARK] HNSW - Varying k (2K vectors):
+         k Avg Query Time (ms)       Results
+---------------------------------------------
+         1               1.680              1
+        10               1.653             10
+        50               2.790             50
+  Total benchmark time: 0.12 seconds
+[       OK ] AllIndexTypes/UnifiedIndexBenchmarkTest.SearchLatency_VaryingK/HNSW (16067 ms)
+[ RUN      ] AllIndexTypes/UnifiedIndexBenchmarkTest.SearchLatency_VaryingK/IVF
+
+[BENCHMARK] IVF - Varying k (2K vectors):
+         k Avg Query Time (ms)       Results
+---------------------------------------------
+         1               4.399              1
+        10               5.674             10
+        50               4.561             50
+  Total benchmark time: 0.29 seconds
+[       OK ] AllIndexTypes/UnifiedIndexBenchmarkTest.SearchLatency_VaryingK/IVF (358 ms)
+[ RUN      ] AllIndexTypes/UnifiedIndexBenchmarkTest.MemoryUsage_Comparison/Flat
+
+[BENCHMARK] Flat - Memory Usage (5000 vectors, dim=128):
+  Total memory: 5.42 MB
+  Raw data size: 2.44 MB
+  Overhead ratio: 2.22x
+[       OK ] AllIndexTypes/UnifiedIndexBenchmarkTest.MemoryUsage_Comparison/Flat (120 ms)
+[ RUN      ] AllIndexTypes/UnifiedIndexBenchmarkTest.MemoryUsage_Comparison/HNSW
+
+[BENCHMARK] HNSW - Memory Usage (1889 vectors, dim=128):
+  Total memory: 2.48 MB
+  Raw data size: 0.92 MB
+  Overhead ratio: 2.69x
+[       OK ] AllIndexTypes/UnifiedIndexBenchmarkTest.MemoryUsage_Comparison/HNSW (15103 ms)
+[ RUN      ] AllIndexTypes/UnifiedIndexBenchmarkTest.MemoryUsage_Comparison/IVF
+
+[BENCHMARK] IVF - Memory Usage (5000 vectors, dim=128):
+  Total memory: 5.34 MB
+  Raw data size: 2.44 MB
+  Overhead ratio: 2.19x
+[       OK ] AllIndexTypes/UnifiedIndexBenchmarkTest.MemoryUsage_Comparison/IVF (156 ms)
+[ RUN      ] AllIndexTypes/UnifiedIndexBenchmarkTest.ConstructionTime/Flat
+
+[BENCHMARK] Flat - Construction Time:
+  Inserted 5000 / 5000 vectors
+  Construction time: 0.03 seconds
+  Throughput: 185185 inserts/second
+[       OK ] AllIndexTypes/UnifiedIndexBenchmarkTest.ConstructionTime/Flat (129 ms)
+[ RUN      ] AllIndexTypes/UnifiedIndexBenchmarkTest.ConstructionTime/HNSW
+
+[BENCHMARK] HNSW - Construction Time:
+  Inserted 2214 / 5000 vectors
+  Construction time: 18.00 seconds
+  Throughput: 123 inserts/second
+[       OK ] AllIndexTypes/UnifiedIndexBenchmarkTest.ConstructionTime/HNSW (18130 ms)
+[ RUN      ] AllIndexTypes/UnifiedIndexBenchmarkTest.ConstructionTime/IVF
+
+[BENCHMARK] IVF - Construction Time:
+  Inserted 5000 / 5000 vectors
+  Construction time: 0.04 seconds
+  Throughput: 125000 inserts/second
+[       OK ] AllIndexTypes/UnifiedIndexBenchmarkTest.ConstructionTime/IVF (139 ms)
+[----------] 15 tests from AllIndexTypes/UnifiedIndexBenchmarkTest (75454 ms total)
+
+[----------] 21 tests from AllIndexTypes/ThreadingTest
+[ RUN      ] AllIndexTypes/ThreadingTest.ConcurrentReads/Flat
+[       OK ] AllIndexTypes/ThreadingTest.ConcurrentReads/Flat (460 ms)
+[ RUN      ] AllIndexTypes/ThreadingTest.ConcurrentReads/HNSW
+[       OK ] AllIndexTypes/ThreadingTest.ConcurrentReads/HNSW (5704 ms)
+[ RUN      ] AllIndexTypes/ThreadingTest.ConcurrentReads/IVF
+[       OK ] AllIndexTypes/ThreadingTest.ConcurrentReads/IVF (1399 ms)
+[ RUN      ] AllIndexTypes/ThreadingTest.ConcurrentReadsAndWrites/Flat
+[       OK ] AllIndexTypes/ThreadingTest.ConcurrentReadsAndWrites/Flat (20030 ms)
+[ RUN      ] AllIndexTypes/ThreadingTest.ConcurrentReadsAndWrites/HNSW
+[       OK ] AllIndexTypes/ThreadingTest.ConcurrentReadsAndWrites/HNSW (22845 ms)
+[ RUN      ] AllIndexTypes/ThreadingTest.ConcurrentReadsAndWrites/IVF
+[       OK ] AllIndexTypes/ThreadingTest.ConcurrentReadsAndWrites/IVF (20296 ms)
+[ RUN      ] AllIndexTypes/ThreadingTest.ConcurrentWrites/Flat
+[       OK ] AllIndexTypes/ThreadingTest.ConcurrentWrites/Flat (10 ms)
+[ RUN      ] AllIndexTypes/ThreadingTest.ConcurrentWrites/HNSW
+[       OK ] AllIndexTypes/ThreadingTest.ConcurrentWrites/HNSW (2195 ms)
+[ RUN      ] AllIndexTypes/ThreadingTest.ConcurrentWrites/IVF
+[       OK ] AllIndexTypes/ThreadingTest.ConcurrentWrites/IVF (20 ms)
+[ RUN      ] AllIndexTypes/ThreadingTest.ConcurrentRemoves/Flat
+[       OK ] AllIndexTypes/ThreadingTest.ConcurrentRemoves/Flat (16 ms)
+[ RUN      ] AllIndexTypes/ThreadingTest.ConcurrentRemoves/HNSW
+[       OK ] AllIndexTypes/ThreadingTest.ConcurrentRemoves/HNSW (5522 ms)
+[ RUN      ] AllIndexTypes/ThreadingTest.ConcurrentRemoves/IVF
+[       OK ] AllIndexTypes/ThreadingTest.ConcurrentRemoves/IVF (774 ms)
+[ RUN      ] AllIndexTypes/ThreadingTest.StatisticsConsistency/Flat
+[       OK ] AllIndexTypes/ThreadingTest.StatisticsConsistency/Flat (215 ms)
+[ RUN      ] AllIndexTypes/ThreadingTest.StatisticsConsistency/HNSW
+[       OK ] AllIndexTypes/ThreadingTest.StatisticsConsistency/HNSW (2673 ms)
+[ RUN      ] AllIndexTypes/ThreadingTest.StatisticsConsistency/IVF
+[       OK ] AllIndexTypes/ThreadingTest.StatisticsConsistency/IVF (195 ms)
+[ RUN      ] AllIndexTypes/ThreadingTest.ConcurrentBatchInserts/Flat
+[       OK ] AllIndexTypes/ThreadingTest.ConcurrentBatchInserts/Flat (5 ms)
+[ RUN      ] AllIndexTypes/ThreadingTest.ConcurrentBatchInserts/HNSW
+[       OK ] AllIndexTypes/ThreadingTest.ConcurrentBatchInserts/HNSW (923 ms)
+[ RUN      ] AllIndexTypes/ThreadingTest.ConcurrentBatchInserts/IVF
+[       OK ] AllIndexTypes/ThreadingTest.ConcurrentBatchInserts/IVF (16 ms)
+[ RUN      ] AllIndexTypes/ThreadingTest.StressTest/Flat
+[       OK ] AllIndexTypes/ThreadingTest.StressTest/Flat (253 ms)
+[ RUN      ] AllIndexTypes/ThreadingTest.StressTest/HNSW
+[       OK ] AllIndexTypes/ThreadingTest.StressTest/HNSW (2337 ms)
+[ RUN      ] AllIndexTypes/ThreadingTest.StressTest/IVF
+[       OK ] AllIndexTypes/ThreadingTest.StressTest/IVF (196 ms)
+[----------] 21 tests from AllIndexTypes/ThreadingTest (86094 ms total)
+
+[----------] Global test environment tear-down
+[==========] 472 tests from 30 test suites ran. (428606 ms total)
+[  PASSED  ] 472 tests.

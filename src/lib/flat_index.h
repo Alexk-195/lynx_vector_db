@@ -15,6 +15,7 @@
 #include "lynx_intern.h"
 #include <vector>
 #include <unordered_map>
+#include <shared_mutex>
 #include <cstdint>
 #include <cstddef>
 
@@ -34,8 +35,8 @@ namespace lynx {
  * - Memory: O(N·D) for vector storage only
  * - Recall: 100% (exact search)
  *
- * Thread-safety: This class is NOT thread-safe. Concurrent access must be
- * managed externally (e.g., by the database layer).
+ * Thread-safety: This class is thread-safe. Concurrent reads are supported
+ * via std::shared_mutex. Writes are serialized.
  */
 class FlatIndex : public IVectorIndex {
 public:
@@ -172,6 +173,9 @@ private:
 
     // Vector storage
     std::unordered_map<std::uint64_t, std::vector<float>> vectors_;  ///< ID -> vector mapping
+
+    // Thread safety
+    mutable std::shared_mutex mutex_;  ///< Reader-writer lock
 
     // Constants
     static constexpr std::uint32_t kMagicNumber = 0x464C4154;  ///< "FLAT" in hex

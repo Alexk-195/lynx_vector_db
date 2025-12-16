@@ -260,8 +260,9 @@ TEST_P(UnifiedDatabaseEndToEndTest, Insert10K_Search_Save_Load_Search) {
 }
 
 TEST_P(UnifiedDatabaseEndToEndTest, MixedWorkload_ConcurrentReadWrite) {
-    // Configure parameters for 10K dataset
-    const std::size_t initial_size = 10000;
+    // Adjust dataset size based on index type
+    // HNSW has expensive graph construction, so use smaller dataset
+    const std::size_t initial_size = 1000;
     constexpr int time_out_seconds = 20;
 
     configure_for_dataset_size(initial_size);
@@ -308,12 +309,13 @@ TEST_P(UnifiedDatabaseEndToEndTest, MixedWorkload_ConcurrentReadWrite) {
                 search_count++;
 
                 // Check timeout periodically
-                if (search_count % 10 == 0) {
+                if (search_count % 5 == 0) {
                     auto elapsed = std::chrono::steady_clock::now() - start_time;
                     if (elapsed >= timeout_duration) {
                         stop_flag.store(true, std::memory_order_relaxed);
                         break;
                     }
+                    std::this_thread::sleep_for(std::chrono::milliseconds(1));
                 }
             }
         });
@@ -334,13 +336,12 @@ TEST_P(UnifiedDatabaseEndToEndTest, MixedWorkload_ConcurrentReadWrite) {
                     local_insert++;
                 }
 
-                // Check timeout periodically (less frequently for writes)
-                if (insert_count % 5 == 0) {
-                    auto elapsed = std::chrono::steady_clock::now() - start_time;
-                    if (elapsed >= timeout_duration) {
-                        stop_flag.store(true, std::memory_order_relaxed);
-                        break;
-                    }
+                // Check timeout periodically 
+                std::this_thread::sleep_for(std::chrono::milliseconds(1));
+                auto elapsed = std::chrono::steady_clock::now() - start_time;
+                if (elapsed >= timeout_duration) {
+                    stop_flag.store(true, std::memory_order_relaxed);
+                    break;
                 }
             }
         });

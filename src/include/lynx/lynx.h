@@ -401,9 +401,23 @@ public:
     // -------------------------------------------------------------------------
 
     /**
-     * @brief Insert multiple vectors in a batch.
+     * @brief Insert multiple vectors in a batch with all-or-nothing semantics.
+     *
+     * This method validates all records before inserting any of them, ensuring that
+     * partial inserts never occur. If any record fails validation, the entire batch
+     * is rejected and no records are inserted.
+     *
      * @param records Vector records to insert
-     * @return ErrorCode indicating success or failure
+     * @return ErrorCode indicating success or failure:
+     *         - ErrorCode::Ok: All records successfully inserted
+     *         - ErrorCode::DimensionMismatch: One or more records have incorrect dimension
+     *         - ErrorCode::InvalidParameter: Duplicate ID found (within batch or in database)
+     *
+     * @note All-or-nothing guarantee: If this method returns an error, NO records from
+     *       the batch will be inserted into the database. This prevents partial inserts
+     *       when dimension mismatches or other validation errors occur.
+     *
+     * @note Thread-safe: Can be called concurrently from multiple threads.
      */
     virtual ErrorCode batch_insert(std::span<const VectorRecord> records) = 0;
 

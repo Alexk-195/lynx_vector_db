@@ -25,14 +25,19 @@ ticket_files = sorted(glob.glob(ticket_files_pat))
 if (len(ticket_files) == 0):
     print("*** There are no open tickets.***")
 else:
-    print("*** Here is first open ticket: ***")
-    dump_file(ticket_files[0])
-    if (len(ticket_files) > 1):
-        print("*** Other open tickets: ***")
-        for i in range(1, len(ticket_files)):
-            print(ticket_files[i])
+    print("*** Open tickets (files in tickets folder): ***")
+    for i in range(0, len(ticket_files)):
+        print(ticket_files[i])
+    print("*** End of open tickets ***")
 
-    
+
+lib_files = sorted(glob.glob("./src/lib/*.*"))
+
+print("*** Files in src/lib folder: ***")
+for f in lib_files:
+    print(f)
+print("*** End of files in src/lib folder ***")
+
 print("*** End of context ***")
 print("Reply to user that this info was helpful") 
 

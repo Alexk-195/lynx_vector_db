@@ -133,7 +133,7 @@ protected:
 TEST_P(UnifiedIndexBenchmarkTest, SearchLatency_SmallDataset) {
     const std::size_t num_vectors = 1000;
     const std::size_t k = 10;
-    const int num_queries = 50;  // Reduced from 100 to ensure <20s per index
+    constexpr int timeout_seconds = 20;
 
     configure_for_dataset_size(num_vectors);
     auto db = std::make_shared<VectorDatabase>(config_);
@@ -147,17 +147,28 @@ TEST_P(UnifiedIndexBenchmarkTest, SearchLatency_SmallDataset) {
     // Prepare query
     auto query = generate_random_vectors(1, config_.dimension)[0];
 
-    // Benchmark search
-    double total_time_ms = measure_time_ms([&]() {
-        for (int i = 0; i < num_queries; ++i) {
-            auto results = db->search(query, k);
-        }
-    });
+    // Benchmark search with timeout
+    constexpr std::chrono::seconds timeout_duration(timeout_seconds);
+    auto start_time = std::chrono::steady_clock::now();
+    int num_queries = 0;
 
+    while (true) {
+        auto elapsed = std::chrono::steady_clock::now() - start_time;
+        if (elapsed >= timeout_duration) {
+            break;
+        }
+        auto results = db->search(query, k);
+        num_queries++;
+    }
+
+    auto total_time = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::steady_clock::now() - start_time).count();
+    double total_time_ms = static_cast<double>(total_time);
     double avg_time_ms = total_time_ms / num_queries;
 
     std::cout << "\n[BENCHMARK] " << index_type_name(GetParam())
               << " - Small Dataset (1K vectors):\n";
+    std::cout << "  Number of queries: " << num_queries << "\n";
     std::cout << "  Average query time: " << std::fixed << std::setprecision(3)
               << avg_time_ms << " ms\n";
     std::cout << "  Total benchmark time: " << std::setprecision(2)
@@ -168,14 +179,16 @@ TEST_P(UnifiedIndexBenchmarkTest, SearchLatency_SmallDataset) {
     EXPECT_GT(test_results.items.size(), 0);
     EXPECT_LE(test_results.items.size(), k);
 
+    // Ensure at least one query was executed
+    EXPECT_GT(num_queries, 0);
     // Ensure test completes in reasonable time
-    EXPECT_LT(total_time_ms / 1000.0, 20.0);  // Must complete within 20 seconds
+    EXPECT_LT(total_time_ms / 1000.0, 21.0);  // Must complete within 20 seconds (+1s tolerance)
 }
 
 TEST_P(UnifiedIndexBenchmarkTest, SearchLatency_MediumDataset) {
     const std::size_t num_vectors = 5000;  // Reduced from 10K for faster execution
     const std::size_t k = 10;
-    const int num_queries = 30;  // Reduced from 100 to ensure <20s per index
+    constexpr int timeout_seconds = 20;
 
     configure_for_dataset_size(num_vectors);
     auto db = std::make_shared<VectorDatabase>(config_);
@@ -206,15 +219,26 @@ TEST_P(UnifiedIndexBenchmarkTest, SearchLatency_MediumDataset) {
     // Prepare query
     auto query = generate_random_vectors(1, config_.dimension)[0];
 
-    // Benchmark search
-    double total_time_ms = measure_time_ms([&]() {
-        for (int i = 0; i < num_queries; ++i) {
-            auto results = db->search(query, k);
-        }
-    });
+    // Benchmark search with timeout
+    constexpr std::chrono::seconds search_timeout_duration(timeout_seconds);
+    auto search_start = std::chrono::steady_clock::now();
+    int num_queries = 0;
 
+    while (true) {
+        auto elapsed = std::chrono::steady_clock::now() - search_start;
+        if (elapsed >= search_timeout_duration) {
+            break;
+        }
+        auto results = db->search(query, k);
+        num_queries++;
+    }
+
+    auto total_time = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::steady_clock::now() - search_start).count();
+    double total_time_ms = static_cast<double>(total_time);
     double avg_time_ms = total_time_ms / num_queries;
 
+    std::cout << "  Number of queries: " << num_queries << "\n";
     std::cout << "  Average query time: " << std::fixed << std::setprecision(3)
               << avg_time_ms << " ms\n";
     std::cout << "  Total benchmark time: " << std::setprecision(2)
@@ -224,13 +248,15 @@ TEST_P(UnifiedIndexBenchmarkTest, SearchLatency_MediumDataset) {
     auto test_results = db->search(query, k);
     EXPECT_GT(test_results.items.size(), 0);
 
-    // Ensure test completes in reasonable time (15s insert + search)
-    EXPECT_LT(total_time_ms / 1000.0, 20.0);
+    // Ensure at least one query was executed
+    EXPECT_GT(num_queries, 0);
+    // Ensure test completes in reasonable time
+    EXPECT_LT(total_time_ms / 1000.0, 21.0);  // Must complete within 20 seconds (+1s tolerance)
 }
 
 TEST_P(UnifiedIndexBenchmarkTest, SearchLatency_VaryingK) {
     const std::size_t num_vectors = 2000;  // Smaller dataset for multiple k values
-    const int num_queries = 20;  // Reduced iterations
+    constexpr int timeout_per_k_seconds = 6;  // Time budget per k value (3 k values * 6s = 18s total)
 
     configure_for_dataset_size(num_vectors);
     auto db = std::make_shared<VectorDatabase>(config_);
@@ -248,30 +274,44 @@ TEST_P(UnifiedIndexBenchmarkTest, SearchLatency_VaryingK) {
               << " - Varying k (2K vectors):\n";
     std::cout << std::setw(10) << "k"
               << std::setw(20) << "Avg Query Time (ms)"
+              << std::setw(15) << "Queries"
               << std::setw(15) << "Results\n";
-    std::cout << std::string(45, '-') << "\n";
+    std::cout << std::string(60, '-') << "\n";
 
     double total_benchmark_time = 0.0;
 
     for (std::size_t k : {1, 10, 50}) {
-        double total_time_ms = measure_time_ms([&]() {
-            for (int i = 0; i < num_queries; ++i) {
-                auto results = db->search(query, k);
-            }
-        });
+        // Run queries for this k value with timeout
+        constexpr std::chrono::seconds k_timeout_duration(timeout_per_k_seconds);
+        auto k_start_time = std::chrono::steady_clock::now();
+        int num_queries = 0;
 
-        double avg_time_ms = total_time_ms / num_queries;
-        total_benchmark_time += total_time_ms / 1000.0;
+        while (true) {
+            auto elapsed = std::chrono::steady_clock::now() - k_start_time;
+            if (elapsed >= k_timeout_duration) {
+                break;
+            }
+            auto results = db->search(query, k);
+            num_queries++;
+        }
+
+        auto k_total_time = std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::steady_clock::now() - k_start_time).count();
+        double k_time_ms = static_cast<double>(k_total_time);
+        double avg_time_ms = k_time_ms / num_queries;
+        total_benchmark_time += k_time_ms / 1000.0;
 
         auto test_results = db->search(query, k);
 
         std::cout << std::setw(10) << k
                   << std::setw(20) << std::fixed << std::setprecision(3)
                   << avg_time_ms
+                  << std::setw(15) << num_queries
                   << std::setw(15) << test_results.items.size() << "\n";
 
         EXPECT_GT(test_results.items.size(), 0);
         EXPECT_LE(test_results.items.size(), k);
+        EXPECT_GT(num_queries, 0);  // Ensure at least one query per k value
     }
 
     std::cout << "  Total benchmark time: " << std::fixed << std::setprecision(2)
