@@ -13,6 +13,9 @@
 #include <iostream>
 #include <mutex>
 
+#define UNIQUE_LOCK(mutex_); std::unique_lock lock(mutex_);
+#define SHARED_LOCK(mutex_); std::shared_lock lock(mutex_);
+
 namespace lynx {
 
 // Static member initialization
@@ -278,7 +281,7 @@ std::vector<std::uint64_t> HNSWIndex::select_neighbors_heuristic(
 // ============================================================================
 
 ErrorCode HNSWIndex::add(std::uint64_t id, std::span<const float> vector) {
-    std::unique_lock lock(mutex_);
+    UNIQUE_LOCK(mutex_);
 
     // Validate dimension
     if (vector.size() != dimension_) {
@@ -369,7 +372,7 @@ std::vector<SearchResultItem> HNSWIndex::search(
     std::size_t k,
     const SearchParams& params) const {
 
-    std::shared_lock lock(mutex_);
+    SHARED_LOCK(mutex_); 
 
     // Validate dimension
     if (query.size() != dimension_) {
@@ -433,7 +436,7 @@ std::vector<SearchResultItem> HNSWIndex::search(
 // ============================================================================
 
 ErrorCode HNSWIndex::remove(std::uint64_t id) {
-    std::unique_lock lock(mutex_);
+    UNIQUE_LOCK(mutex_);
 
     // Check if exists
     auto vec_it = vectors_.find(id);
@@ -485,12 +488,12 @@ ErrorCode HNSWIndex::remove(std::uint64_t id) {
 // ============================================================================
 
 bool HNSWIndex::contains(std::uint64_t id) const {
-    std::shared_lock lock(mutex_);
+    SHARED_LOCK(mutex_); 
     return vectors_.find(id) != vectors_.end();
 }
 
 std::size_t HNSWIndex::memory_usage() const {
-    std::shared_lock lock(mutex_);
+    SHARED_LOCK(mutex_); 
 
     std::size_t total = 0;
 
@@ -533,7 +536,7 @@ ErrorCode HNSWIndex::build(std::span<const VectorRecord> vectors) {
 // ============================================================================
 
 ErrorCode HNSWIndex::optimize_graph() {
-    std::unique_lock lock(mutex_);
+    UNIQUE_LOCK(mutex_);
 
     // If index is empty or too small, no optimization needed
     if (graph_.empty() || graph_.size() < 10) {
@@ -604,7 +607,7 @@ ErrorCode HNSWIndex::optimize_graph() {
 // ============================================================================
 
 ErrorCode HNSWIndex::compact_index() {
-    std::unique_lock lock(mutex_);
+    UNIQUE_LOCK(mutex_);
 
     // If index is empty, nothing to compact
     if (graph_.empty() && vectors_.empty()) {
@@ -725,7 +728,7 @@ ErrorCode HNSWIndex::compact_index() {
 // ============================================================================
 
 ErrorCode HNSWIndex::serialize(std::ostream& out) const {
-    std::shared_lock lock(mutex_);
+    SHARED_LOCK(mutex_); 
 
     try {
         // Write magic number and version for file format verification
@@ -796,7 +799,7 @@ ErrorCode HNSWIndex::serialize(std::ostream& out) const {
 }
 
 ErrorCode HNSWIndex::deserialize(std::istream& in) {
-    std::unique_lock lock(mutex_);
+    UNIQUE_LOCK(mutex_);
 
     try {
         // Read and verify magic number
