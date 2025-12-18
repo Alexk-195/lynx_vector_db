@@ -1,0 +1,124 @@
+# Benchmarks
+
+This folder contains benchmark scripts to compare Lynx Vector Database performance against other vector database implementations.
+
+## Available Benchmarks
+
+### ChromaDB vs Lynx
+
+Compare Lynx against ChromaDB on identical workloads.
+
+**Test Configuration:**
+- Vectors: 10,000
+- Dimensions: 512
+- Index: HNSW (M=32, ef_construction=200)
+- Distance Metric: L2 (Euclidean)
+- Queries: 10 searches for k=5 nearest neighbors
+
+**Files:**
+- `chromadb_test.py` - ChromaDB benchmark script
+- `lynx_test.cpp` - Lynx benchmark application
+- `run_lynx_benchmark.sh` - Build and run Lynx benchmark
+- `compare_benchmarks.py` - Run both and compare results
+
+## Prerequisites
+
+### For ChromaDB Benchmark
+
+Install ChromaDB:
+```bash
+pip install chromadb numpy
+```
+
+### For Lynx Benchmark
+
+Build Lynx first:
+```bash
+cd /home/alex/lynx_vector_db
+./setup.sh
+```
+
+## Running Benchmarks
+
+### Run Individual Benchmarks
+
+**ChromaDB only:**
+```bash
+cd benchmarks
+python chromadb_test.py
+```
+
+**Lynx only:**
+```bash
+cd benchmarks
+./run_lynx_benchmark.sh
+```
+
+### Run Comparison
+
+Run both benchmarks and compare results:
+```bash
+cd benchmarks
+./compare_benchmarks.py
+```
+
+This will:
+1. Run ChromaDB benchmark
+2. Run Lynx benchmark
+3. Display side-by-side comparison
+4. Show performance metrics and speedup
+
+## Expected Output
+
+The comparison script will show:
+
+- **Insertion Performance**: Time to insert 10,000 vectors
+- **Query Performance**: Average query latency
+- **Individual Query Times**: Per-query comparison
+- **Speedup Metrics**: Performance multipliers
+
+Example output:
+```
+📊 Insertion Performance (10,000 vectors, 512 dims)
+------------------------------------------------------------
+ChromaDB:     2.34s
+Lynx:         1.12s
+
+✅ Lynx is 2.09x FASTER
+
+📊 Query Performance (HNSW, k=5)
+------------------------------------------------------------
+ChromaDB avg:    15.23ms
+Lynx avg:         8.45ms
+
+✅ Lynx queries are 1.80x FASTER
+```
+
+## Customizing Benchmarks
+
+To modify test parameters, edit the constants in the benchmark files:
+
+**chromadb_test.py:**
+```python
+NUM_VECTORS = 10_000
+DIMENSION = 512
+NUM_QUERIES = 10
+BATCH_SIZE = 1000
+```
+
+**lynx_test.cpp:**
+```cpp
+constexpr int NUM_VECTORS = 10'000;
+constexpr int DIMENSION = 512;
+constexpr int NUM_QUERIES = 10;
+constexpr int BATCH_SIZE = 1000;
+```
+
+Remember to use the same values in both files for fair comparison.
+
+## Notes
+
+- All benchmarks use random data
+- Results may vary based on system resources
+- For production comparisons, use realistic datasets
+- Both benchmarks use similar HNSW parameters for fairness
