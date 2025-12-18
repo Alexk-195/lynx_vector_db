@@ -98,23 +98,31 @@ ErrorCode VectorDatabase::insert(const VectorRecord& record) {
 }
 
 ErrorCode VectorDatabase::remove(std::uint64_t id) {
-    // Check if exists with lock
+    // Atomically check existence and remove from vectors_
+    // This fixes race condition between check and removal
+    VectorRecord record_backup;
     {
-        std::shared_lock lock(vectors_mutex_);
-        if (vectors_.find(id) == vectors_.end()) {
+        std::unique_lock lock(vectors_mutex_);
+        auto it = vectors_.find(id);
+        if (it == vectors_.end()) {
             return ErrorCode::VectorNotFound;
         }
+
+        // Save record for potential rollback
+        record_backup = it->second;
+
+        // Remove from vectors_ immediately
+        vectors_.erase(it);
     } // Release lock before calling into index
 
     // Remove from index (index has its own locking)
     ErrorCode result = index_->remove(id);
     if (result != ErrorCode::Ok) {
+        // Rollback: restore the record to vectors_
+        std::unique_lock lock(vectors_mutex_);
+        vectors_[id] = std::move(record_backup);
         return result;
     }
-
-    // Remove from vectors_ with exclusive lock
-    std::unique_lock lock(vectors_mutex_);
-    vectors_.erase(id);
 
     return ErrorCode::Ok;
 }
@@ -259,8 +267,7 @@ ErrorCode VectorDatabase::batch_insert(std::span<const VectorRecord> records) {
         }
     }
 
-    // For non-empty database, use incremental insert with per-record locking
-    // This allows concurrent searches during batch insert
+    // For non-empty database, use incremental insert with atomic semantics
 
     // Step 1: Validate ALL records before inserting ANY of them
     // This ensures no partial inserts occur if validation fails
@@ -278,36 +285,52 @@ ErrorCode VectorDatabase::batch_insert(std::span<const VectorRecord> records) {
         }
     }
 
-    // Step 2: Check for existing IDs in database
+    // Step 2: Atomically check for existing IDs and insert into vectors_
+    // This fixes TOCTOU race: we hold exclusive lock from check through insert
     {
-        std::shared_lock lock(vectors_mutex_);
+        std::unique_lock lock(vectors_mutex_);
+
+        // Check for existing IDs in database
         for (const auto& record : records) {
             if (vectors_.contains(record.id)) {
                 return ErrorCode::InvalidParameter;
             }
         }
-    }
 
-    // Step 3: All validations passed, now insert records
-    for (const auto& record : records) {
-        // Store vector (with lock)
-        {
-            std::unique_lock lock(vectors_mutex_);
+        // All checks passed, insert all records into vectors_
+        for (const auto& record : records) {
             vectors_[record.id] = record;
-        } // Release lock before calling into index
+        }
+    } // Release lock before calling into index
 
+    // Step 3: Insert into index one by one, with full rollback on failure
+    // Track all successfully inserted IDs for potential rollback
+    std::vector<std::uint64_t> inserted_ids;
+    inserted_ids.reserve(records.size());
+
+    for (const auto& record : records) {
         // Add to index (index has its own locking)
         ErrorCode result = index_->add(record.id, record.vector);
         if (result != ErrorCode::Ok) {
-            // Rollback this insert
+            // Rollback ALL: remove all previously inserted records from index
+            for (std::uint64_t rollback_id : inserted_ids) {
+                index_->remove(rollback_id);
+            }
+
+            // Remove ALL records from vectors_ (atomic all-or-nothing)
             std::unique_lock lock(vectors_mutex_);
-            vectors_.erase(record.id);
+            for (const auto& r : records) {
+                vectors_.erase(r.id);
+            }
+
             return result;
         }
 
-        total_inserts_.fetch_add(1, std::memory_order_relaxed);
+        inserted_ids.push_back(record.id);
     }
 
+    // All inserts successful
+    total_inserts_.fetch_add(records.size(), std::memory_order_relaxed);
     return ErrorCode::Ok;
 }
 
@@ -571,15 +594,12 @@ ErrorCode VectorDatabase::bulk_build(std::span<const VectorRecord> records) {
         }
     }
 
-    // Store all records in vectors_ (we already hold the lock from batch_insert)
+    // Store all records in vectors_
     for (const auto& record : records) {
         vectors_[record.id] = record;
     }
 
-    // Release lock before calling into index (index has its own locking)
-    // Note: The lock is held by the caller (batch_insert), we can't release it here
-    // The index_->build() call is made with lock held, but index has its own locking
-
+    // Build index from all records (index has its own locking)
     ErrorCode result = index_->build(records);
     if (result == ErrorCode::Ok) {
         total_inserts_.fetch_add(records.size(), std::memory_order_relaxed);
