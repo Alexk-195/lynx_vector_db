@@ -3,7 +3,10 @@ build/
 build-coverage/
 build-test/
 build-tsan/
+build-asan/
+build-ubsan/
 build-clang-tidy/
+build-profile/
 cmake-build/
 cmake-build-debug/
 cmake-build-release/
@@ -20,6 +23,9 @@ coverage.info
 *.gcov
 *.profraw
 *.profdata
+
+# Profiling artifacts
+gmon.out
 
 # External dependencies
 external/
