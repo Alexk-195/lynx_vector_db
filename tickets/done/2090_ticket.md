@@ -10,4 +10,4 @@ Take care that profiling only consideres files in src/lib.
 
 ## Acceptance Criteria
 
-- [ ] Profile report generated
+- [x] Profile report generated
