@@ -3,57 +3,56 @@ Flat profile:
 Each sample counts as 0.01 seconds.
   %   cumulative   self              self     total           
  time   seconds   seconds    calls   s/call   s/call  name    
- 90.82     10.68    10.68 19205689     0.00     0.00  lynx::utils::calculate_l2_squared(std::span<float const, 18446744073709551615ul>, std::span<float const, 18446744073709551615ul>)
-  2.72     11.00     0.32     2207     0.00     0.00  lynx::HNSWIndex::search_layer(std::span<float const, 18446744073709551615ul>, std::vector<unsigned long, std::allocator<unsigned long> > const&, unsigned long, unsigned long) const
-  2.64     11.31     0.31    60869     0.00     0.00  lynx::HNSWIndex::select_neighbors_heuristic(std::priority_queue<lynx::HNSWIndex::Candidate, std::vector<lynx::HNSWIndex::Candidate, std::allocator<lynx::HNSWIndex::Candidate> >, std::greater<lynx::HNSWIndex::Candidate> >&, unsigned long, unsigned long, bool)
-  1.11     11.44     0.13 19205689     0.00     0.00  lynx::utils::calculate_l2(std::span<float const, 18446744073709551615ul>, std::span<float const, 18446744073709551615ul>)
-  0.94     11.55     0.11 37883576     0.00     0.00  lynx::HNSWIndex::serialize(std::ostream&) const
-  0.51     11.61     0.06 18677887     0.00     0.00  lynx::HNSWIndex::calculate_distance(unsigned long, unsigned long) const
-  0.51     11.67     0.06  4239534     0.00     0.00  std::priority_queue<lynx::HNSWIndex::Candidate, std::vector<lynx::HNSWIndex::Candidate, std::allocator<lynx::HNSWIndex::Candidate> >, std::greater<lynx::HNSWIndex::Candidate> >::push(lynx::HNSWIndex::Candidate&&)
-  0.17     11.69     0.02  4483332     0.00     0.00  std::__detail::_Insert_base<unsigned long, unsigned long, std::allocator<unsigned long>, std::__detail::_Identity, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, true, true> >::insert(unsigned long const&)
-  0.17     11.71     0.02   372684     0.00     0.00  lynx::HNSWIndex::memory_usage() const
-  0.17     11.73     0.02    62385     0.00     0.00  lynx::HNSWIndex::prune_connections(unsigned long, unsigned long, unsigned long)
-  0.09     11.74     0.01 19205689     0.00     0.00  lynx::utils::calculate_distance(std::span<float const, 18446744073709551615ul>, std::span<float const, 18446744073709551615ul>, lynx::DistanceMetric)
-  0.09     11.75     0.01     1000     0.00     0.01  lynx::HNSWIndex::add(unsigned long, std::span<float const, 18446744073709551615ul>)
-  0.09     11.76     0.01                             _init
-  0.00     11.76     0.00   527802     0.00     0.00  lynx::HNSWIndex::calculate_distance(std::span<float const, 18446744073709551615ul>, unsigned long) const
-  0.00     11.76     0.00   347292     0.00     0.00  std::priority_queue<lynx::HNSWIndex::Candidate, std::vector<lynx::HNSWIndex::Candidate, std::allocator<lynx::HNSWIndex::Candidate> >, std::less<lynx::HNSWIndex::Candidate> >::push(lynx::HNSWIndex::Candidate&&)
-  0.00     11.76     0.00   184361     0.00     0.00  lynx::HNSWIndex::get_neighbors(unsigned long, unsigned long) const
-  0.00     11.76     0.00    62385     0.00     0.00  lynx::HNSWIndex::add_connection(unsigned long, unsigned long, unsigned long)
-  0.00     11.76     0.00    12223     0.00     0.00  std::_Hashtable<unsigned long, unsigned long, std::allocator<unsigned long>, std::__detail::_Identity, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, true, true> >::_M_rehash(unsigned long, unsigned long const&)
-  0.00     11.76     0.00     1010     0.00     0.00  generate_random_vector(int, std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul>&)
-  0.00     11.76     0.00     1010     0.00     0.00  lynx::VectorDatabase::search(std::span<float const, 18446744073709551615ul>, unsigned long) const
-  0.00     11.76     0.00     1001     0.00     0.00  lynx::HNSWIndex::build(std::span<lynx::VectorRecord const, 18446744073709551615ul>)
-  0.00     11.76     0.00     1000     0.00     0.00  lynx::HNSWIndex::compact_index()
-  0.00     11.76     0.00     1000     0.00     0.00  lynx::HNSWIndex::generate_random_layer()
-  0.00     11.76     0.00     1000     0.00     0.00  std::__detail::_Map_base<unsigned long, std::pair<unsigned long const, lynx::VectorRecord>, std::allocator<std::pair<unsigned long const, lynx::VectorRecord> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true>, true>::operator[](unsigned long const&)
-  0.00     11.76     0.00     1000     0.00     0.00  std::__detail::_Map_base<unsigned long, std::pair<unsigned long const, std::vector<float, std::allocator<float> > >, std::allocator<std::pair<unsigned long const, std::vector<float, std::allocator<float> > > >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true>, true>::operator[](unsigned long const&)
-  0.00     11.76     0.00      829     0.00     0.00  std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul>::_M_gen_rand()
-  0.00     11.76     0.00       10     0.00     0.00  lynx::VectorDatabase::search(std::span<float const, 18446744073709551615ul>, unsigned long, lynx::SearchParams const&) const
-  0.00     11.76     0.00       10     0.00     0.00  lynx::HNSWIndex::search(std::span<float const, 18446744073709551615ul>, unsigned long, lynx::SearchParams const&) const
-  0.00     11.76     0.00        7     0.00     0.00  std::_Hashtable<unsigned long, std::pair<unsigned long const, lynx::VectorRecord>, std::allocator<std::pair<unsigned long const, lynx::VectorRecord> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::_M_rehash(unsigned long, unsigned long const&)
-  0.00     11.76     0.00        7     0.00     0.00  std::_Hashtable<unsigned long, std::pair<unsigned long const, lynx::HNSWIndex::Node>, std::allocator<std::pair<unsigned long const, lynx::HNSWIndex::Node> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::_M_rehash(unsigned long, unsigned long const&)
-  0.00     11.76     0.00        7     0.00     0.00  std::_Hashtable<unsigned long, std::pair<unsigned long const, std::vector<float, std::allocator<float> > >, std::allocator<std::pair<unsigned long const, std::vector<float, std::allocator<float> > > >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::_M_rehash(unsigned long, unsigned long const&)
-  0.00     11.76     0.00        4     0.00     0.00  std::mersenne_twister_engine<unsigned long, 64ul, 312ul, 156ul, 31ul, 13043109905998158313ul, 29ul, 6148914691236517205ul, 17ul, 8202884508482404352ul, 37ul, 18444473444759240704ul, 43ul, 6364136223846793005ul>::_M_gen_rand()
-  0.00     11.76     0.00        3     0.00     0.00  frame_dummy
-  0.00     11.76     0.00        1     0.00     0.00  lynx::IVectorIndex::~IVectorIndex()
-  0.00     11.76     0.00        1     0.00    11.75  lynx::VectorDatabase::batch_insert(std::span<lynx::VectorRecord const, 18446744073709551615ul>)
-  0.00     11.76     0.00        1     0.00     0.00  lynx::VectorDatabase::create_index()
-  0.00     11.76     0.00        1     0.00     0.00  lynx::VectorDatabase::VectorDatabase(lynx::Config const&)
-  0.00     11.76     0.00        1     0.00     0.00  lynx::VectorDatabase::~VectorDatabase()
-  0.00     11.76     0.00        1     0.00     0.00  lynx::IVectorDatabase::create(lynx::Config const&)
-  0.00     11.76     0.00        1     0.00     0.00  lynx::IVectorDatabase::~IVectorDatabase()
-  0.00     11.76     0.00        1     0.00     0.00  lynx::HNSWIndex::HNSWIndex(unsigned long, lynx::DistanceMetric, lynx::HNSWParams const&)
-  0.00     11.76     0.00        1     0.00     0.00  std::_Hashtable<unsigned long, std::pair<unsigned long const, lynx::VectorRecord>, std::allocator<std::pair<unsigned long const, lynx::VectorRecord> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::clear()
-  0.00     11.76     0.00        1     0.00     0.00  std::_Hashtable<unsigned long, std::pair<unsigned long const, std::vector<float, std::allocator<float> > >, std::allocator<std::pair<unsigned long const, std::vector<float, std::allocator<float> > > >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::clear()
-  0.00     11.76     0.00        1     0.00     0.00  std::random_device::random_device()
-  0.00     11.76     0.00        1     0.00     0.00  std::_Sp_counted_base<(__gnu_cxx::_Lock_policy)2>::_M_release()
-  0.00     11.76     0.00        1     0.00     0.00  std::_Sp_counted_ptr_inplace<lynx::VectorDatabase, std::allocator<void>, (__gnu_cxx::_Lock_policy)2>::_M_destroy()
-  0.00     11.76     0.00        1     0.00     0.00  std::_Sp_counted_ptr_inplace<lynx::VectorDatabase, std::allocator<void>, (__gnu_cxx::_Lock_policy)2>::_M_dispose()
-  0.00     11.76     0.00        1     0.00     0.00  std::_Sp_counted_ptr_inplace<lynx::HNSWIndex, std::allocator<void>, (__gnu_cxx::_Lock_policy)2>::_M_destroy()
-  0.00     11.76     0.00        1     0.00     0.00  std::_Sp_counted_ptr_inplace<lynx::HNSWIndex, std::allocator<void>, (__gnu_cxx::_Lock_policy)2>::_M_dispose()
-  0.00     11.76     0.00        1     0.00     0.00  std::vector<lynx::VectorRecord, std::allocator<lynx::VectorRecord> >::~vector()
-  0.00     11.76     0.00        1     0.00     0.00  std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()
+ 92.11     10.85    10.85 19559039     0.00     0.00  lynx::utils::calculate_l2_squared(std::span<float const, 18446744073709551615ul>, std::span<float const, 18446744073709551615ul>)
+  3.06     11.21     0.36     2066     0.00     0.00  lynx::HNSWIndex::search_layer(std::span<float const, 18446744073709551615ul>, std::vector<unsigned long, std::allocator<unsigned long> > const&, unsigned long, unsigned long) const
+  2.21     11.47     0.26    61234     0.00     0.00  lynx::HNSWIndex::select_neighbors_heuristic(std::priority_queue<lynx::HNSWIndex::Candidate, std::vector<lynx::HNSWIndex::Candidate, std::allocator<lynx::HNSWIndex::Candidate> >, std::greater<lynx::HNSWIndex::Candidate> >&, unsigned long, unsigned long, bool)
+  0.93     11.58     0.11 38835634     0.00     0.00  lynx::HNSWIndex::serialize(std::ostream&) const
+  0.76     11.67     0.09 19559039     0.00     0.00  lynx::utils::calculate_l2(std::span<float const, 18446744073709551615ul>, std::span<float const, 18446744073709551615ul>)
+  0.25     11.70     0.03  4251247     0.00     0.00  std::priority_queue<lynx::HNSWIndex::Candidate, std::vector<lynx::HNSWIndex::Candidate, std::allocator<lynx::HNSWIndex::Candidate> >, std::greater<lynx::HNSWIndex::Candidate> >::push(lynx::HNSWIndex::Candidate&&)
+  0.25     11.73     0.03    60192     0.00     0.00  lynx::HNSWIndex::prune_connections(unsigned long, unsigned long, unsigned long)
+  0.08     11.74     0.01  4558852     0.00     0.00  std::__detail::_Insert_base<unsigned long, unsigned long, std::allocator<unsigned long>, std::__detail::_Identity, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, true, true> >::insert(unsigned long const&)
+  0.08     11.75     0.01   531036     0.00     0.00  lynx::HNSWIndex::calculate_distance(std::span<float const, 18446744073709551615ul>, unsigned long) const
+  0.08     11.76     0.01   347128     0.00     0.00  std::priority_queue<lynx::HNSWIndex::Candidate, std::vector<lynx::HNSWIndex::Candidate, std::allocator<lynx::HNSWIndex::Candidate> >, std::less<lynx::HNSWIndex::Candidate> >::push(lynx::HNSWIndex::Candidate&&)
+  0.08     11.77     0.01    15975     0.00     0.00  std::_Hashtable<unsigned long, unsigned long, std::allocator<unsigned long>, std::__detail::_Identity, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, true, true> >::_M_rehash(unsigned long, unsigned long const&)
+  0.08     11.78     0.01     1000     0.00     0.01  lynx::HNSWIndex::add(unsigned long, std::span<float const, 18446744073709551615ul>)
+  0.00     11.78     0.00 19559039     0.00     0.00  lynx::utils::calculate_distance(std::span<float const, 18446744073709551615ul>, std::span<float const, 18446744073709551615ul>, lynx::DistanceMetric)
+  0.00     11.78     0.00 19028003     0.00     0.00  lynx::HNSWIndex::calculate_distance(unsigned long, unsigned long) const
+  0.00     11.78     0.00   185801     0.00     0.00  lynx::HNSWIndex::memory_usage() const
+  0.00     11.78     0.00   184787     0.00     0.00  lynx::HNSWIndex::get_neighbors(unsigned long, unsigned long) const
+  0.00     11.78     0.00    62800     0.00     0.00  lynx::HNSWIndex::add_connection(unsigned long, unsigned long, unsigned long)
+  0.00     11.78     0.00     1010     0.00     0.00  generate_random_vector(int, std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul>&)
+  0.00     11.78     0.00     1010     0.00     0.00  lynx::VectorDatabase::search(std::span<float const, 18446744073709551615ul>, unsigned long) const
+  0.00     11.78     0.00     1001     0.00     0.00  lynx::HNSWIndex::build(std::span<lynx::VectorRecord const, 18446744073709551615ul>)
+  0.00     11.78     0.00     1000     0.00     0.00  lynx::HNSWIndex::compact_index()
+  0.00     11.78     0.00     1000     0.00     0.00  lynx::HNSWIndex::generate_random_layer()
+  0.00     11.78     0.00     1000     0.00     0.00  std::__detail::_Map_base<unsigned long, std::pair<unsigned long const, lynx::VectorRecord>, std::allocator<std::pair<unsigned long const, lynx::VectorRecord> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true>, true>::operator[](unsigned long const&)
+  0.00     11.78     0.00     1000     0.00     0.00  std::__detail::_Map_base<unsigned long, std::pair<unsigned long const, std::vector<float, std::allocator<float> > >, std::allocator<std::pair<unsigned long const, std::vector<float, std::allocator<float> > > >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true>, true>::operator[](unsigned long const&)
+  0.00     11.78     0.00      829     0.00     0.00  std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul>::_M_gen_rand()
+  0.00     11.78     0.00       10     0.00     0.00  lynx::VectorDatabase::search(std::span<float const, 18446744073709551615ul>, unsigned long, lynx::SearchParams const&) const
+  0.00     11.78     0.00       10     0.00     0.00  lynx::HNSWIndex::search(std::span<float const, 18446744073709551615ul>, unsigned long, lynx::SearchParams const&) const
+  0.00     11.78     0.00        7     0.00     0.00  std::_Hashtable<unsigned long, std::pair<unsigned long const, lynx::VectorRecord>, std::allocator<std::pair<unsigned long const, lynx::VectorRecord> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::_M_rehash(unsigned long, unsigned long const&)
+  0.00     11.78     0.00        7     0.00     0.00  std::_Hashtable<unsigned long, std::pair<unsigned long const, lynx::HNSWIndex::Node>, std::allocator<std::pair<unsigned long const, lynx::HNSWIndex::Node> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::_M_rehash(unsigned long, unsigned long const&)
+  0.00     11.78     0.00        7     0.00     0.00  std::_Hashtable<unsigned long, std::pair<unsigned long const, std::vector<float, std::allocator<float> > >, std::allocator<std::pair<unsigned long const, std::vector<float, std::allocator<float> > > >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::_M_rehash(unsigned long, unsigned long const&)
+  0.00     11.78     0.00        4     0.00     0.00  std::mersenne_twister_engine<unsigned long, 64ul, 312ul, 156ul, 31ul, 13043109905998158313ul, 29ul, 6148914691236517205ul, 17ul, 8202884508482404352ul, 37ul, 18444473444759240704ul, 43ul, 6364136223846793005ul>::_M_gen_rand()
+  0.00     11.78     0.00        3     0.00     0.00  frame_dummy
+  0.00     11.78     0.00        1     0.00     0.00  lynx::IVectorIndex::~IVectorIndex()
+  0.00     11.78     0.00        1     0.00    11.78  lynx::VectorDatabase::batch_insert(std::span<lynx::VectorRecord const, 18446744073709551615ul>)
+  0.00     11.78     0.00        1     0.00     0.00  lynx::VectorDatabase::create_index()
+  0.00     11.78     0.00        1     0.00     0.00  lynx::VectorDatabase::VectorDatabase(lynx::Config const&)
+  0.00     11.78     0.00        1     0.00     0.00  lynx::VectorDatabase::~VectorDatabase()
+  0.00     11.78     0.00        1     0.00     0.00  lynx::IVectorDatabase::create(lynx::Config const&)
+  0.00     11.78     0.00        1     0.00     0.00  lynx::IVectorDatabase::~IVectorDatabase()
+  0.00     11.78     0.00        1     0.00     0.00  lynx::HNSWIndex::HNSWIndex(unsigned long, lynx::DistanceMetric, lynx::HNSWParams const&)
+  0.00     11.78     0.00        1     0.00     0.00  std::_Hashtable<unsigned long, std::pair<unsigned long const, lynx::VectorRecord>, std::allocator<std::pair<unsigned long const, lynx::VectorRecord> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::clear()
+  0.00     11.78     0.00        1     0.00     0.00  std::_Hashtable<unsigned long, std::pair<unsigned long const, std::vector<float, std::allocator<float> > >, std::allocator<std::pair<unsigned long const, std::vector<float, std::allocator<float> > > >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::clear()
+  0.00     11.78     0.00        1     0.00     0.00  std::random_device::random_device()
+  0.00     11.78     0.00        1     0.00     0.00  std::_Sp_counted_base<(__gnu_cxx::_Lock_policy)2>::_M_release()
+  0.00     11.78     0.00        1     0.00     0.00  std::_Sp_counted_ptr_inplace<lynx::VectorDatabase, std::allocator<void>, (__gnu_cxx::_Lock_policy)2>::_M_destroy()
+  0.00     11.78     0.00        1     0.00     0.00  std::_Sp_counted_ptr_inplace<lynx::VectorDatabase, std::allocator<void>, (__gnu_cxx::_Lock_policy)2>::_M_dispose()
+  0.00     11.78     0.00        1     0.00     0.00  std::_Sp_counted_ptr_inplace<lynx::HNSWIndex, std::allocator<void>, (__gnu_cxx::_Lock_policy)2>::_M_destroy()
+  0.00     11.78     0.00        1     0.00     0.00  std::_Sp_counted_ptr_inplace<lynx::HNSWIndex, std::allocator<void>, (__gnu_cxx::_Lock_policy)2>::_M_dispose()
+  0.00     11.78     0.00        1     0.00     0.00  std::vector<lynx::VectorRecord, std::allocator<lynx::VectorRecord> >::~vector()
+  0.00     11.78     0.00        1     0.00     0.00  std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()
 
  %         the percentage of the total running time of the
 time       program used by this function.
@@ -91,254 +90,255 @@ notice and this notice are preserved.
 		     Call graph (explanation follows)
 
 
-granularity: each sample hit covers 4 byte(s) for 0.09% of 11.76 seconds
+granularity: each sample hit covers 4 byte(s) for 0.08% of 11.78 seconds
 
 index % time    self  children    called     name
                                                  <spontaneous>
-[1]     99.9    0.00   11.75                 main [1]
-                0.00   11.75       1/1           lynx::VectorDatabase::batch_insert(std::span<lynx::VectorRecord const, 18446744073709551615ul>) [2]
-                0.00    0.00      10/1010        lynx::VectorDatabase::search(std::span<float const, 18446744073709551615ul>, unsigned long) const [18]
-                0.00    0.00    1010/1010        generate_random_vector(int, std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul>&) [31]
-                0.00    0.00       3/3           frame_dummy [23]
-                0.00    0.00       1/1           std::random_device::random_device() [51]
-                0.00    0.00       1/1           lynx::IVectorDatabase::create(lynx::Config const&) [46]
-                0.00    0.00       1/1           std::vector<lynx::VectorRecord, std::allocator<lynx::VectorRecord> >::~vector() [57]
-                0.00    0.00       1/1           std::_Sp_counted_ptr_inplace<lynx::VectorDatabase, std::allocator<void>, (__gnu_cxx::_Lock_policy)2>::_M_destroy() [53]
-                0.00    0.00       1/1           std::_Sp_counted_base<(__gnu_cxx::_Lock_policy)2>::_M_release() [52]
-                0.00    0.00       1/1           std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose() [58]
+[1]    100.0    0.00   11.78                 main [1]
+                0.00   11.78       1/1           lynx::VectorDatabase::batch_insert(std::span<lynx::VectorRecord const, 18446744073709551615ul>) [2]
+                0.00    0.00      10/1010        lynx::VectorDatabase::search(std::span<float const, 18446744073709551615ul>, unsigned long) const [17]
+                0.00    0.00    1010/1010        generate_random_vector(int, std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul>&) [30]
+                0.00    0.00       3/3           frame_dummy [21]
+                0.00    0.00       1/1           std::random_device::random_device() [50]
+                0.00    0.00       1/1           lynx::IVectorDatabase::create(lynx::Config const&) [45]
+                0.00    0.00       1/1           std::vector<lynx::VectorRecord, std::allocator<lynx::VectorRecord> >::~vector() [56]
+                0.00    0.00       1/1           std::_Sp_counted_ptr_inplace<lynx::VectorDatabase, std::allocator<void>, (__gnu_cxx::_Lock_policy)2>::_M_destroy() [52]
+                0.00    0.00       1/1           std::_Sp_counted_base<(__gnu_cxx::_Lock_policy)2>::_M_release() [51]
+                0.00    0.00       1/1           std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose() [57]
 -----------------------------------------------
-                0.00   11.75       1/1           main [1]
-[2]     99.9    0.00   11.75       1         lynx::VectorDatabase::batch_insert(std::span<lynx::VectorRecord const, 18446744073709551615ul>) [2]
-                0.01   11.73       1/1           lynx::HNSWIndex::build(std::span<lynx::VectorRecord const, 18446744073709551615ul>) <cycle 1> [32]
-                0.00    0.01    1000/1010        lynx::VectorDatabase::search(std::span<float const, 18446744073709551615ul>, unsigned long) const [18]
-                0.00    0.00    1000/4483332     std::__detail::_Insert_base<unsigned long, unsigned long, std::allocator<unsigned long>, std::__detail::_Identity, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, true, true> >::insert(unsigned long const&) [14]
-                0.00    0.00    1000/1000        std::__detail::_Map_base<unsigned long, std::pair<unsigned long const, lynx::VectorRecord>, std::allocator<std::pair<unsigned long const, lynx::VectorRecord> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true>, true>::operator[](unsigned long const&) [35]
+                0.00   11.78       1/1           main [1]
+[2]    100.0    0.00   11.78       1         lynx::VectorDatabase::batch_insert(std::span<lynx::VectorRecord const, 18446744073709551615ul>) [2]
+                0.01   11.76       1/1           lynx::HNSWIndex::build(std::span<lynx::VectorRecord const, 18446744073709551615ul>) <cycle 1> [31]
+                0.00    0.01    1000/1010        lynx::VectorDatabase::search(std::span<float const, 18446744073709551615ul>, unsigned long) const [17]
+                0.00    0.00    1000/4558852     std::__detail::_Insert_base<unsigned long, unsigned long, std::allocator<unsigned long>, std::__detail::_Identity, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, true, true> >::insert(unsigned long const&) [13]
+                0.00    0.00    1000/1000        std::__detail::_Map_base<unsigned long, std::pair<unsigned long const, lynx::VectorRecord>, std::allocator<std::pair<unsigned long const, lynx::VectorRecord> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true>, true>::operator[](unsigned long const&) [34]
 -----------------------------------------------
-[3]     99.8    0.01   11.73       1+2000    <cycle 1 as a whole> [3]
-                0.01   11.73    1000             lynx::HNSWIndex::add(unsigned long, std::span<float const, 18446744073709551615ul>) <cycle 1> [4]
-                0.00    0.00    1001             lynx::HNSWIndex::build(std::span<lynx::VectorRecord const, 18446744073709551615ul>) <cycle 1> [32]
+[3]     99.9    0.01   11.76       1+2000    <cycle 1 as a whole> [3]
+                0.01   11.76    1000             lynx::HNSWIndex::add(unsigned long, std::span<float const, 18446744073709551615ul>) <cycle 1> [4]
+                0.00    0.00    1001             lynx::HNSWIndex::build(std::span<lynx::VectorRecord const, 18446744073709551615ul>) <cycle 1> [31]
 -----------------------------------------------
-                                1000             lynx::HNSWIndex::build(std::span<lynx::VectorRecord const, 18446744073709551615ul>) <cycle 1> [32]
-[4]     99.8    0.01   11.73    1000         lynx::HNSWIndex::add(unsigned long, std::span<float const, 18446744073709551615ul>) <cycle 1> [4]
-                0.02   10.93   62385/62385       lynx::HNSWIndex::prune_connections(unsigned long, unsigned long, unsigned long) [5]
-                0.32    0.31    2177/2207        lynx::HNSWIndex::search_layer(std::span<float const, 18446744073709551615ul>, std::vector<unsigned long, std::allocator<unsigned long> > const&, unsigned long, unsigned long) const [9]
-                0.01    0.14    1029/60869       lynx::HNSWIndex::select_neighbors_heuristic(std::priority_queue<lynx::HNSWIndex::Candidate, std::vector<lynx::HNSWIndex::Candidate, std::allocator<lynx::HNSWIndex::Candidate> >, std::greater<lynx::HNSWIndex::Candidate> >&, unsigned long, unsigned long, bool) [8]
-                0.00    0.01   62385/62385       lynx::HNSWIndex::add_connection(unsigned long, unsigned long, unsigned long) [21]
-                0.00    0.00    1148/372684      lynx::HNSWIndex::memory_usage() const [13]
-                0.00    0.00    1000/1000        std::__detail::_Map_base<unsigned long, std::pair<unsigned long const, std::vector<float, std::allocator<float> > >, std::allocator<std::pair<unsigned long const, std::vector<float, std::allocator<float> > > >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true>, true>::operator[](unsigned long const&) [36]
-                0.00    0.00    1000/1000        lynx::HNSWIndex::generate_random_layer() [34]
-                0.00    0.00    1000/1000        lynx::HNSWIndex::compact_index() [33]
-                                1000             lynx::HNSWIndex::build(std::span<lynx::VectorRecord const, 18446744073709551615ul>) <cycle 1> [32]
+                                1000             lynx::HNSWIndex::build(std::span<lynx::VectorRecord const, 18446744073709551615ul>) <cycle 1> [31]
+[4]     99.9    0.01   11.76    1000         lynx::HNSWIndex::add(unsigned long, std::span<float const, 18446744073709551615ul>) <cycle 1> [4]
+                0.03   10.91   60192/60192       lynx::HNSWIndex::prune_connections(unsigned long, unsigned long, unsigned long) [6]
+                0.35    0.32    2036/2066        lynx::HNSWIndex::search_layer(std::span<float const, 18446744073709551615ul>, std::vector<unsigned long, std::allocator<unsigned long> > const&, unsigned long, unsigned long) const [9]
+                0.00    0.15    1042/61234       lynx::HNSWIndex::select_neighbors_heuristic(std::priority_queue<lynx::HNSWIndex::Candidate, std::vector<lynx::HNSWIndex::Candidate, std::allocator<lynx::HNSWIndex::Candidate> >, std::greater<lynx::HNSWIndex::Candidate> >&, unsigned long, unsigned long, bool) [8]
+                0.00    0.00   62800/62800       lynx::HNSWIndex::add_connection(unsigned long, unsigned long, unsigned long) [20]
+                0.00    0.00   60192/4558852     std::__detail::_Insert_base<unsigned long, unsigned long, std::allocator<unsigned long>, std::__detail::_Identity, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, true, true> >::insert(unsigned long const&) [13]
+                0.00    0.00   62800/38835634     lynx::HNSWIndex::serialize(std::ostream&) const [10]
+                0.00    0.00    1000/1000        std::__detail::_Map_base<unsigned long, std::pair<unsigned long const, std::vector<float, std::allocator<float> > >, std::allocator<std::pair<unsigned long const, std::vector<float, std::allocator<float> > > >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true>, true>::operator[](unsigned long const&) [35]
+                0.00    0.00    1000/1000        lynx::HNSWIndex::generate_random_layer() [33]
+                0.00    0.00    1000/1000        lynx::HNSWIndex::compact_index() [32]
+                0.00    0.00     994/185801      lynx::HNSWIndex::memory_usage() const [28]
+                                1000             lynx::HNSWIndex::build(std::span<lynx::VectorRecord const, 18446744073709551615ul>) <cycle 1> [31]
 -----------------------------------------------
-                0.02   10.93   62385/62385       lynx::HNSWIndex::add(unsigned long, std::span<float const, 18446744073709551615ul>) <cycle 1> [4]
-[5]     93.1    0.02   10.93   62385         lynx::HNSWIndex::prune_connections(unsigned long, unsigned long, unsigned long) [5]
-                0.30    8.32   59840/60869       lynx::HNSWIndex::select_neighbors_heuristic(std::priority_queue<lynx::HNSWIndex::Candidate, std::vector<lynx::HNSWIndex::Candidate, std::allocator<lynx::HNSWIndex::Candidate> >, std::greater<lynx::HNSWIndex::Candidate> >&, unsigned long, unsigned long, bool) [8]
-                0.03    2.16 3889600/19205689     lynx::utils::calculate_l2(std::span<float const, 18446744073709551615ul>, std::span<float const, 18446744073709551615ul>) [6]
-                0.06    0.00 3889600/4239534     std::priority_queue<lynx::HNSWIndex::Candidate, std::vector<lynx::HNSWIndex::Candidate, std::allocator<lynx::HNSWIndex::Candidate> >, std::greater<lynx::HNSWIndex::Candidate> >::push(lynx::HNSWIndex::Candidate&&) [12]
-                0.01    0.02 3889600/18677887     lynx::HNSWIndex::calculate_distance(unsigned long, unsigned long) const [10]
-                0.02    0.00 3829760/4483332     std::__detail::_Insert_base<unsigned long, unsigned long, std::allocator<unsigned long>, std::__detail::_Identity, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, true, true> >::insert(unsigned long const&) [14]
-                0.00    0.00   62385/372684      lynx::HNSWIndex::memory_usage() const [13]
-                0.00    0.00 3889600/19205689     lynx::utils::calculate_distance(std::span<float const, 18446744073709551615ul>, std::span<float const, 18446744073709551615ul>, lynx::DistanceMetric) [15]
+                0.00    0.29  531036/19559039     lynx::HNSWIndex::search_layer(std::span<float const, 18446744073709551615ul>, std::vector<unsigned long, std::allocator<unsigned long> > const&, unsigned long, unsigned long) const [9]
+                0.02    2.16 3901216/19559039     lynx::HNSWIndex::prune_connections(unsigned long, unsigned long, unsigned long) [6]
+                0.07    8.39 15126787/19559039     lynx::HNSWIndex::select_neighbors_heuristic(std::priority_queue<lynx::HNSWIndex::Candidate, std::vector<lynx::HNSWIndex::Candidate, std::allocator<lynx::HNSWIndex::Candidate> >, std::greater<lynx::HNSWIndex::Candidate> >&, unsigned long, unsigned long, bool) [8]
+[5]     92.9    0.09   10.85 19559039         lynx::utils::calculate_l2(std::span<float const, 18446744073709551615ul>, std::span<float const, 18446744073709551615ul>) [5]
+               10.85    0.00 19559039/19559039     lynx::utils::calculate_l2_squared(std::span<float const, 18446744073709551615ul>, std::span<float const, 18446744073709551615ul>) [7]
 -----------------------------------------------
-                0.00    0.29  527802/19205689     lynx::HNSWIndex::search_layer(std::span<float const, 18446744073709551615ul>, std::vector<unsigned long, std::allocator<unsigned long> > const&, unsigned long, unsigned long) const [9]
-                0.03    2.16 3889600/19205689     lynx::HNSWIndex::prune_connections(unsigned long, unsigned long, unsigned long) [5]
-                0.10    8.22 14788287/19205689     lynx::HNSWIndex::select_neighbors_heuristic(std::priority_queue<lynx::HNSWIndex::Candidate, std::vector<lynx::HNSWIndex::Candidate, std::allocator<lynx::HNSWIndex::Candidate> >, std::greater<lynx::HNSWIndex::Candidate> >&, unsigned long, unsigned long, bool) [8]
-[6]     91.9    0.13   10.68 19205689         lynx::utils::calculate_l2(std::span<float const, 18446744073709551615ul>, std::span<float const, 18446744073709551615ul>) [6]
-               10.68    0.00 19205689/19205689     lynx::utils::calculate_l2_squared(std::span<float const, 18446744073709551615ul>, std::span<float const, 18446744073709551615ul>) [7]
+                0.03   10.91   60192/60192       lynx::HNSWIndex::add(unsigned long, std::span<float const, 18446744073709551615ul>) <cycle 1> [4]
+[6]     92.8    0.03   10.91   60192         lynx::HNSWIndex::prune_connections(unsigned long, unsigned long, unsigned long) [6]
+                0.26    8.40   60192/61234       lynx::HNSWIndex::select_neighbors_heuristic(std::priority_queue<lynx::HNSWIndex::Candidate, std::vector<lynx::HNSWIndex::Candidate, std::allocator<lynx::HNSWIndex::Candidate> >, std::greater<lynx::HNSWIndex::Candidate> >&, unsigned long, unsigned long, bool) [8]
+                0.02    2.16 3901216/19559039     lynx::utils::calculate_l2(std::span<float const, 18446744073709551615ul>, std::span<float const, 18446744073709551615ul>) [5]
+                0.03    0.00 3901216/4251247     std::priority_queue<lynx::HNSWIndex::Candidate, std::vector<lynx::HNSWIndex::Candidate, std::allocator<lynx::HNSWIndex::Candidate> >, std::greater<lynx::HNSWIndex::Candidate> >::push(lynx::HNSWIndex::Candidate&&) [12]
+                0.00    0.02 3901216/19028003     lynx::HNSWIndex::calculate_distance(unsigned long, unsigned long) const [11]
+                0.01    0.01 3841024/4558852     std::__detail::_Insert_base<unsigned long, unsigned long, std::allocator<unsigned long>, std::__detail::_Identity, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, true, true> >::insert(unsigned long const&) [13]
+                0.00    0.00   60192/38835634     lynx::HNSWIndex::serialize(std::ostream&) const [10]
+                0.00    0.00 3901216/19559039     lynx::utils::calculate_distance(std::span<float const, 18446744073709551615ul>, std::span<float const, 18446744073709551615ul>, lynx::DistanceMetric) [27]
 -----------------------------------------------
-               10.68    0.00 19205689/19205689     lynx::utils::calculate_l2(std::span<float const, 18446744073709551615ul>, std::span<float const, 18446744073709551615ul>) [6]
-[7]     90.8   10.68    0.00 19205689         lynx::utils::calculate_l2_squared(std::span<float const, 18446744073709551615ul>, std::span<float const, 18446744073709551615ul>) [7]
+               10.85    0.00 19559039/19559039     lynx::utils::calculate_l2(std::span<float const, 18446744073709551615ul>, std::span<float const, 18446744073709551615ul>) [5]
+[7]     92.1   10.85    0.00 19559039         lynx::utils::calculate_l2_squared(std::span<float const, 18446744073709551615ul>, std::span<float const, 18446744073709551615ul>) [7]
 -----------------------------------------------
-                0.01    0.14    1029/60869       lynx::HNSWIndex::add(unsigned long, std::span<float const, 18446744073709551615ul>) <cycle 1> [4]
-                0.30    8.32   59840/60869       lynx::HNSWIndex::prune_connections(unsigned long, unsigned long, unsigned long) [5]
-[8]     74.6    0.31    8.46   60869         lynx::HNSWIndex::select_neighbors_heuristic(std::priority_queue<lynx::HNSWIndex::Candidate, std::vector<lynx::HNSWIndex::Candidate, std::allocator<lynx::HNSWIndex::Candidate> >, std::greater<lynx::HNSWIndex::Candidate> >&, unsigned long, unsigned long, bool) [8]
-                0.10    8.22 14788287/19205689     lynx::utils::calculate_l2(std::span<float const, 18446744073709551615ul>, std::span<float const, 18446744073709551615ul>) [6]
-                0.05    0.09 14788287/18677887     lynx::HNSWIndex::calculate_distance(unsigned long, unsigned long) const [10]
-                0.01    0.00 14788287/19205689     lynx::utils::calculate_distance(std::span<float const, 18446744073709551615ul>, std::span<float const, 18446744073709551615ul>, lynx::DistanceMetric) [15]
+                0.00    0.15    1042/61234       lynx::HNSWIndex::add(unsigned long, std::span<float const, 18446744073709551615ul>) <cycle 1> [4]
+                0.26    8.40   60192/61234       lynx::HNSWIndex::prune_connections(unsigned long, unsigned long, unsigned long) [6]
+[8]     74.8    0.26    8.55   61234         lynx::HNSWIndex::select_neighbors_heuristic(std::priority_queue<lynx::HNSWIndex::Candidate, std::vector<lynx::HNSWIndex::Candidate, std::allocator<lynx::HNSWIndex::Candidate> >, std::greater<lynx::HNSWIndex::Candidate> >&, unsigned long, unsigned long, bool) [8]
+                0.07    8.39 15126787/19559039     lynx::utils::calculate_l2(std::span<float const, 18446744073709551615ul>, std::span<float const, 18446744073709551615ul>) [5]
+                0.00    0.09 15126787/19028003     lynx::HNSWIndex::calculate_distance(unsigned long, unsigned long) const [11]
+                0.00    0.00 15126787/19559039     lynx::utils::calculate_distance(std::span<float const, 18446744073709551615ul>, std::span<float const, 18446744073709551615ul>, lynx::DistanceMetric) [27]
 -----------------------------------------------
-                0.00    0.00      30/2207        lynx::HNSWIndex::search(std::span<float const, 18446744073709551615ul>, unsigned long, lynx::SearchParams const&) const [20]
-                0.32    0.31    2177/2207        lynx::HNSWIndex::add(unsigned long, std::span<float const, 18446744073709551615ul>) <cycle 1> [4]
-[9]      5.4    0.32    0.32    2207         lynx::HNSWIndex::search_layer(std::span<float const, 18446744073709551615ul>, std::vector<unsigned long, std::allocator<unsigned long> > const&, unsigned long, unsigned long) const [9]
-                0.00    0.29  527802/19205689     lynx::utils::calculate_l2(std::span<float const, 18446744073709551615ul>, std::span<float const, 18446744073709551615ul>) [6]
-                0.00    0.01  184361/184361      lynx::HNSWIndex::get_neighbors(unsigned long, unsigned long) const [17]
-                0.00    0.00  349934/4239534     std::priority_queue<lynx::HNSWIndex::Candidate, std::vector<lynx::HNSWIndex::Candidate, std::allocator<lynx::HNSWIndex::Candidate> >, std::greater<lynx::HNSWIndex::Candidate> >::push(lynx::HNSWIndex::Candidate&&) [12]
-                0.00    0.00  527802/4483332     std::__detail::_Insert_base<unsigned long, unsigned long, std::allocator<unsigned long>, std::__detail::_Identity, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, true, true> >::insert(unsigned long const&) [14]
-                0.00    0.00  527802/527802      lynx::HNSWIndex::calculate_distance(std::span<float const, 18446744073709551615ul>, unsigned long) const [22]
-                0.00    0.00  527802/19205689     lynx::utils::calculate_distance(std::span<float const, 18446744073709551615ul>, std::span<float const, 18446744073709551615ul>, lynx::DistanceMetric) [15]
-                0.00    0.00  347292/347292      std::priority_queue<lynx::HNSWIndex::Candidate, std::vector<lynx::HNSWIndex::Candidate, std::allocator<lynx::HNSWIndex::Candidate> >, std::less<lynx::HNSWIndex::Candidate> >::push(lynx::HNSWIndex::Candidate&&) [29]
+                0.01    0.00      30/2066        lynx::HNSWIndex::search(std::span<float const, 18446744073709551615ul>, unsigned long, lynx::SearchParams const&) const [19]
+                0.35    0.32    2036/2066        lynx::HNSWIndex::add(unsigned long, std::span<float const, 18446744073709551615ul>) <cycle 1> [4]
+[9]      5.8    0.36    0.32    2066         lynx::HNSWIndex::search_layer(std::span<float const, 18446744073709551615ul>, std::vector<unsigned long, std::allocator<unsigned long> > const&, unsigned long, unsigned long) const [9]
+                0.00    0.29  531036/19559039     lynx::utils::calculate_l2(std::span<float const, 18446744073709551615ul>, std::span<float const, 18446744073709551615ul>) [5]
+                0.01    0.00  531036/531036      lynx::HNSWIndex::calculate_distance(std::span<float const, 18446744073709551615ul>, unsigned long) const [14]
+                0.01    0.00  347128/347128      std::priority_queue<lynx::HNSWIndex::Candidate, std::vector<lynx::HNSWIndex::Candidate, std::allocator<lynx::HNSWIndex::Candidate> >, std::less<lynx::HNSWIndex::Candidate> >::push(lynx::HNSWIndex::Candidate&&) [15]
+                0.00    0.00  350031/4251247     std::priority_queue<lynx::HNSWIndex::Candidate, std::vector<lynx::HNSWIndex::Candidate, std::allocator<lynx::HNSWIndex::Candidate> >, std::greater<lynx::HNSWIndex::Candidate> >::push(lynx::HNSWIndex::Candidate&&) [12]
+                0.00    0.00  531036/4558852     std::__detail::_Insert_base<unsigned long, unsigned long, std::allocator<unsigned long>, std::__detail::_Identity, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, true, true> >::insert(unsigned long const&) [13]
+                0.00    0.00  531036/19559039     lynx::utils::calculate_distance(std::span<float const, 18446744073709551615ul>, std::span<float const, 18446744073709551615ul>, lynx::DistanceMetric) [27]
+                0.00    0.00  184787/184787      lynx::HNSWIndex::get_neighbors(unsigned long, unsigned long) const [29]
 -----------------------------------------------
-                0.01    0.02 3889600/18677887     lynx::HNSWIndex::prune_connections(unsigned long, unsigned long, unsigned long) [5]
-                0.05    0.09 14788287/18677887     lynx::HNSWIndex::select_neighbors_heuristic(std::priority_queue<lynx::HNSWIndex::Candidate, std::vector<lynx::HNSWIndex::Candidate, std::allocator<lynx::HNSWIndex::Candidate> >, std::greater<lynx::HNSWIndex::Candidate> >&, unsigned long, unsigned long, bool) [8]
-[10]     1.4    0.06    0.11 18677887         lynx::HNSWIndex::calculate_distance(unsigned long, unsigned long) const [10]
-                0.11    0.00 37355774/37883576     lynx::HNSWIndex::serialize(std::ostream&) const [11]
+                0.00    0.00   60192/38835634     lynx::HNSWIndex::prune_connections(unsigned long, unsigned long, unsigned long) [6]
+                0.00    0.00   62800/38835634     lynx::HNSWIndex::add(unsigned long, std::span<float const, 18446744073709551615ul>) <cycle 1> [4]
+                0.00    0.00  125600/38835634     lynx::HNSWIndex::add_connection(unsigned long, unsigned long, unsigned long) [20]
+                0.00    0.00  531036/38835634     lynx::HNSWIndex::calculate_distance(std::span<float const, 18446744073709551615ul>, unsigned long) const [14]
+                0.11    0.00 38056006/38835634     lynx::HNSWIndex::calculate_distance(unsigned long, unsigned long) const [11]
+[10]     0.9    0.11    0.00 38835634         lynx::HNSWIndex::serialize(std::ostream&) const [10]
 -----------------------------------------------
-                0.00    0.00  527802/37883576     lynx::HNSWIndex::calculate_distance(std::span<float const, 18446744073709551615ul>, unsigned long) const [22]
-                0.11    0.00 37355774/37883576     lynx::HNSWIndex::calculate_distance(unsigned long, unsigned long) const [10]
-[11]     0.9    0.11    0.00 37883576         lynx::HNSWIndex::serialize(std::ostream&) const [11]
+                0.00    0.02 3901216/19028003     lynx::HNSWIndex::prune_connections(unsigned long, unsigned long, unsigned long) [6]
+                0.00    0.09 15126787/19028003     lynx::HNSWIndex::select_neighbors_heuristic(std::priority_queue<lynx::HNSWIndex::Candidate, std::vector<lynx::HNSWIndex::Candidate, std::allocator<lynx::HNSWIndex::Candidate> >, std::greater<lynx::HNSWIndex::Candidate> >&, unsigned long, unsigned long, bool) [8]
+[11]     0.9    0.00    0.11 19028003         lynx::HNSWIndex::calculate_distance(unsigned long, unsigned long) const [11]
+                0.11    0.00 38056006/38835634     lynx::HNSWIndex::serialize(std::ostream&) const [10]
 -----------------------------------------------
-                0.00    0.00  349934/4239534     lynx::HNSWIndex::search_layer(std::span<float const, 18446744073709551615ul>, std::vector<unsigned long, std::allocator<unsigned long> > const&, unsigned long, unsigned long) const [9]
-                0.06    0.00 3889600/4239534     lynx::HNSWIndex::prune_connections(unsigned long, unsigned long, unsigned long) [5]
-[12]     0.5    0.06    0.00 4239534         std::priority_queue<lynx::HNSWIndex::Candidate, std::vector<lynx::HNSWIndex::Candidate, std::allocator<lynx::HNSWIndex::Candidate> >, std::greater<lynx::HNSWIndex::Candidate> >::push(lynx::HNSWIndex::Candidate&&) [12]
+                0.00    0.00  350031/4251247     lynx::HNSWIndex::search_layer(std::span<float const, 18446744073709551615ul>, std::vector<unsigned long, std::allocator<unsigned long> > const&, unsigned long, unsigned long) const [9]
+                0.03    0.00 3901216/4251247     lynx::HNSWIndex::prune_connections(unsigned long, unsigned long, unsigned long) [6]
+[12]     0.3    0.03    0.00 4251247         std::priority_queue<lynx::HNSWIndex::Candidate, std::vector<lynx::HNSWIndex::Candidate, std::allocator<lynx::HNSWIndex::Candidate> >, std::greater<lynx::HNSWIndex::Candidate> >::push(lynx::HNSWIndex::Candidate&&) [12]
 -----------------------------------------------
-                0.00    0.00      20/372684      lynx::HNSWIndex::search(std::span<float const, 18446744073709551615ul>, unsigned long, lynx::SearchParams const&) const [20]
-                0.00    0.00    1148/372684      lynx::HNSWIndex::add(unsigned long, std::span<float const, 18446744073709551615ul>) <cycle 1> [4]
-                0.00    0.00   62385/372684      lynx::HNSWIndex::prune_connections(unsigned long, unsigned long, unsigned long) [5]
-                0.01    0.00  124770/372684      lynx::HNSWIndex::add_connection(unsigned long, unsigned long, unsigned long) [21]
-                0.01    0.00  184361/372684      lynx::HNSWIndex::get_neighbors(unsigned long, unsigned long) const [17]
-[13]     0.2    0.02    0.00  372684         lynx::HNSWIndex::memory_usage() const [13]
+                0.00    0.00    1000/4558852     lynx::VectorDatabase::batch_insert(std::span<lynx::VectorRecord const, 18446744073709551615ul>) [2]
+                0.00    0.00   60192/4558852     lynx::HNSWIndex::add(unsigned long, std::span<float const, 18446744073709551615ul>) <cycle 1> [4]
+                0.00    0.00  125600/4558852     lynx::HNSWIndex::add_connection(unsigned long, unsigned long, unsigned long) [20]
+                0.00    0.00  531036/4558852     lynx::HNSWIndex::search_layer(std::span<float const, 18446744073709551615ul>, std::vector<unsigned long, std::allocator<unsigned long> > const&, unsigned long, unsigned long) const [9]
+                0.01    0.01 3841024/4558852     lynx::HNSWIndex::prune_connections(unsigned long, unsigned long, unsigned long) [6]
+[13]     0.2    0.01    0.01 4558852         std::__detail::_Insert_base<unsigned long, unsigned long, std::allocator<unsigned long>, std::__detail::_Identity, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, true, true> >::insert(unsigned long const&) [13]
+                0.01    0.00   15975/15975       std::_Hashtable<unsigned long, unsigned long, std::allocator<unsigned long>, std::__detail::_Identity, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, true, true> >::_M_rehash(unsigned long, unsigned long const&) [16]
 -----------------------------------------------
-                0.00    0.00    1000/4483332     lynx::VectorDatabase::batch_insert(std::span<lynx::VectorRecord const, 18446744073709551615ul>) [2]
-                0.00    0.00  124770/4483332     lynx::HNSWIndex::add_connection(unsigned long, unsigned long, unsigned long) [21]
-                0.00    0.00  527802/4483332     lynx::HNSWIndex::search_layer(std::span<float const, 18446744073709551615ul>, std::vector<unsigned long, std::allocator<unsigned long> > const&, unsigned long, unsigned long) const [9]
-                0.02    0.00 3829760/4483332     lynx::HNSWIndex::prune_connections(unsigned long, unsigned long, unsigned long) [5]
-[14]     0.2    0.02    0.00 4483332         std::__detail::_Insert_base<unsigned long, unsigned long, std::allocator<unsigned long>, std::__detail::_Identity, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, true, true> >::insert(unsigned long const&) [14]
-                0.00    0.00   12223/12223       std::_Hashtable<unsigned long, unsigned long, std::allocator<unsigned long>, std::__detail::_Identity, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, true, true> >::_M_rehash(unsigned long, unsigned long const&) [30]
+                0.01    0.00  531036/531036      lynx::HNSWIndex::search_layer(std::span<float const, 18446744073709551615ul>, std::vector<unsigned long, std::allocator<unsigned long> > const&, unsigned long, unsigned long) const [9]
+[14]     0.1    0.01    0.00  531036         lynx::HNSWIndex::calculate_distance(std::span<float const, 18446744073709551615ul>, unsigned long) const [14]
+                0.00    0.00  531036/38835634     lynx::HNSWIndex::serialize(std::ostream&) const [10]
 -----------------------------------------------
-                0.00    0.00  527802/19205689     lynx::HNSWIndex::search_layer(std::span<float const, 18446744073709551615ul>, std::vector<unsigned long, std::allocator<unsigned long> > const&, unsigned long, unsigned long) const [9]
-                0.00    0.00 3889600/19205689     lynx::HNSWIndex::prune_connections(unsigned long, unsigned long, unsigned long) [5]
-                0.01    0.00 14788287/19205689     lynx::HNSWIndex::select_neighbors_heuristic(std::priority_queue<lynx::HNSWIndex::Candidate, std::vector<lynx::HNSWIndex::Candidate, std::allocator<lynx::HNSWIndex::Candidate> >, std::greater<lynx::HNSWIndex::Candidate> >&, unsigned long, unsigned long, bool) [8]
-[15]     0.1    0.01    0.00 19205689         lynx::utils::calculate_distance(std::span<float const, 18446744073709551615ul>, std::span<float const, 18446744073709551615ul>, lynx::DistanceMetric) [15]
+                0.01    0.00  347128/347128      lynx::HNSWIndex::search_layer(std::span<float const, 18446744073709551615ul>, std::vector<unsigned long, std::allocator<unsigned long> > const&, unsigned long, unsigned long) const [9]
+[15]     0.1    0.01    0.00  347128         std::priority_queue<lynx::HNSWIndex::Candidate, std::vector<lynx::HNSWIndex::Candidate, std::allocator<lynx::HNSWIndex::Candidate> >, std::less<lynx::HNSWIndex::Candidate> >::push(lynx::HNSWIndex::Candidate&&) [15]
 -----------------------------------------------
-                                                 <spontaneous>
-[16]     0.1    0.01    0.00                 _init [16]
------------------------------------------------
-                0.00    0.01  184361/184361      lynx::HNSWIndex::search_layer(std::span<float const, 18446744073709551615ul>, std::vector<unsigned long, std::allocator<unsigned long> > const&, unsigned long, unsigned long) const [9]
-[17]     0.1    0.00    0.01  184361         lynx::HNSWIndex::get_neighbors(unsigned long, unsigned long) const [17]
-                0.01    0.00  184361/372684      lynx::HNSWIndex::memory_usage() const [13]
+                0.01    0.00   15975/15975       std::__detail::_Insert_base<unsigned long, unsigned long, std::allocator<unsigned long>, std::__detail::_Identity, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, true, true> >::insert(unsigned long const&) [13]
+[16]     0.1    0.01    0.00   15975         std::_Hashtable<unsigned long, unsigned long, std::allocator<unsigned long>, std::__detail::_Identity, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, true, true> >::_M_rehash(unsigned long, unsigned long const&) [16]
 -----------------------------------------------
                 0.00    0.00      10/1010        main [1]
                 0.00    0.01    1000/1010        lynx::VectorDatabase::batch_insert(std::span<lynx::VectorRecord const, 18446744073709551615ul>) [2]
-[18]     0.1    0.00    0.01    1010         lynx::VectorDatabase::search(std::span<float const, 18446744073709551615ul>, unsigned long) const [18]
-                0.00    0.01      10/10          lynx::VectorDatabase::search(std::span<float const, 18446744073709551615ul>, unsigned long, lynx::SearchParams const&) const [19]
+[17]     0.1    0.00    0.01    1010         lynx::VectorDatabase::search(std::span<float const, 18446744073709551615ul>, unsigned long) const [17]
+                0.00    0.01      10/10          lynx::VectorDatabase::search(std::span<float const, 18446744073709551615ul>, unsigned long, lynx::SearchParams const&) const [18]
 -----------------------------------------------
-                0.00    0.01      10/10          lynx::VectorDatabase::search(std::span<float const, 18446744073709551615ul>, unsigned long) const [18]
-[19]     0.1    0.00    0.01      10         lynx::VectorDatabase::search(std::span<float const, 18446744073709551615ul>, unsigned long, lynx::SearchParams const&) const [19]
-                0.00    0.01      10/10          lynx::HNSWIndex::search(std::span<float const, 18446744073709551615ul>, unsigned long, lynx::SearchParams const&) const [20]
+                0.00    0.01      10/10          lynx::VectorDatabase::search(std::span<float const, 18446744073709551615ul>, unsigned long) const [17]
+[18]     0.1    0.00    0.01      10         lynx::VectorDatabase::search(std::span<float const, 18446744073709551615ul>, unsigned long, lynx::SearchParams const&) const [18]
+                0.00    0.01      10/10          lynx::HNSWIndex::search(std::span<float const, 18446744073709551615ul>, unsigned long, lynx::SearchParams const&) const [19]
 -----------------------------------------------
-                0.00    0.01      10/10          lynx::VectorDatabase::search(std::span<float const, 18446744073709551615ul>, unsigned long, lynx::SearchParams const&) const [19]
-[20]     0.1    0.00    0.01      10         lynx::HNSWIndex::search(std::span<float const, 18446744073709551615ul>, unsigned long, lynx::SearchParams const&) const [20]
-                0.00    0.00      30/2207        lynx::HNSWIndex::search_layer(std::span<float const, 18446744073709551615ul>, std::vector<unsigned long, std::allocator<unsigned long> > const&, unsigned long, unsigned long) const [9]
-                0.00    0.00      20/372684      lynx::HNSWIndex::memory_usage() const [13]
+                0.00    0.01      10/10          lynx::VectorDatabase::search(std::span<float const, 18446744073709551615ul>, unsigned long, lynx::SearchParams const&) const [18]
+[19]     0.1    0.00    0.01      10         lynx::HNSWIndex::search(std::span<float const, 18446744073709551615ul>, unsigned long, lynx::SearchParams const&) const [19]
+                0.01    0.00      30/2066        lynx::HNSWIndex::search_layer(std::span<float const, 18446744073709551615ul>, std::vector<unsigned long, std::allocator<unsigned long> > const&, unsigned long, unsigned long) const [9]
+                0.00    0.00      20/185801      lynx::HNSWIndex::memory_usage() const [28]
 -----------------------------------------------
-                0.00    0.01   62385/62385       lynx::HNSWIndex::add(unsigned long, std::span<float const, 18446744073709551615ul>) <cycle 1> [4]
-[21]     0.1    0.00    0.01   62385         lynx::HNSWIndex::add_connection(unsigned long, unsigned long, unsigned long) [21]
-                0.01    0.00  124770/372684      lynx::HNSWIndex::memory_usage() const [13]
-                0.00    0.00  124770/4483332     std::__detail::_Insert_base<unsigned long, unsigned long, std::allocator<unsigned long>, std::__detail::_Identity, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, true, true> >::insert(unsigned long const&) [14]
------------------------------------------------
-                0.00    0.00  527802/527802      lynx::HNSWIndex::search_layer(std::span<float const, 18446744073709551615ul>, std::vector<unsigned long, std::allocator<unsigned long> > const&, unsigned long, unsigned long) const [9]
-[22]     0.0    0.00    0.00  527802         lynx::HNSWIndex::calculate_distance(std::span<float const, 18446744073709551615ul>, unsigned long) const [22]
-                0.00    0.00  527802/37883576     lynx::HNSWIndex::serialize(std::ostream&) const [11]
+                0.00    0.00   62800/62800       lynx::HNSWIndex::add(unsigned long, std::span<float const, 18446744073709551615ul>) <cycle 1> [4]
+[20]     0.0    0.00    0.00   62800         lynx::HNSWIndex::add_connection(unsigned long, unsigned long, unsigned long) [20]
+                0.00    0.00  125600/4558852     std::__detail::_Insert_base<unsigned long, unsigned long, std::allocator<unsigned long>, std::__detail::_Identity, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, true, true> >::insert(unsigned long const&) [13]
+                0.00    0.00  125600/38835634     lynx::HNSWIndex::serialize(std::ostream&) const [10]
 -----------------------------------------------
                 0.00    0.00       3/3           main [1]
-[23]     0.0    0.00    0.00       3         frame_dummy [23]
+[21]     0.0    0.00    0.00       3         frame_dummy [21]
 -----------------------------------------------
-                0.00    0.00  347292/347292      lynx::HNSWIndex::search_layer(std::span<float const, 18446744073709551615ul>, std::vector<unsigned long, std::allocator<unsigned long> > const&, unsigned long, unsigned long) const [9]
-[29]     0.0    0.00    0.00  347292         std::priority_queue<lynx::HNSWIndex::Candidate, std::vector<lynx::HNSWIndex::Candidate, std::allocator<lynx::HNSWIndex::Candidate> >, std::less<lynx::HNSWIndex::Candidate> >::push(lynx::HNSWIndex::Candidate&&) [29]
+                0.00    0.00  531036/19559039     lynx::HNSWIndex::search_layer(std::span<float const, 18446744073709551615ul>, std::vector<unsigned long, std::allocator<unsigned long> > const&, unsigned long, unsigned long) const [9]
+                0.00    0.00 3901216/19559039     lynx::HNSWIndex::prune_connections(unsigned long, unsigned long, unsigned long) [6]
+                0.00    0.00 15126787/19559039     lynx::HNSWIndex::select_neighbors_heuristic(std::priority_queue<lynx::HNSWIndex::Candidate, std::vector<lynx::HNSWIndex::Candidate, std::allocator<lynx::HNSWIndex::Candidate> >, std::greater<lynx::HNSWIndex::Candidate> >&, unsigned long, unsigned long, bool) [8]
+[27]     0.0    0.00    0.00 19559039         lynx::utils::calculate_distance(std::span<float const, 18446744073709551615ul>, std::span<float const, 18446744073709551615ul>, lynx::DistanceMetric) [27]
 -----------------------------------------------
-                0.00    0.00   12223/12223       std::__detail::_Insert_base<unsigned long, unsigned long, std::allocator<unsigned long>, std::__detail::_Identity, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, true, true> >::insert(unsigned long const&) [14]
-[30]     0.0    0.00    0.00   12223         std::_Hashtable<unsigned long, unsigned long, std::allocator<unsigned long>, std::__detail::_Identity, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, true, true> >::_M_rehash(unsigned long, unsigned long const&) [30]
+                0.00    0.00      20/185801      lynx::HNSWIndex::search(std::span<float const, 18446744073709551615ul>, unsigned long, lynx::SearchParams const&) const [19]
+                0.00    0.00     994/185801      lynx::HNSWIndex::add(unsigned long, std::span<float const, 18446744073709551615ul>) <cycle 1> [4]
+                0.00    0.00  184787/185801      lynx::HNSWIndex::get_neighbors(unsigned long, unsigned long) const [29]
+[28]     0.0    0.00    0.00  185801         lynx::HNSWIndex::memory_usage() const [28]
+-----------------------------------------------
+                0.00    0.00  184787/184787      lynx::HNSWIndex::search_layer(std::span<float const, 18446744073709551615ul>, std::vector<unsigned long, std::allocator<unsigned long> > const&, unsigned long, unsigned long) const [9]
+[29]     0.0    0.00    0.00  184787         lynx::HNSWIndex::get_neighbors(unsigned long, unsigned long) const [29]
+                0.00    0.00  184787/185801      lynx::HNSWIndex::memory_usage() const [28]
 -----------------------------------------------
                 0.00    0.00    1010/1010        main [1]
-[31]     0.0    0.00    0.00    1010         generate_random_vector(int, std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul>&) [31]
-                0.00    0.00     829/829         std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul>::_M_gen_rand() [37]
+[30]     0.0    0.00    0.00    1010         generate_random_vector(int, std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul>&) [30]
+                0.00    0.00     829/829         std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul>::_M_gen_rand() [36]
 -----------------------------------------------
                                 1000             lynx::HNSWIndex::add(unsigned long, std::span<float const, 18446744073709551615ul>) <cycle 1> [4]
-                0.01   11.73       1/1           lynx::VectorDatabase::batch_insert(std::span<lynx::VectorRecord const, 18446744073709551615ul>) [2]
-[32]     0.0    0.00    0.00    1001         lynx::HNSWIndex::build(std::span<lynx::VectorRecord const, 18446744073709551615ul>) <cycle 1> [32]
+                0.01   11.76       1/1           lynx::VectorDatabase::batch_insert(std::span<lynx::VectorRecord const, 18446744073709551615ul>) [2]
+[31]     0.0    0.00    0.00    1001         lynx::HNSWIndex::build(std::span<lynx::VectorRecord const, 18446744073709551615ul>) <cycle 1> [31]
                                 1000             lynx::HNSWIndex::add(unsigned long, std::span<float const, 18446744073709551615ul>) <cycle 1> [4]
 -----------------------------------------------
                 0.00    0.00    1000/1000        lynx::HNSWIndex::add(unsigned long, std::span<float const, 18446744073709551615ul>) <cycle 1> [4]
-[33]     0.0    0.00    0.00    1000         lynx::HNSWIndex::compact_index() [33]
-                0.00    0.00       7/7           std::_Hashtable<unsigned long, std::pair<unsigned long const, lynx::HNSWIndex::Node>, std::allocator<std::pair<unsigned long const, lynx::HNSWIndex::Node> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::_M_rehash(unsigned long, unsigned long const&) [39]
+[32]     0.0    0.00    0.00    1000         lynx::HNSWIndex::compact_index() [32]
+                0.00    0.00       7/7           std::_Hashtable<unsigned long, std::pair<unsigned long const, lynx::HNSWIndex::Node>, std::allocator<std::pair<unsigned long const, lynx::HNSWIndex::Node> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::_M_rehash(unsigned long, unsigned long const&) [38]
 -----------------------------------------------
                 0.00    0.00    1000/1000        lynx::HNSWIndex::add(unsigned long, std::span<float const, 18446744073709551615ul>) <cycle 1> [4]
-[34]     0.0    0.00    0.00    1000         lynx::HNSWIndex::generate_random_layer() [34]
-                0.00    0.00       4/4           std::mersenne_twister_engine<unsigned long, 64ul, 312ul, 156ul, 31ul, 13043109905998158313ul, 29ul, 6148914691236517205ul, 17ul, 8202884508482404352ul, 37ul, 18444473444759240704ul, 43ul, 6364136223846793005ul>::_M_gen_rand() [41]
+[33]     0.0    0.00    0.00    1000         lynx::HNSWIndex::generate_random_layer() [33]
+                0.00    0.00       4/4           std::mersenne_twister_engine<unsigned long, 64ul, 312ul, 156ul, 31ul, 13043109905998158313ul, 29ul, 6148914691236517205ul, 17ul, 8202884508482404352ul, 37ul, 18444473444759240704ul, 43ul, 6364136223846793005ul>::_M_gen_rand() [40]
 -----------------------------------------------
                 0.00    0.00    1000/1000        lynx::VectorDatabase::batch_insert(std::span<lynx::VectorRecord const, 18446744073709551615ul>) [2]
-[35]     0.0    0.00    0.00    1000         std::__detail::_Map_base<unsigned long, std::pair<unsigned long const, lynx::VectorRecord>, std::allocator<std::pair<unsigned long const, lynx::VectorRecord> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true>, true>::operator[](unsigned long const&) [35]
-                0.00    0.00       7/7           std::_Hashtable<unsigned long, std::pair<unsigned long const, lynx::VectorRecord>, std::allocator<std::pair<unsigned long const, lynx::VectorRecord> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::_M_rehash(unsigned long, unsigned long const&) [38]
+[34]     0.0    0.00    0.00    1000         std::__detail::_Map_base<unsigned long, std::pair<unsigned long const, lynx::VectorRecord>, std::allocator<std::pair<unsigned long const, lynx::VectorRecord> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true>, true>::operator[](unsigned long const&) [34]
+                0.00    0.00       7/7           std::_Hashtable<unsigned long, std::pair<unsigned long const, lynx::VectorRecord>, std::allocator<std::pair<unsigned long const, lynx::VectorRecord> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::_M_rehash(unsigned long, unsigned long const&) [37]
 -----------------------------------------------
                 0.00    0.00    1000/1000        lynx::HNSWIndex::add(unsigned long, std::span<float const, 18446744073709551615ul>) <cycle 1> [4]
-[36]     0.0    0.00    0.00    1000         std::__detail::_Map_base<unsigned long, std::pair<unsigned long const, std::vector<float, std::allocator<float> > >, std::allocator<std::pair<unsigned long const, std::vector<float, std::allocator<float> > > >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true>, true>::operator[](unsigned long const&) [36]
-                0.00    0.00       7/7           std::_Hashtable<unsigned long, std::pair<unsigned long const, std::vector<float, std::allocator<float> > >, std::allocator<std::pair<unsigned long const, std::vector<float, std::allocator<float> > > >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::_M_rehash(unsigned long, unsigned long const&) [40]
+[35]     0.0    0.00    0.00    1000         std::__detail::_Map_base<unsigned long, std::pair<unsigned long const, std::vector<float, std::allocator<float> > >, std::allocator<std::pair<unsigned long const, std::vector<float, std::allocator<float> > > >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true>, true>::operator[](unsigned long const&) [35]
+                0.00    0.00       7/7           std::_Hashtable<unsigned long, std::pair<unsigned long const, std::vector<float, std::allocator<float> > >, std::allocator<std::pair<unsigned long const, std::vector<float, std::allocator<float> > > >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::_M_rehash(unsigned long, unsigned long const&) [39]
 -----------------------------------------------
-                0.00    0.00     829/829         generate_random_vector(int, std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul>&) [31]
-[37]     0.0    0.00    0.00     829         std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul>::_M_gen_rand() [37]
+                0.00    0.00     829/829         generate_random_vector(int, std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul>&) [30]
+[36]     0.0    0.00    0.00     829         std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul>::_M_gen_rand() [36]
 -----------------------------------------------
-                0.00    0.00       7/7           std::__detail::_Map_base<unsigned long, std::pair<unsigned long const, lynx::VectorRecord>, std::allocator<std::pair<unsigned long const, lynx::VectorRecord> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true>, true>::operator[](unsigned long const&) [35]
-[38]     0.0    0.00    0.00       7         std::_Hashtable<unsigned long, std::pair<unsigned long const, lynx::VectorRecord>, std::allocator<std::pair<unsigned long const, lynx::VectorRecord> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::_M_rehash(unsigned long, unsigned long const&) [38]
+                0.00    0.00       7/7           std::__detail::_Map_base<unsigned long, std::pair<unsigned long const, lynx::VectorRecord>, std::allocator<std::pair<unsigned long const, lynx::VectorRecord> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true>, true>::operator[](unsigned long const&) [34]
+[37]     0.0    0.00    0.00       7         std::_Hashtable<unsigned long, std::pair<unsigned long const, lynx::VectorRecord>, std::allocator<std::pair<unsigned long const, lynx::VectorRecord> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::_M_rehash(unsigned long, unsigned long const&) [37]
 -----------------------------------------------
-                0.00    0.00       7/7           lynx::HNSWIndex::compact_index() [33]
-[39]     0.0    0.00    0.00       7         std::_Hashtable<unsigned long, std::pair<unsigned long const, lynx::HNSWIndex::Node>, std::allocator<std::pair<unsigned long const, lynx::HNSWIndex::Node> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::_M_rehash(unsigned long, unsigned long const&) [39]
+                0.00    0.00       7/7           lynx::HNSWIndex::compact_index() [32]
+[38]     0.0    0.00    0.00       7         std::_Hashtable<unsigned long, std::pair<unsigned long const, lynx::HNSWIndex::Node>, std::allocator<std::pair<unsigned long const, lynx::HNSWIndex::Node> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::_M_rehash(unsigned long, unsigned long const&) [38]
 -----------------------------------------------
-                0.00    0.00       7/7           std::__detail::_Map_base<unsigned long, std::pair<unsigned long const, std::vector<float, std::allocator<float> > >, std::allocator<std::pair<unsigned long const, std::vector<float, std::allocator<float> > > >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true>, true>::operator[](unsigned long const&) [36]
-[40]     0.0    0.00    0.00       7         std::_Hashtable<unsigned long, std::pair<unsigned long const, std::vector<float, std::allocator<float> > >, std::allocator<std::pair<unsigned long const, std::vector<float, std::allocator<float> > > >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::_M_rehash(unsigned long, unsigned long const&) [40]
+                0.00    0.00       7/7           std::__detail::_Map_base<unsigned long, std::pair<unsigned long const, std::vector<float, std::allocator<float> > >, std::allocator<std::pair<unsigned long const, std::vector<float, std::allocator<float> > > >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true>, true>::operator[](unsigned long const&) [35]
+[39]     0.0    0.00    0.00       7         std::_Hashtable<unsigned long, std::pair<unsigned long const, std::vector<float, std::allocator<float> > >, std::allocator<std::pair<unsigned long const, std::vector<float, std::allocator<float> > > >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::_M_rehash(unsigned long, unsigned long const&) [39]
 -----------------------------------------------
-                0.00    0.00       4/4           lynx::HNSWIndex::generate_random_layer() [34]
-[41]     0.0    0.00    0.00       4         std::mersenne_twister_engine<unsigned long, 64ul, 312ul, 156ul, 31ul, 13043109905998158313ul, 29ul, 6148914691236517205ul, 17ul, 8202884508482404352ul, 37ul, 18444473444759240704ul, 43ul, 6364136223846793005ul>::_M_gen_rand() [41]
+                0.00    0.00       4/4           lynx::HNSWIndex::generate_random_layer() [33]
+[40]     0.0    0.00    0.00       4         std::mersenne_twister_engine<unsigned long, 64ul, 312ul, 156ul, 31ul, 13043109905998158313ul, 29ul, 6148914691236517205ul, 17ul, 8202884508482404352ul, 37ul, 18444473444759240704ul, 43ul, 6364136223846793005ul>::_M_gen_rand() [40]
 -----------------------------------------------
-                0.00    0.00       1/1           lynx::VectorDatabase::~VectorDatabase() [45]
-[42]     0.0    0.00    0.00       1         lynx::IVectorIndex::~IVectorIndex() [42]
+                0.00    0.00       1/1           lynx::VectorDatabase::~VectorDatabase() [44]
+[41]     0.0    0.00    0.00       1         lynx::IVectorIndex::~IVectorIndex() [41]
 -----------------------------------------------
-                0.00    0.00       1/1           lynx::VectorDatabase::VectorDatabase(lynx::Config const&) [44]
-[43]     0.0    0.00    0.00       1         lynx::VectorDatabase::create_index() [43]
-                0.00    0.00       1/1           lynx::HNSWIndex::HNSWIndex(unsigned long, lynx::DistanceMetric, lynx::HNSWParams const&) [48]
+                0.00    0.00       1/1           lynx::VectorDatabase::VectorDatabase(lynx::Config const&) [43]
+[42]     0.0    0.00    0.00       1         lynx::VectorDatabase::create_index() [42]
+                0.00    0.00       1/1           lynx::HNSWIndex::HNSWIndex(unsigned long, lynx::DistanceMetric, lynx::HNSWParams const&) [47]
 -----------------------------------------------
-                0.00    0.00       1/1           lynx::IVectorDatabase::create(lynx::Config const&) [46]
-[44]     0.0    0.00    0.00       1         lynx::VectorDatabase::VectorDatabase(lynx::Config const&) [44]
-                0.00    0.00       1/1           lynx::VectorDatabase::create_index() [43]
+                0.00    0.00       1/1           lynx::IVectorDatabase::create(lynx::Config const&) [45]
+[43]     0.0    0.00    0.00       1         lynx::VectorDatabase::VectorDatabase(lynx::Config const&) [43]
+                0.00    0.00       1/1           lynx::VectorDatabase::create_index() [42]
 -----------------------------------------------
-                0.00    0.00       1/1           std::_Sp_counted_base<(__gnu_cxx::_Lock_policy)2>::_M_release() [52]
-[45]     0.0    0.00    0.00       1         lynx::VectorDatabase::~VectorDatabase() [45]
-                0.00    0.00       1/1           std::_Hashtable<unsigned long, std::pair<unsigned long const, lynx::VectorRecord>, std::allocator<std::pair<unsigned long const, lynx::VectorRecord> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::clear() [49]
-                0.00    0.00       1/1           std::_Sp_counted_ptr_inplace<lynx::HNSWIndex, std::allocator<void>, (__gnu_cxx::_Lock_policy)2>::_M_destroy() [55]
-                0.00    0.00       1/1           lynx::IVectorIndex::~IVectorIndex() [42]
-                0.00    0.00       1/1           std::_Sp_counted_ptr_inplace<lynx::HNSWIndex, std::allocator<void>, (__gnu_cxx::_Lock_policy)2>::_M_dispose() [56]
------------------------------------------------
-                0.00    0.00       1/1           main [1]
-[46]     0.0    0.00    0.00       1         lynx::IVectorDatabase::create(lynx::Config const&) [46]
-                0.00    0.00       1/1           lynx::VectorDatabase::VectorDatabase(lynx::Config const&) [44]
------------------------------------------------
-                0.00    0.00       1/1           std::_Sp_counted_base<(__gnu_cxx::_Lock_policy)2>::_M_release() [52]
-[47]     0.0    0.00    0.00       1         lynx::IVectorDatabase::~IVectorDatabase() [47]
------------------------------------------------
-                0.00    0.00       1/1           lynx::VectorDatabase::create_index() [43]
-[48]     0.0    0.00    0.00       1         lynx::HNSWIndex::HNSWIndex(unsigned long, lynx::DistanceMetric, lynx::HNSWParams const&) [48]
------------------------------------------------
-                0.00    0.00       1/1           lynx::VectorDatabase::~VectorDatabase() [45]
-[49]     0.0    0.00    0.00       1         std::_Hashtable<unsigned long, std::pair<unsigned long const, lynx::VectorRecord>, std::allocator<std::pair<unsigned long const, lynx::VectorRecord> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::clear() [49]
------------------------------------------------
-                0.00    0.00       1/1           std::_Sp_counted_ptr_inplace<lynx::HNSWIndex, std::allocator<void>, (__gnu_cxx::_Lock_policy)2>::_M_dispose() [56]
-[50]     0.0    0.00    0.00       1         std::_Hashtable<unsigned long, std::pair<unsigned long const, std::vector<float, std::allocator<float> > >, std::allocator<std::pair<unsigned long const, std::vector<float, std::allocator<float> > > >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::clear() [50]
+                0.00    0.00       1/1           std::_Sp_counted_base<(__gnu_cxx::_Lock_policy)2>::_M_release() [51]
+[44]     0.0    0.00    0.00       1         lynx::VectorDatabase::~VectorDatabase() [44]
+                0.00    0.00       1/1           std::_Hashtable<unsigned long, std::pair<unsigned long const, lynx::VectorRecord>, std::allocator<std::pair<unsigned long const, lynx::VectorRecord> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::clear() [48]
+                0.00    0.00       1/1           std::_Sp_counted_ptr_inplace<lynx::HNSWIndex, std::allocator<void>, (__gnu_cxx::_Lock_policy)2>::_M_destroy() [54]
+                0.00    0.00       1/1           lynx::IVectorIndex::~IVectorIndex() [41]
+                0.00    0.00       1/1           std::_Sp_counted_ptr_inplace<lynx::HNSWIndex, std::allocator<void>, (__gnu_cxx::_Lock_policy)2>::_M_dispose() [55]
 -----------------------------------------------
                 0.00    0.00       1/1           main [1]
-[51]     0.0    0.00    0.00       1         std::random_device::random_device() [51]
+[45]     0.0    0.00    0.00       1         lynx::IVectorDatabase::create(lynx::Config const&) [45]
+                0.00    0.00       1/1           lynx::VectorDatabase::VectorDatabase(lynx::Config const&) [43]
+-----------------------------------------------
+                0.00    0.00       1/1           std::_Sp_counted_base<(__gnu_cxx::_Lock_policy)2>::_M_release() [51]
+[46]     0.0    0.00    0.00       1         lynx::IVectorDatabase::~IVectorDatabase() [46]
+-----------------------------------------------
+                0.00    0.00       1/1           lynx::VectorDatabase::create_index() [42]
+[47]     0.0    0.00    0.00       1         lynx::HNSWIndex::HNSWIndex(unsigned long, lynx::DistanceMetric, lynx::HNSWParams const&) [47]
+-----------------------------------------------
+                0.00    0.00       1/1           lynx::VectorDatabase::~VectorDatabase() [44]
+[48]     0.0    0.00    0.00       1         std::_Hashtable<unsigned long, std::pair<unsigned long const, lynx::VectorRecord>, std::allocator<std::pair<unsigned long const, lynx::VectorRecord> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::clear() [48]
+-----------------------------------------------
+                0.00    0.00       1/1           std::_Sp_counted_ptr_inplace<lynx::HNSWIndex, std::allocator<void>, (__gnu_cxx::_Lock_policy)2>::_M_dispose() [55]
+[49]     0.0    0.00    0.00       1         std::_Hashtable<unsigned long, std::pair<unsigned long const, std::vector<float, std::allocator<float> > >, std::allocator<std::pair<unsigned long const, std::vector<float, std::allocator<float> > > >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::clear() [49]
 -----------------------------------------------
                 0.00    0.00       1/1           main [1]
-[52]     0.0    0.00    0.00       1         std::_Sp_counted_base<(__gnu_cxx::_Lock_policy)2>::_M_release() [52]
-                0.00    0.00       1/1           lynx::IVectorDatabase::~IVectorDatabase() [47]
-                0.00    0.00       1/1           lynx::VectorDatabase::~VectorDatabase() [45]
-                0.00    0.00       1/1           std::_Sp_counted_ptr_inplace<lynx::VectorDatabase, std::allocator<void>, (__gnu_cxx::_Lock_policy)2>::_M_dispose() [54]
+[50]     0.0    0.00    0.00       1         std::random_device::random_device() [50]
 -----------------------------------------------
                 0.00    0.00       1/1           main [1]
-[53]     0.0    0.00    0.00       1         std::_Sp_counted_ptr_inplace<lynx::VectorDatabase, std::allocator<void>, (__gnu_cxx::_Lock_policy)2>::_M_destroy() [53]
------------------------------------------------
-                0.00    0.00       1/1           std::_Sp_counted_base<(__gnu_cxx::_Lock_policy)2>::_M_release() [52]
-[54]     0.0    0.00    0.00       1         std::_Sp_counted_ptr_inplace<lynx::VectorDatabase, std::allocator<void>, (__gnu_cxx::_Lock_policy)2>::_M_dispose() [54]
------------------------------------------------
-                0.00    0.00       1/1           lynx::VectorDatabase::~VectorDatabase() [45]
-[55]     0.0    0.00    0.00       1         std::_Sp_counted_ptr_inplace<lynx::HNSWIndex, std::allocator<void>, (__gnu_cxx::_Lock_policy)2>::_M_destroy() [55]
------------------------------------------------
-                0.00    0.00       1/1           lynx::VectorDatabase::~VectorDatabase() [45]
-[56]     0.0    0.00    0.00       1         std::_Sp_counted_ptr_inplace<lynx::HNSWIndex, std::allocator<void>, (__gnu_cxx::_Lock_policy)2>::_M_dispose() [56]
-                0.00    0.00       1/1           std::_Hashtable<unsigned long, std::pair<unsigned long const, std::vector<float, std::allocator<float> > >, std::allocator<std::pair<unsigned long const, std::vector<float, std::allocator<float> > > >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::clear() [50]
+[51]     0.0    0.00    0.00       1         std::_Sp_counted_base<(__gnu_cxx::_Lock_policy)2>::_M_release() [51]
+                0.00    0.00       1/1           lynx::IVectorDatabase::~IVectorDatabase() [46]
+                0.00    0.00       1/1           lynx::VectorDatabase::~VectorDatabase() [44]
+                0.00    0.00       1/1           std::_Sp_counted_ptr_inplace<lynx::VectorDatabase, std::allocator<void>, (__gnu_cxx::_Lock_policy)2>::_M_dispose() [53]
 -----------------------------------------------
                 0.00    0.00       1/1           main [1]
-[57]     0.0    0.00    0.00       1         std::vector<lynx::VectorRecord, std::allocator<lynx::VectorRecord> >::~vector() [57]
+[52]     0.0    0.00    0.00       1         std::_Sp_counted_ptr_inplace<lynx::VectorDatabase, std::allocator<void>, (__gnu_cxx::_Lock_policy)2>::_M_destroy() [52]
+-----------------------------------------------
+                0.00    0.00       1/1           std::_Sp_counted_base<(__gnu_cxx::_Lock_policy)2>::_M_release() [51]
+[53]     0.0    0.00    0.00       1         std::_Sp_counted_ptr_inplace<lynx::VectorDatabase, std::allocator<void>, (__gnu_cxx::_Lock_policy)2>::_M_dispose() [53]
+-----------------------------------------------
+                0.00    0.00       1/1           lynx::VectorDatabase::~VectorDatabase() [44]
+[54]     0.0    0.00    0.00       1         std::_Sp_counted_ptr_inplace<lynx::HNSWIndex, std::allocator<void>, (__gnu_cxx::_Lock_policy)2>::_M_destroy() [54]
+-----------------------------------------------
+                0.00    0.00       1/1           lynx::VectorDatabase::~VectorDatabase() [44]
+[55]     0.0    0.00    0.00       1         std::_Sp_counted_ptr_inplace<lynx::HNSWIndex, std::allocator<void>, (__gnu_cxx::_Lock_policy)2>::_M_dispose() [55]
+                0.00    0.00       1/1           std::_Hashtable<unsigned long, std::pair<unsigned long const, std::vector<float, std::allocator<float> > >, std::allocator<std::pair<unsigned long const, std::vector<float, std::allocator<float> > > >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::clear() [49]
 -----------------------------------------------
                 0.00    0.00       1/1           main [1]
-[58]     0.0    0.00    0.00       1         std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose() [58]
+[56]     0.0    0.00    0.00       1         std::vector<lynx::VectorRecord, std::allocator<lynx::VectorRecord> >::~vector() [56]
+-----------------------------------------------
+                0.00    0.00       1/1           main [1]
+[57]     0.0    0.00    0.00       1         std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose() [57]
 -----------------------------------------------
 
  This table describes the call tree of the program, and was sorted by
@@ -431,21 +431,20 @@ notice and this notice are preserved.
 
 Index by function name
 
-  [31] generate_random_vector(int, std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul>&) [48] lynx::HNSWIndex::HNSWIndex(unsigned long, lynx::DistanceMetric, lynx::HNSWParams const&) [12] std::priority_queue<lynx::HNSWIndex::Candidate, std::vector<lynx::HNSWIndex::Candidate, std::allocator<lynx::HNSWIndex::Candidate> >, std::greater<lynx::HNSWIndex::Candidate> >::push(lynx::HNSWIndex::Candidate&&)
-  [42] lynx::IVectorIndex::~IVectorIndex() [18] lynx::VectorDatabase::search(std::span<float const, 18446744073709551615ul>, unsigned long) const [52] std::_Sp_counted_base<(__gnu_cxx::_Lock_policy)2>::_M_release()
-   [2] lynx::VectorDatabase::batch_insert(std::span<lynx::VectorRecord const, 18446744073709551615ul>) [19] lynx::VectorDatabase::search(std::span<float const, 18446744073709551615ul>, unsigned long, lynx::SearchParams const&) const [53] std::_Sp_counted_ptr_inplace<lynx::VectorDatabase, std::allocator<void>, (__gnu_cxx::_Lock_policy)2>::_M_destroy()
-  [43] lynx::VectorDatabase::create_index() [13] lynx::HNSWIndex::memory_usage() const [54] std::_Sp_counted_ptr_inplace<lynx::VectorDatabase, std::allocator<void>, (__gnu_cxx::_Lock_policy)2>::_M_dispose()
-  [44] lynx::VectorDatabase::VectorDatabase(lynx::Config const&) [9] lynx::HNSWIndex::search_layer(std::span<float const, 18446744073709551615ul>, std::vector<unsigned long, std::allocator<unsigned long> > const&, unsigned long, unsigned long) const [55] std::_Sp_counted_ptr_inplace<lynx::HNSWIndex, std::allocator<void>, (__gnu_cxx::_Lock_policy)2>::_M_destroy()
-  [45] lynx::VectorDatabase::~VectorDatabase() [17] lynx::HNSWIndex::get_neighbors(unsigned long, unsigned long) const [56] std::_Sp_counted_ptr_inplace<lynx::HNSWIndex, std::allocator<void>, (__gnu_cxx::_Lock_policy)2>::_M_dispose()
-  [46] lynx::IVectorDatabase::create(lynx::Config const&) [22] lynx::HNSWIndex::calculate_distance(std::span<float const, 18446744073709551615ul>, unsigned long) const [37] std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul>::_M_gen_rand()
-  [47] lynx::IVectorDatabase::~IVectorDatabase() [10] lynx::HNSWIndex::calculate_distance(unsigned long, unsigned long) const [41] std::mersenne_twister_engine<unsigned long, 64ul, 312ul, 156ul, 31ul, 13043109905998158313ul, 29ul, 6148914691236517205ul, 17ul, 8202884508482404352ul, 37ul, 18444473444759240704ul, 43ul, 6364136223846793005ul>::_M_gen_rand()
-   [6] lynx::utils::calculate_l2(std::span<float const, 18446744073709551615ul>, std::span<float const, 18446744073709551615ul>) [20] lynx::HNSWIndex::search(std::span<float const, 18446744073709551615ul>, unsigned long, lynx::SearchParams const&) const [57] std::vector<lynx::VectorRecord, std::allocator<lynx::VectorRecord> >::~vector()
-  [15] lynx::utils::calculate_distance(std::span<float const, 18446744073709551615ul>, std::span<float const, 18446744073709551615ul>, lynx::DistanceMetric) [11] lynx::HNSWIndex::serialize(std::ostream&) const [58] std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()
-   [7] lynx::utils::calculate_l2_squared(std::span<float const, 18446744073709551615ul>, std::span<float const, 18446744073709551615ul>) [49] std::_Hashtable<unsigned long, std::pair<unsigned long const, lynx::VectorRecord>, std::allocator<std::pair<unsigned long const, lynx::VectorRecord> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::clear() [14] std::__detail::_Insert_base<unsigned long, unsigned long, std::allocator<unsigned long>, std::__detail::_Identity, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, true, true> >::insert(unsigned long const&)
-  [33] lynx::HNSWIndex::compact_index() [38] std::_Hashtable<unsigned long, std::pair<unsigned long const, lynx::VectorRecord>, std::allocator<std::pair<unsigned long const, lynx::VectorRecord> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::_M_rehash(unsigned long, unsigned long const&) [35] std::__detail::_Map_base<unsigned long, std::pair<unsigned long const, lynx::VectorRecord>, std::allocator<std::pair<unsigned long const, lynx::VectorRecord> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true>, true>::operator[](unsigned long const&)
-  [21] lynx::HNSWIndex::add_connection(unsigned long, unsigned long, unsigned long) [39] std::_Hashtable<unsigned long, std::pair<unsigned long const, lynx::HNSWIndex::Node>, std::allocator<std::pair<unsigned long const, lynx::HNSWIndex::Node> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::_M_rehash(unsigned long, unsigned long const&) [36] std::__detail::_Map_base<unsigned long, std::pair<unsigned long const, std::vector<float, std::allocator<float> > >, std::allocator<std::pair<unsigned long const, std::vector<float, std::allocator<float> > > >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true>, true>::operator[](unsigned long const&)
-   [5] lynx::HNSWIndex::prune_connections(unsigned long, unsigned long, unsigned long) [50] std::_Hashtable<unsigned long, std::pair<unsigned long const, std::vector<float, std::allocator<float> > >, std::allocator<std::pair<unsigned long const, std::vector<float, std::allocator<float> > > >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::clear() [16] _init
-  [34] lynx::HNSWIndex::generate_random_layer() [40] std::_Hashtable<unsigned long, std::pair<unsigned long const, std::vector<float, std::allocator<float> > >, std::allocator<std::pair<unsigned long const, std::vector<float, std::allocator<float> > > >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::_M_rehash(unsigned long, unsigned long const&) [23] frame_dummy
-   [8] lynx::HNSWIndex::select_neighbors_heuristic(std::priority_queue<lynx::HNSWIndex::Candidate, std::vector<lynx::HNSWIndex::Candidate, std::allocator<lynx::HNSWIndex::Candidate> >, std::greater<lynx::HNSWIndex::Candidate> >&, unsigned long, unsigned long, bool) [30] std::_Hashtable<unsigned long, unsigned long, std::allocator<unsigned long>, std::__detail::_Identity, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, true, true> >::_M_rehash(unsigned long, unsigned long const&) [3] <cycle 1>
-   [4] lynx::HNSWIndex::add(unsigned long, std::span<float const, 18446744073709551615ul>) [51] std::random_device::random_device()
-  [32] lynx::HNSWIndex::build(std::span<lynx::VectorRecord const, 18446744073709551615ul>) [29] std::priority_queue<lynx::HNSWIndex::Candidate, std::vector<lynx::HNSWIndex::Candidate, std::allocator<lynx::HNSWIndex::Candidate> >, std::less<lynx::HNSWIndex::Candidate> >::push(lynx::HNSWIndex::Candidate&&)
+  [30] generate_random_vector(int, std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul>&) [31] lynx::HNSWIndex::build(std::span<lynx::VectorRecord const, 18446744073709551615ul>) [50] std::random_device::random_device()
+  [41] lynx::IVectorIndex::~IVectorIndex() [47] lynx::HNSWIndex::HNSWIndex(unsigned long, lynx::DistanceMetric, lynx::HNSWParams const&) [15] std::priority_queue<lynx::HNSWIndex::Candidate, std::vector<lynx::HNSWIndex::Candidate, std::allocator<lynx::HNSWIndex::Candidate> >, std::less<lynx::HNSWIndex::Candidate> >::push(lynx::HNSWIndex::Candidate&&)
+   [2] lynx::VectorDatabase::batch_insert(std::span<lynx::VectorRecord const, 18446744073709551615ul>) [17] lynx::VectorDatabase::search(std::span<float const, 18446744073709551615ul>, unsigned long) const [12] std::priority_queue<lynx::HNSWIndex::Candidate, std::vector<lynx::HNSWIndex::Candidate, std::allocator<lynx::HNSWIndex::Candidate> >, std::greater<lynx::HNSWIndex::Candidate> >::push(lynx::HNSWIndex::Candidate&&)
+  [42] lynx::VectorDatabase::create_index() [18] lynx::VectorDatabase::search(std::span<float const, 18446744073709551615ul>, unsigned long, lynx::SearchParams const&) const [51] std::_Sp_counted_base<(__gnu_cxx::_Lock_policy)2>::_M_release()
+  [43] lynx::VectorDatabase::VectorDatabase(lynx::Config const&) [28] lynx::HNSWIndex::memory_usage() const [52] std::_Sp_counted_ptr_inplace<lynx::VectorDatabase, std::allocator<void>, (__gnu_cxx::_Lock_policy)2>::_M_destroy()
+  [44] lynx::VectorDatabase::~VectorDatabase() [9] lynx::HNSWIndex::search_layer(std::span<float const, 18446744073709551615ul>, std::vector<unsigned long, std::allocator<unsigned long> > const&, unsigned long, unsigned long) const [53] std::_Sp_counted_ptr_inplace<lynx::VectorDatabase, std::allocator<void>, (__gnu_cxx::_Lock_policy)2>::_M_dispose()
+  [45] lynx::IVectorDatabase::create(lynx::Config const&) [29] lynx::HNSWIndex::get_neighbors(unsigned long, unsigned long) const [54] std::_Sp_counted_ptr_inplace<lynx::HNSWIndex, std::allocator<void>, (__gnu_cxx::_Lock_policy)2>::_M_destroy()
+  [46] lynx::IVectorDatabase::~IVectorDatabase() [14] lynx::HNSWIndex::calculate_distance(std::span<float const, 18446744073709551615ul>, unsigned long) const [55] std::_Sp_counted_ptr_inplace<lynx::HNSWIndex, std::allocator<void>, (__gnu_cxx::_Lock_policy)2>::_M_dispose()
+   [5] lynx::utils::calculate_l2(std::span<float const, 18446744073709551615ul>, std::span<float const, 18446744073709551615ul>) [11] lynx::HNSWIndex::calculate_distance(unsigned long, unsigned long) const [36] std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul>::_M_gen_rand()
+  [27] lynx::utils::calculate_distance(std::span<float const, 18446744073709551615ul>, std::span<float const, 18446744073709551615ul>, lynx::DistanceMetric) [19] lynx::HNSWIndex::search(std::span<float const, 18446744073709551615ul>, unsigned long, lynx::SearchParams const&) const [40] std::mersenne_twister_engine<unsigned long, 64ul, 312ul, 156ul, 31ul, 13043109905998158313ul, 29ul, 6148914691236517205ul, 17ul, 8202884508482404352ul, 37ul, 18444473444759240704ul, 43ul, 6364136223846793005ul>::_M_gen_rand()
+   [7] lynx::utils::calculate_l2_squared(std::span<float const, 18446744073709551615ul>, std::span<float const, 18446744073709551615ul>) [10] lynx::HNSWIndex::serialize(std::ostream&) const [56] std::vector<lynx::VectorRecord, std::allocator<lynx::VectorRecord> >::~vector()
+  [32] lynx::HNSWIndex::compact_index() [48] std::_Hashtable<unsigned long, std::pair<unsigned long const, lynx::VectorRecord>, std::allocator<std::pair<unsigned long const, lynx::VectorRecord> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::clear() [57] std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()
+  [20] lynx::HNSWIndex::add_connection(unsigned long, unsigned long, unsigned long) [37] std::_Hashtable<unsigned long, std::pair<unsigned long const, lynx::VectorRecord>, std::allocator<std::pair<unsigned long const, lynx::VectorRecord> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::_M_rehash(unsigned long, unsigned long const&) [13] std::__detail::_Insert_base<unsigned long, unsigned long, std::allocator<unsigned long>, std::__detail::_Identity, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, true, true> >::insert(unsigned long const&)
+   [6] lynx::HNSWIndex::prune_connections(unsigned long, unsigned long, unsigned long) [38] std::_Hashtable<unsigned long, std::pair<unsigned long const, lynx::HNSWIndex::Node>, std::allocator<std::pair<unsigned long const, lynx::HNSWIndex::Node> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::_M_rehash(unsigned long, unsigned long const&) [34] std::__detail::_Map_base<unsigned long, std::pair<unsigned long const, lynx::VectorRecord>, std::allocator<std::pair<unsigned long const, lynx::VectorRecord> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true>, true>::operator[](unsigned long const&)
+  [33] lynx::HNSWIndex::generate_random_layer() [49] std::_Hashtable<unsigned long, std::pair<unsigned long const, std::vector<float, std::allocator<float> > >, std::allocator<std::pair<unsigned long const, std::vector<float, std::allocator<float> > > >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::clear() [35] std::__detail::_Map_base<unsigned long, std::pair<unsigned long const, std::vector<float, std::allocator<float> > >, std::allocator<std::pair<unsigned long const, std::vector<float, std::allocator<float> > > >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true>, true>::operator[](unsigned long const&)
+   [8] lynx::HNSWIndex::select_neighbors_heuristic(std::priority_queue<lynx::HNSWIndex::Candidate, std::vector<lynx::HNSWIndex::Candidate, std::allocator<lynx::HNSWIndex::Candidate> >, std::greater<lynx::HNSWIndex::Candidate> >&, unsigned long, unsigned long, bool) [39] std::_Hashtable<unsigned long, std::pair<unsigned long const, std::vector<float, std::allocator<float> > >, std::allocator<std::pair<unsigned long const, std::vector<float, std::allocator<float> > > >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::_M_rehash(unsigned long, unsigned long const&) [21] frame_dummy
+   [4] lynx::HNSWIndex::add(unsigned long, std::span<float const, 18446744073709551615ul>) [16] std::_Hashtable<unsigned long, unsigned long, std::allocator<unsigned long>, std::__detail::_Identity, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, true, true> >::_M_rehash(unsigned long, unsigned long const&) [3] <cycle 1>
