@@ -189,10 +189,9 @@ private:
      * @param entry_points Starting nodes for search
      * @param ef Number of neighbors to explore
      * @param layer Layer to search in
-     * @return Priority queue of (id, distance) candidates
+     * @return Vector of (id, distance) candidates, sorted by distance ascending
      */
-    std::priority_queue<Candidate, std::vector<Candidate>, std::less<Candidate>>
-    search_layer(
+    [[nodiscard]] std::vector<Candidate> search_layer(
         std::span<const float> query,
         const std::vector<std::uint64_t>& entry_points,
         std::size_t ef,
