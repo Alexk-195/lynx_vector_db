@@ -5,6 +5,17 @@
  * @copyright MIT License
  */
 
+// ============================================================================
+// PRUNE OPTIMIZATION SELECTION
+// ============================================================================
+// Select pruning strategy during add() operation:
+//   0 = Original behavior (prune after every connection)
+//   1 = Check before calling prune (avoid unnecessary calls)
+//   2 = Batch and deduplicate pruning (prune once per unique neighbor)
+//   3 = Skip pruning during construction (defer to optimize_graph())
+// ============================================================================
+#define PRUNE_OPTIMIZATION 2
+
 #include "hnsw_index.h"
 #include "utils.h"
 #include <algorithm>
@@ -336,14 +347,55 @@ ErrorCode HNSWIndex::add(std::uint64_t id, std::span<const float> vector) {
         const std::size_t m = (lc == 0) ? (2 * params_.m) : params_.m;
         auto neighbors = select_neighbors_heuristic(candidates_min, m, lc, false);
 
-        // Add bidirectional connections
+        // Add bidirectional connections and handle pruning based on optimization strategy
+        const std::size_t max_conn = (lc == 0) ? (2 * params_.m) : params_.m;
+
+#if PRUNE_OPTIMIZATION == 0
+        // Option 0: Original behavior - prune after every connection
         for (auto neighbor_id : neighbors) {
             add_connection(id, neighbor_id, lc);
-
-            // Prune neighbor's connections if needed
-            const std::size_t max_conn = (lc == 0) ? (2 * params_.m) : params_.m;
             prune_connections(neighbor_id, lc, max_conn);
         }
+
+#elif PRUNE_OPTIMIZATION == 1
+        // Option 1: Check before calling prune - avoid unnecessary function calls
+        for (auto neighbor_id : neighbors) {
+            add_connection(id, neighbor_id, lc);
+            // Only call prune if neighbor actually exceeds max connections
+            if (graph_.at(neighbor_id).layers[lc].size() > max_conn) {
+                prune_connections(neighbor_id, lc, max_conn);
+            }
+        }
+
+#elif PRUNE_OPTIMIZATION == 2
+        // Option 2: Batch and deduplicate pruning - add all connections first,
+        // then prune only unique neighbors that exceed the limit
+        for (auto neighbor_id : neighbors) {
+            add_connection(id, neighbor_id, lc);
+        }
+        // Collect unique neighbors that need pruning (use set to deduplicate)
+        std::unordered_set<std::uint64_t> neighbors_to_prune;
+        for (auto neighbor_id : neighbors) {
+            if (graph_.at(neighbor_id).layers[lc].size() > max_conn) {
+                neighbors_to_prune.insert(neighbor_id);
+            }
+        }
+        // Prune only those that exceed the limit
+        for (auto neighbor_id : neighbors_to_prune) {
+            prune_connections(neighbor_id, lc, max_conn);
+        }
+
+#elif PRUNE_OPTIMIZATION == 3
+        // Option 3: Skip pruning during construction - just add connections
+        // Pruning is deferred to optimize_graph() call
+        // This trades slightly higher memory usage for faster construction
+        for (auto neighbor_id : neighbors) {
+            add_connection(id, neighbor_id, lc);
+        }
+
+#else
+        #error "Invalid PRUNE_OPTIMIZATION value. Must be 0, 1, 2, or 3."
+#endif
 
         // Update entry points for next layer
         entry_points.clear();

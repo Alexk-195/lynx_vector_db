@@ -7,7 +7,7 @@
 
 using namespace lynx;
 
-constexpr int NUM_VECTORS = 1'000;
+constexpr int NUM_VECTORS = 10'000;
 constexpr int DIMENSION = 512;
 constexpr int NUM_QUERIES = 10;
 constexpr int BATCH_SIZE = 1000;

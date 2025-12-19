@@ -15,6 +15,7 @@
 #   ./setup.sh valgrind     # Run Valgrind (memory leak detection)
 #   ./setup.sh clang-tidy   # Run clang-tidy static analysis
 #   ./setup.sh benchmark    # Run performance benchmarks only
+#   ./setup.sh profile      # Build with profiling and generate performance report
 #   ./setup.sh install      # Install to system (requires sudo)
 #
 
@@ -434,8 +435,106 @@ case "${1}" in
         cd ..
         log_info "Benchmark run complete. Results saved to ${OUTPUT_FILE}"
         ;;
+    profile)
+        check_dependencies
+        log_info "Building and running with profiling enabled..."
+
+        # Check if gprof is available
+        if ! command -v gprof &> /dev/null; then
+            log_error "gprof is not installed. Please install build-essential:"
+            log_error "  Ubuntu/Debian: sudo apt-get install build-essential"
+            exit 1
+        fi
+
+        # Clean previous profiling build
+        rm -rf build-profile
+        mkdir -p build-profile
+        cd build-profile
+
+        # Build benchmark with profiling
+        log_info "Building benchmark with profiling instrumentation (-pg flag)..."
+
+        # Compile library with profiling
+        mkdir -p obj/lib bin lib
+        for src in ../src/lib/*.cpp; do
+            obj_file="obj/lib/$(basename ${src%.cpp}.o)"
+            log_info "Compiling $(basename $src) with profiling..."
+            g++ -std=c++20 -O2 -pg -I../src/include -fPIC -c "$src" -o "$obj_file"
+        done
+
+        # Create static library
+        log_info "Creating profiled static library..."
+        ar rcs lib/liblynx.a obj/lib/*.o
+
+        # Compile benchmark
+        log_info "Compiling benchmark with profiling..."
+        g++ -std=c++20 -O2 -pg -I../src/include \
+            -c ../benchmarks/lynx_test.cpp -o obj/lynx_test.o
+
+        # Link benchmark
+        log_info "Linking profiled benchmark..."
+        g++ -pg -o bin/lynx_test_profile obj/lynx_test.o lib/liblynx.a -pthread
+
+        # Run benchmark to generate profiling data
+        log_info "Running profiled benchmark (this generates gmon.out)..."
+        ./bin/lynx_test_profile
+
+        # Generate profile report
+        log_info "Generating profile report..."
+        OUTPUT_FILE="${PROJECT_ROOT}/tickets/2090_profile_report.txt"
+        FULL_REPORT="${PROJECT_ROOT}/tickets/2090_profile_full.txt"
+
+        # Generate full gprof report
+        gprof bin/lynx_test_profile gmon.out > "${FULL_REPORT}"
+
+        # Filter to show only src/lib functions
+        log_info "Filtering report to show src/lib functions..."
+        {
+            echo "========================================"
+            echo "LYNX VECTOR DATABASE - PROFILING REPORT"
+            echo "========================================"
+            echo "Date: $(date)"
+            echo "Build: Profiled (gprof -pg)"
+            echo "Benchmark: benchmarks/lynx_test.cpp"
+            echo ""
+            echo "Focus: Functions in src/lib/ directory"
+            echo "========================================"
+            echo ""
+            echo "FLAT PROFILE (Time spent in each function)"
+            echo "----------------------------------------"
+            gprof -p bin/lynx_test_profile gmon.out | grep -E "^\s*[0-9].*\s+(lynx::|_Z)" | head -50
+            echo ""
+            echo "========================================"
+            echo "CALL GRAPH (Function call hierarchy)"
+            echo "----------------------------------------"
+            echo ""
+            gprof -q bin/lynx_test_profile gmon.out | grep -A 20 -E "(lynx::|index_|search|insert|distance)" | head -100
+            echo ""
+            echo "========================================"
+            echo "TOP TIME-CONSUMING FUNCTIONS"
+            echo "----------------------------------------"
+            echo ""
+            gprof -p bin/lynx_test_profile gmon.out | head -30
+            echo ""
+            echo "Full report saved to: ${FULL_REPORT}"
+            echo "========================================"
+        } > "${OUTPUT_FILE}"
+
+        cd ..
+        log_info "Profiling complete!"
+        log_info "Profile report: ${OUTPUT_FILE}"
+        log_info "Full gprof output: ${FULL_REPORT}"
+
+        # Display summary
+        log_info "========================================"
+        log_info "PROFILE REPORT SUMMARY"
+        log_info "========================================"
+        head -60 "${OUTPUT_FILE}"
+        log_info "========================================"
+        log_info "Full report available at: ${OUTPUT_FILE}"
+        ;;
     *)
-        echo "Usage: $0 {release|debug|clean|rebuild|install|test|coverage|tsan|asan|ubsan|valgrind|clang-tidy|benchmark|run|info}"
+        echo "Usage: $0 {release|debug|clean|rebuild|install|test|coverage|tsan|asan|ubsan|valgrind|clang-tidy|benchmark|profile|run|info}"
         exit 1
         ;;
 esac
