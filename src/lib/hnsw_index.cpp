@@ -151,8 +151,7 @@ void HNSWIndex::prune_connections(std::uint64_t node_id, std::size_t layer, std:
 // Search Layer Algorithm
 // ============================================================================
 
-std::priority_queue<HNSWIndex::Candidate, std::vector<HNSWIndex::Candidate>, std::less<HNSWIndex::Candidate>>
-HNSWIndex::search_layer(
+std::vector<HNSWIndex::Candidate> HNSWIndex::search_layer(
     std::span<const float> query,
     const std::vector<std::uint64_t>& entry_points,
     std::size_t ef,
@@ -160,20 +159,25 @@ HNSWIndex::search_layer(
 
     // Visited set to avoid processing nodes multiple times
     std::unordered_set<std::uint64_t> visited;
+    visited.reserve(ef * 2);  // Pre-allocate for better performance
 
     // Candidates: min-heap by distance (closest first)
     std::priority_queue<Candidate, std::vector<Candidate>, std::greater<Candidate>> candidates;
 
-    // Dynamic list: max-heap by distance (farthest first)
-    std::priority_queue<Candidate, std::vector<Candidate>, std::less<Candidate>> w;
+    // Result list: max-heap by distance (farthest first) for efficient pruning
+    std::vector<Candidate> result;
+    result.reserve(ef + 1);
 
     // Initialize with entry points
     for (auto ep_id : entry_points) {
         const float dist = calculate_distance(query, ep_id);
         candidates.push({ep_id, dist});
-        w.push({ep_id, dist});
+        result.push_back({ep_id, dist});
         visited.insert(ep_id);
     }
+
+    // Make result a max-heap for efficient worst-distance tracking
+    std::make_heap(result.begin(), result.end());
 
     // Greedy search
     while (!candidates.empty()) {
@@ -181,7 +185,7 @@ HNSWIndex::search_layer(
         candidates.pop();
 
         // If current is farther than farthest in result set, stop
-        if (current.distance > w.top().distance) {
+        if (current.distance > result.front().distance) {
             break;
         }
 
@@ -194,20 +198,26 @@ HNSWIndex::search_layer(
                 const float dist = calculate_distance(query, neighbor_id);
 
                 // If better than worst in result set, or result set not full
-                if (dist < w.top().distance || w.size() < ef) {
+                if (dist < result.front().distance || result.size() < ef) {
                     candidates.push({neighbor_id, dist});
-                    w.push({neighbor_id, dist});
+                    result.push_back({neighbor_id, dist});
+                    std::push_heap(result.begin(), result.end());
 
                     // Keep only ef best candidates
-                    if (w.size() > ef) {
-                        w.pop();
+                    if (result.size() > ef) {
+                        std::pop_heap(result.begin(), result.end());
+                        result.pop_back();
                     }
                 }
             }
         }
     }
 
-    return w;
+    // Sort result by distance ascending (closest first)
+    std::sort(result.begin(), result.end(),
+              [](const Candidate& a, const Candidate& b) { return a.distance < b.distance; });
+
+    return result;
 }
 
 // ============================================================================
@@ -377,7 +387,7 @@ ErrorCode HNSWIndex::add(std::uint64_t id, std::span<const float> vector) {
     for (std::size_t lc = entry_point_layer_; lc > node_layer; --lc) {
         auto nearest = search_layer(vector, entry_points, 1, lc);
         if (!nearest.empty()) {
-            entry_points = {nearest.top().id};
+            entry_points = {nearest.front().id};  // Vector is sorted, front is closest
         }
     }
 #elif SEARCH_LAYER_OPTIMIZATION == 1
@@ -393,14 +403,14 @@ ErrorCode HNSWIndex::add(std::uint64_t id, std::span<const float> vector) {
     // Insert at layers from node_layer down to 0
     for (std::size_t lc = std::min(node_layer, entry_point_layer_); ; --lc) {
         // Find ef_construction nearest neighbors at this layer
-        auto candidates = search_layer(vector, entry_points, params_.ef_construction, lc);
+        // search_layer returns sorted vector (closest first)
+        auto candidates_vec = search_layer(vector, entry_points, params_.ef_construction, lc);
 
-        // Convert to min-heap for neighbor selection
-        std::priority_queue<Candidate, std::vector<Candidate>, std::greater<Candidate>> candidates_min;
-        while (!candidates.empty()) {
-            candidates_min.push(candidates.top());
-            candidates.pop();
-        }
+        // Build min-heap from sorted vector for neighbor selection
+        std::priority_queue<Candidate, std::vector<Candidate>, std::greater<Candidate>> candidates_min(
+            std::greater<Candidate>(),
+            std::move(candidates_vec)  // Move vector into priority_queue
+        );
 
         // Select M neighbors
         const std::size_t m = (lc == 0) ? (2 * params_.m) : params_.m;
@@ -502,7 +512,7 @@ std::vector<SearchResultItem> HNSWIndex::search(
     for (std::size_t lc = entry_point_layer_; lc > 0; --lc) {
         auto nearest = search_layer(query, entry_points, 1, lc);
         if (!nearest.empty()) {
-            entry_points = {nearest.top().id};
+            entry_points = {nearest.front().id};  // Vector is sorted, front is closest
         }
     }
 
@@ -510,20 +520,12 @@ std::vector<SearchResultItem> HNSWIndex::search(
     const std::size_t ef_search = params.ef_search > 0 ? params.ef_search : params_.ef_search;
     auto candidates = search_layer(query, entry_points, std::max(ef_search, k), 0);
 
-    // Extract top k results
+    // Extract top k results (candidates already sorted by distance ascending)
     std::vector<SearchResultItem> results;
     results.reserve(std::min(k, candidates.size()));
 
-    // Collect results in reverse order (we want closest first)
-    std::vector<Candidate> temp;
-    while (!candidates.empty()) {
-        temp.push_back(candidates.top());
-        candidates.pop();
-    }
-
-    // Reverse and filter
-    std::reverse(temp.begin(), temp.end());
-    for (const auto& candidate : temp) {
+    // Iterate through sorted candidates (closest first)
+    for (const auto& candidate : candidates) {
         // Apply filter if provided
         if (params.filter && !(*params.filter)(candidate.id)) {
             continue;
