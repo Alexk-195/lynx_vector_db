@@ -275,6 +275,25 @@ private:
     [[nodiscard]] const std::unordered_set<std::uint64_t>& get_neighbors(
         std::uint64_t id, std::size_t layer) const;
 
+    /**
+     * @brief Fast greedy descent through upper layers.
+     *
+     * Performs a simple greedy walk from start_node at start_layer down to
+     * target_layer, following the nearest neighbor at each layer.
+     * This is faster than calling search_layer at each level.
+     *
+     * @param query Query vector
+     * @param start_node Starting node ID
+     * @param start_layer Starting layer (highest)
+     * @param target_layer Target layer to descend to
+     * @return Best entry point node ID for the target layer
+     */
+    [[nodiscard]] std::uint64_t greedy_descent(
+        std::span<const float> query,
+        std::uint64_t start_node,
+        std::size_t start_layer,
+        std::size_t target_layer) const;
+
     // -------------------------------------------------------------------------
     // Member Variables
     // -------------------------------------------------------------------------

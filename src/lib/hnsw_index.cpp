@@ -16,6 +16,15 @@
 // ============================================================================
 #define PRUNE_OPTIMIZATION 2
 
+// ============================================================================
+// SEARCH LAYER OPTIMIZATION SELECTION
+// ============================================================================
+// Select search strategy during add() descent phase:
+//   0 = Original behavior (call search_layer at each upper layer with ef=1)
+//   1 = Fast greedy descent (simple neighbor walk without full search_layer)
+// ============================================================================
+#define SEARCH_LAYER_OPTIMIZATION 1
+
 #include "hnsw_index.h"
 #include "utils.h"
 #include <algorithm>
@@ -288,6 +297,46 @@ std::vector<std::uint64_t> HNSWIndex::select_neighbors_heuristic(
 }
 
 // ============================================================================
+// Fast Greedy Descent (for SEARCH_LAYER_OPTIMIZATION == 1)
+// ============================================================================
+
+#if SEARCH_LAYER_OPTIMIZATION == 1
+// Fast greedy descent through upper layers without full search_layer overhead.
+// Simply follows the nearest neighbor at each layer until reaching target_layer.
+// Returns the best entry point found for the target layer.
+std::uint64_t HNSWIndex::greedy_descent(
+    std::span<const float> query,
+    std::uint64_t start_node,
+    std::size_t start_layer,
+    std::size_t target_layer) const {
+
+    std::uint64_t current = start_node;
+
+    for (std::size_t layer = start_layer; layer > target_layer; --layer) {
+        bool improved = true;
+        float current_dist = calculate_distance(query, current);
+
+        // Greedy walk: keep moving to closer neighbors until no improvement
+        while (improved) {
+            improved = false;
+            const auto& neighbors = get_neighbors(current, layer);
+
+            for (auto neighbor_id : neighbors) {
+                float neighbor_dist = calculate_distance(query, neighbor_id);
+                if (neighbor_dist < current_dist) {
+                    current = neighbor_id;
+                    current_dist = neighbor_dist;
+                    improved = true;
+                }
+            }
+        }
+    }
+
+    return current;
+}
+#endif
+
+// ============================================================================
 // Insert Algorithm
 // ============================================================================
 
@@ -323,13 +372,23 @@ ErrorCode HNSWIndex::add(std::uint64_t id, std::span<const float> vector) {
     // Find nearest neighbors at each layer
     std::vector<std::uint64_t> entry_points = {entry_point_};
 
-    // Search from top to target layer + 1
+#if SEARCH_LAYER_OPTIMIZATION == 0
+    // Original behavior: call search_layer at each upper layer with ef=1
     for (std::size_t lc = entry_point_layer_; lc > node_layer; --lc) {
         auto nearest = search_layer(vector, entry_points, 1, lc);
         if (!nearest.empty()) {
             entry_points = {nearest.top().id};
         }
     }
+#elif SEARCH_LAYER_OPTIMIZATION == 1
+    // Fast greedy descent: simple neighbor walk without full search_layer overhead
+    if (entry_point_layer_ > node_layer) {
+        std::uint64_t best_entry = greedy_descent(vector, entry_point_, entry_point_layer_, node_layer);
+        entry_points = {best_entry};
+    }
+#else
+    #error "Invalid SEARCH_LAYER_OPTIMIZATION value. Must be 0 or 1."
+#endif
 
     // Insert at layers from node_layer down to 0
     for (std::size_t lc = std::min(node_layer, entry_point_layer_); ; --lc) {
