@@ -5,6 +5,26 @@
  * @copyright MIT License
  */
 
+// ============================================================================
+// PRUNE OPTIMIZATION SELECTION
+// ============================================================================
+// Select pruning strategy during add() operation:
+//   0 = Original behavior (prune after every connection)
+//   1 = Check before calling prune (avoid unnecessary calls)
+//   2 = Batch and deduplicate pruning (prune once per unique neighbor)
+//   3 = Skip pruning during construction (defer to optimize_graph())
+// ============================================================================
+#define PRUNE_OPTIMIZATION 2
+
+// ============================================================================
+// SEARCH LAYER OPTIMIZATION SELECTION
+// ============================================================================
+// Select search strategy during add() descent phase:
+//   0 = Original behavior (call search_layer at each upper layer with ef=1)
+//   1 = Fast greedy descent (simple neighbor walk without full search_layer)
+// ============================================================================
+#define SEARCH_LAYER_OPTIMIZATION 1
+
 #include "hnsw_index.h"
 #include "utils.h"
 #include <algorithm>
@@ -131,8 +151,7 @@ void HNSWIndex::prune_connections(std::uint64_t node_id, std::size_t layer, std:
 // Search Layer Algorithm
 // ============================================================================
 
-std::priority_queue<HNSWIndex::Candidate, std::vector<HNSWIndex::Candidate>, std::less<HNSWIndex::Candidate>>
-HNSWIndex::search_layer(
+std::vector<HNSWIndex::Candidate> HNSWIndex::search_layer(
     std::span<const float> query,
     const std::vector<std::uint64_t>& entry_points,
     std::size_t ef,
@@ -140,20 +159,25 @@ HNSWIndex::search_layer(
 
     // Visited set to avoid processing nodes multiple times
     std::unordered_set<std::uint64_t> visited;
+    visited.reserve(ef * 2);  // Pre-allocate for better performance
 
     // Candidates: min-heap by distance (closest first)
     std::priority_queue<Candidate, std::vector<Candidate>, std::greater<Candidate>> candidates;
 
-    // Dynamic list: max-heap by distance (farthest first)
-    std::priority_queue<Candidate, std::vector<Candidate>, std::less<Candidate>> w;
+    // Result list: max-heap by distance (farthest first) for efficient pruning
+    std::vector<Candidate> result;
+    result.reserve(ef + 1);
 
     // Initialize with entry points
     for (auto ep_id : entry_points) {
         const float dist = calculate_distance(query, ep_id);
         candidates.push({ep_id, dist});
-        w.push({ep_id, dist});
+        result.push_back({ep_id, dist});
         visited.insert(ep_id);
     }
+
+    // Make result a max-heap for efficient worst-distance tracking
+    std::make_heap(result.begin(), result.end());
 
     // Greedy search
     while (!candidates.empty()) {
@@ -161,7 +185,7 @@ HNSWIndex::search_layer(
         candidates.pop();
 
         // If current is farther than farthest in result set, stop
-        if (current.distance > w.top().distance) {
+        if (current.distance > result.front().distance) {
             break;
         }
 
@@ -174,20 +198,26 @@ HNSWIndex::search_layer(
                 const float dist = calculate_distance(query, neighbor_id);
 
                 // If better than worst in result set, or result set not full
-                if (dist < w.top().distance || w.size() < ef) {
+                if (dist < result.front().distance || result.size() < ef) {
                     candidates.push({neighbor_id, dist});
-                    w.push({neighbor_id, dist});
+                    result.push_back({neighbor_id, dist});
+                    std::push_heap(result.begin(), result.end());
 
                     // Keep only ef best candidates
-                    if (w.size() > ef) {
-                        w.pop();
+                    if (result.size() > ef) {
+                        std::pop_heap(result.begin(), result.end());
+                        result.pop_back();
                     }
                 }
             }
         }
     }
 
-    return w;
+    // Sort result by distance ascending (closest first)
+    std::sort(result.begin(), result.end(),
+              [](const Candidate& a, const Candidate& b) { return a.distance < b.distance; });
+
+    return result;
 }
 
 // ============================================================================
@@ -277,6 +307,46 @@ std::vector<std::uint64_t> HNSWIndex::select_neighbors_heuristic(
 }
 
 // ============================================================================
+// Fast Greedy Descent (for SEARCH_LAYER_OPTIMIZATION == 1)
+// ============================================================================
+
+#if SEARCH_LAYER_OPTIMIZATION == 1
+// Fast greedy descent through upper layers without full search_layer overhead.
+// Simply follows the nearest neighbor at each layer until reaching target_layer.
+// Returns the best entry point found for the target layer.
+std::uint64_t HNSWIndex::greedy_descent(
+    std::span<const float> query,
+    std::uint64_t start_node,
+    std::size_t start_layer,
+    std::size_t target_layer) const {
+
+    std::uint64_t current = start_node;
+
+    for (std::size_t layer = start_layer; layer > target_layer; --layer) {
+        bool improved = true;
+        float current_dist = calculate_distance(query, current);
+
+        // Greedy walk: keep moving to closer neighbors until no improvement
+        while (improved) {
+            improved = false;
+            const auto& neighbors = get_neighbors(current, layer);
+
+            for (auto neighbor_id : neighbors) {
+                float neighbor_dist = calculate_distance(query, neighbor_id);
+                if (neighbor_dist < current_dist) {
+                    current = neighbor_id;
+                    current_dist = neighbor_dist;
+                    improved = true;
+                }
+            }
+        }
+    }
+
+    return current;
+}
+#endif
+
+// ============================================================================
 // Insert Algorithm
 // ============================================================================
 
@@ -312,38 +382,89 @@ ErrorCode HNSWIndex::add(std::uint64_t id, std::span<const float> vector) {
     // Find nearest neighbors at each layer
     std::vector<std::uint64_t> entry_points = {entry_point_};
 
-    // Search from top to target layer + 1
+#if SEARCH_LAYER_OPTIMIZATION == 0
+    // Original behavior: call search_layer at each upper layer with ef=1
     for (std::size_t lc = entry_point_layer_; lc > node_layer; --lc) {
         auto nearest = search_layer(vector, entry_points, 1, lc);
         if (!nearest.empty()) {
-            entry_points = {nearest.top().id};
+            entry_points = {nearest.front().id};  // Vector is sorted, front is closest
         }
     }
+#elif SEARCH_LAYER_OPTIMIZATION == 1
+    // Fast greedy descent: simple neighbor walk without full search_layer overhead
+    if (entry_point_layer_ > node_layer) {
+        std::uint64_t best_entry = greedy_descent(vector, entry_point_, entry_point_layer_, node_layer);
+        entry_points = {best_entry};
+    }
+#else
+    #error "Invalid SEARCH_LAYER_OPTIMIZATION value. Must be 0 or 1."
+#endif
 
     // Insert at layers from node_layer down to 0
     for (std::size_t lc = std::min(node_layer, entry_point_layer_); ; --lc) {
         // Find ef_construction nearest neighbors at this layer
-        auto candidates = search_layer(vector, entry_points, params_.ef_construction, lc);
+        // search_layer returns sorted vector (closest first)
+        auto candidates_vec = search_layer(vector, entry_points, params_.ef_construction, lc);
 
-        // Convert to min-heap for neighbor selection
-        std::priority_queue<Candidate, std::vector<Candidate>, std::greater<Candidate>> candidates_min;
-        while (!candidates.empty()) {
-            candidates_min.push(candidates.top());
-            candidates.pop();
-        }
+        // Build min-heap from sorted vector for neighbor selection
+        std::priority_queue<Candidate, std::vector<Candidate>, std::greater<Candidate>> candidates_min(
+            std::greater<Candidate>(),
+            std::move(candidates_vec)  // Move vector into priority_queue
+        );
 
         // Select M neighbors
         const std::size_t m = (lc == 0) ? (2 * params_.m) : params_.m;
         auto neighbors = select_neighbors_heuristic(candidates_min, m, lc, false);
 
-        // Add bidirectional connections
+        // Add bidirectional connections and handle pruning based on optimization strategy
+        const std::size_t max_conn = (lc == 0) ? (2 * params_.m) : params_.m;
+
+#if PRUNE_OPTIMIZATION == 0
+        // Option 0: Original behavior - prune after every connection
         for (auto neighbor_id : neighbors) {
             add_connection(id, neighbor_id, lc);
-
-            // Prune neighbor's connections if needed
-            const std::size_t max_conn = (lc == 0) ? (2 * params_.m) : params_.m;
             prune_connections(neighbor_id, lc, max_conn);
         }
+
+#elif PRUNE_OPTIMIZATION == 1
+        // Option 1: Check before calling prune - avoid unnecessary function calls
+        for (auto neighbor_id : neighbors) {
+            add_connection(id, neighbor_id, lc);
+            // Only call prune if neighbor actually exceeds max connections
+            if (graph_.at(neighbor_id).layers[lc].size() > max_conn) {
+                prune_connections(neighbor_id, lc, max_conn);
+            }
+        }
+
+#elif PRUNE_OPTIMIZATION == 2
+        // Option 2: Batch and deduplicate pruning - add all connections first,
+        // then prune only unique neighbors that exceed the limit
+        for (auto neighbor_id : neighbors) {
+            add_connection(id, neighbor_id, lc);
+        }
+        // Collect unique neighbors that need pruning (use set to deduplicate)
+        std::unordered_set<std::uint64_t> neighbors_to_prune;
+        for (auto neighbor_id : neighbors) {
+            if (graph_.at(neighbor_id).layers[lc].size() > max_conn) {
+                neighbors_to_prune.insert(neighbor_id);
+            }
+        }
+        // Prune only those that exceed the limit
+        for (auto neighbor_id : neighbors_to_prune) {
+            prune_connections(neighbor_id, lc, max_conn);
+        }
+
+#elif PRUNE_OPTIMIZATION == 3
+        // Option 3: Skip pruning during construction - just add connections
+        // Pruning is deferred to optimize_graph() call
+        // This trades slightly higher memory usage for faster construction
+        for (auto neighbor_id : neighbors) {
+            add_connection(id, neighbor_id, lc);
+        }
+
+#else
+        #error "Invalid PRUNE_OPTIMIZATION value. Must be 0, 1, 2, or 3."
+#endif
 
         // Update entry points for next layer
         entry_points.clear();
@@ -391,7 +512,7 @@ std::vector<SearchResultItem> HNSWIndex::search(
     for (std::size_t lc = entry_point_layer_; lc > 0; --lc) {
         auto nearest = search_layer(query, entry_points, 1, lc);
         if (!nearest.empty()) {
-            entry_points = {nearest.top().id};
+            entry_points = {nearest.front().id};  // Vector is sorted, front is closest
         }
     }
 
@@ -399,20 +520,12 @@ std::vector<SearchResultItem> HNSWIndex::search(
     const std::size_t ef_search = params.ef_search > 0 ? params.ef_search : params_.ef_search;
     auto candidates = search_layer(query, entry_points, std::max(ef_search, k), 0);
 
-    // Extract top k results
+    // Extract top k results (candidates already sorted by distance ascending)
     std::vector<SearchResultItem> results;
     results.reserve(std::min(k, candidates.size()));
 
-    // Collect results in reverse order (we want closest first)
-    std::vector<Candidate> temp;
-    while (!candidates.empty()) {
-        temp.push_back(candidates.top());
-        candidates.pop();
-    }
-
-    // Reverse and filter
-    std::reverse(temp.begin(), temp.end());
-    for (const auto& candidate : temp) {
+    // Iterate through sorted candidates (closest first)
+    for (const auto& candidate : candidates) {
         // Apply filter if provided
         if (params.filter && !(*params.filter)(candidate.id)) {
             continue;
