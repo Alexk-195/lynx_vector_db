@@ -68,7 +68,7 @@ elif [ -n "$CONDA_PREFIX" ]; then
 # Try system installation
 else
     FAISS_INCLUDE="-I/usr/local/include -I/usr/include"
-    FAISS_LIB="-L/usr/local/lib -L/usr/lib -lfaiss"
+    FAISS_LIB="-L/usr/local/lib -L/usr/lib -L/home/rkl3si/faiss/build/faiss -lfaiss -lblas -llapack"
     echo "Using system FAISS installation"
 fi
 
