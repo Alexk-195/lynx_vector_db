@@ -25,6 +25,59 @@
 
 namespace lynx {
 
+// ============================================================================
+// VisitedTable - O(1) visited tracking with O(1) reset
+// ============================================================================
+// Instead of using std::unordered_set which requires allocations and has
+// O(1) amortized but with high constant factor, we use a flat array with
+// a visit counter. This is the same approach used by FAISS.
+//
+// - mark(idx): Set visited[idx] = current_visit_counter
+// - is_visited(idx): Return visited[idx] == current_visit_counter
+// - reset(): Just increment the counter (no need to clear the array)
+//
+// The counter wraps around at 255, at which point we clear the array.
+// ============================================================================
+class VisitedTable {
+public:
+    explicit VisitedTable(std::size_t size)
+        : visited_(size, 0), visit_counter_(1) {}
+
+    /// Mark a node as visited
+    void mark(std::size_t idx) {
+        if (idx < visited_.size()) {
+            visited_[idx] = visit_counter_;
+        }
+    }
+
+    /// Check if a node has been visited
+    [[nodiscard]] bool is_visited(std::size_t idx) const {
+        return idx < visited_.size() && visited_[idx] == visit_counter_;
+    }
+
+    /// Reset visited status for all nodes (O(1) operation)
+    void reset() {
+        if (++visit_counter_ == 0) {
+            // Counter wrapped around, need to clear the array
+            std::fill(visited_.begin(), visited_.end(), 0);
+            visit_counter_ = 1;
+        }
+    }
+
+    /// Resize the table (needed when adding new nodes)
+    void resize(std::size_t new_size) {
+        if (new_size > visited_.size()) {
+            visited_.resize(new_size, 0);
+        }
+    }
+
+    [[nodiscard]] std::size_t size() const { return visited_.size(); }
+
+private:
+    std::vector<uint8_t> visited_;
+    uint8_t visit_counter_;
+};
+
 /**
  * @brief HNSW Index implementation.
  *
@@ -78,7 +131,7 @@ public:
     // Statistics and Metadata
     // -------------------------------------------------------------------------
 
-    [[nodiscard]] std::size_t size() const { return vectors_.size(); }
+    [[nodiscard]] std::size_t size() const { return id_to_index_.size(); }
     [[nodiscard]] std::size_t dimension() const { return dimension_; }
     [[nodiscard]] std::size_t memory_usage() const override;
     [[nodiscard]] std::size_t max_layer() const { return entry_point_layer_; }
@@ -265,6 +318,41 @@ private:
     [[nodiscard]] float calculate_distance(std::uint64_t id1, std::uint64_t id2) const;
 
     /**
+     * @brief Get a span to the vector data for a given index.
+     *
+     * @param index Vector index (not ID)
+     * @return Span to the vector data
+     */
+    [[nodiscard]] std::span<const float> get_vector_by_index(std::size_t index) const {
+        return std::span<const float>(vector_data_.data() + index * dimension_, dimension_);
+    }
+
+    /**
+     * @brief Get a span to the vector data for a given ID.
+     *
+     * @param id Vector ID
+     * @return Span to the vector data, or empty span if not found
+     */
+    [[nodiscard]] std::span<const float> get_vector_by_id(std::uint64_t id) const {
+        auto it = id_to_index_.find(id);
+        if (it == id_to_index_.end()) {
+            return {};
+        }
+        return get_vector_by_index(it->second);
+    }
+
+    /**
+     * @brief Get the internal index for a given ID.
+     *
+     * @param id Vector ID
+     * @return Index, or SIZE_MAX if not found
+     */
+    [[nodiscard]] std::size_t get_index_for_id(std::uint64_t id) const {
+        auto it = id_to_index_.find(id);
+        return it != id_to_index_.end() ? it->second : std::numeric_limits<std::size_t>::max();
+    }
+
+    /**
      * @brief Get the neighbors of a node at a specific layer.
      *
      * @param id Node ID
@@ -303,7 +391,13 @@ private:
 
     // Graph structure
     std::unordered_map<std::uint64_t, Node> graph_;            ///< Graph nodes (id -> Node)
-    std::unordered_map<std::uint64_t, std::vector<float>> vectors_; ///< Vector storage (id -> vector)
+
+    // Contiguous vector storage for cache-efficient distance calculations
+    // Instead of std::unordered_map<id, vector<float>>, we store all vectors
+    // contiguously and use an ID-to-index mapping for lookups.
+    std::vector<float> vector_data_;                           ///< Contiguous vector data
+    std::unordered_map<std::uint64_t, std::size_t> id_to_index_; ///< ID to vector index mapping
+    std::vector<std::uint64_t> index_to_id_;                   ///< Index to ID mapping (for VisitedTable)
 
     // Entry point tracking
     std::uint64_t entry_point_;                                 ///< Entry node ID (top layer)
@@ -316,6 +410,9 @@ private:
 
     // Thread safety
     mutable std::shared_mutex mutex_;                           ///< Reader-writer lock
+
+    // Reusable visited table for search operations (mutable for const methods)
+    mutable VisitedTable visited_table_;                        ///< Visited tracking for searches
 
     // Constants
     static constexpr std::uint64_t kInvalidId = std::numeric_limits<std::uint64_t>::max();

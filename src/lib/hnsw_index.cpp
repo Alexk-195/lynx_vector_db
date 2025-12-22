@@ -53,7 +53,8 @@ HNSWIndex::HNSWIndex(std::size_t dimension, DistanceMetric metric, const HNSWPar
     , entry_point_layer_(0)
     , rng_(params.random_seed.has_value() ? params.random_seed.value() : std::random_device{}())
     , level_dist_(0.0, 1.0)
-    , ml_(1.0 / std::log(params.m)) {
+    , ml_(1.0 / std::log(params.m))
+    , visited_table_(1024) {  // Initial capacity, will grow as needed
 }
 
 // ============================================================================
@@ -81,20 +82,20 @@ std::size_t HNSWIndex::generate_random_layer() {
 // ============================================================================
 
 float HNSWIndex::calculate_distance(std::span<const float> query, std::uint64_t id) const {
-    const auto it = vectors_.find(id);
-    if (it == vectors_.end()) {
+    auto vec = get_vector_by_id(id);
+    if (vec.empty()) {
         return std::numeric_limits<float>::max();
     }
-    return utils::calculate_distance(query, it->second, metric_);
+    return utils::calculate_distance(query, vec, metric_);
 }
 
 float HNSWIndex::calculate_distance(std::uint64_t id1, std::uint64_t id2) const {
-    const auto it1 = vectors_.find(id1);
-    const auto it2 = vectors_.find(id2);
-    if (it1 == vectors_.end() || it2 == vectors_.end()) {
+    auto vec1 = get_vector_by_id(id1);
+    auto vec2 = get_vector_by_id(id2);
+    if (vec1.empty() || vec2.empty()) {
         return std::numeric_limits<float>::max();
     }
-    return utils::calculate_distance(it1->second, it2->second, metric_);
+    return utils::calculate_distance(vec1, vec2, metric_);
 }
 
 // ============================================================================
@@ -157,9 +158,12 @@ std::vector<HNSWIndex::Candidate> HNSWIndex::search_layer(
     std::size_t ef,
     std::size_t layer) const {
 
-    // Visited set to avoid processing nodes multiple times
-    std::unordered_set<std::uint64_t> visited;
-    visited.reserve(ef * 2);  // Pre-allocate for better performance
+    // Ensure visited table is large enough
+    const std::size_t num_nodes = id_to_index_.size();
+    if (visited_table_.size() < num_nodes) {
+        visited_table_.resize(num_nodes);
+    }
+    visited_table_.reset();  // O(1) reset
 
     // Candidates: min-heap by distance (closest first)
     std::priority_queue<Candidate, std::vector<Candidate>, std::greater<Candidate>> candidates;
@@ -170,10 +174,13 @@ std::vector<HNSWIndex::Candidate> HNSWIndex::search_layer(
 
     // Initialize with entry points
     for (auto ep_id : entry_points) {
+        const std::size_t ep_idx = get_index_for_id(ep_id);
+        if (ep_idx == std::numeric_limits<std::size_t>::max()) continue;
+
         const float dist = calculate_distance(query, ep_id);
         candidates.push({ep_id, dist});
         result.push_back({ep_id, dist});
-        visited.insert(ep_id);
+        visited_table_.mark(ep_idx);
     }
 
     // Make result a max-heap for efficient worst-distance tracking
@@ -192,8 +199,11 @@ std::vector<HNSWIndex::Candidate> HNSWIndex::search_layer(
         // Explore neighbors
         const auto& neighbors = get_neighbors(current.id, layer);
         for (auto neighbor_id : neighbors) {
-            if (visited.find(neighbor_id) == visited.end()) {
-                visited.insert(neighbor_id);
+            const std::size_t neighbor_idx = get_index_for_id(neighbor_id);
+            if (neighbor_idx == std::numeric_limits<std::size_t>::max()) continue;
+
+            if (!visited_table_.is_visited(neighbor_idx)) {
+                visited_table_.mark(neighbor_idx);
 
                 const float dist = calculate_distance(query, neighbor_id);
 
@@ -359,12 +369,15 @@ ErrorCode HNSWIndex::add(std::uint64_t id, std::span<const float> vector) {
     }
 
     // Check if already exists
-    if (vectors_.find(id) != vectors_.end()) {
+    if (id_to_index_.find(id) != id_to_index_.end()) {
         return ErrorCode::InvalidState;
     }
 
-    // Store vector
-    vectors_[id] = std::vector<float>(vector.begin(), vector.end());
+    // Store vector in contiguous storage
+    const std::size_t new_index = index_to_id_.size();
+    vector_data_.insert(vector_data_.end(), vector.begin(), vector.end());
+    id_to_index_[id] = new_index;
+    index_to_id_.push_back(id);
 
     // Generate random layer for new node
     const std::size_t node_layer = generate_random_layer();
@@ -552,8 +565,8 @@ ErrorCode HNSWIndex::remove(std::uint64_t id) {
     UNIQUE_LOCK(mutex_);
 
     // Check if exists
-    auto vec_it = vectors_.find(id);
-    if (vec_it == vectors_.end()) {
+    auto idx_it = id_to_index_.find(id);
+    if (idx_it == id_to_index_.end()) {
         return ErrorCode::VectorNotFound;
     }
 
@@ -575,9 +588,31 @@ ErrorCode HNSWIndex::remove(std::uint64_t id) {
         }
     }
 
-    // Remove from graph and vectors
+    // Remove from graph
     graph_.erase(graph_it);
-    vectors_.erase(vec_it);
+
+    // Remove from contiguous vector storage using swap-with-last strategy
+    const std::size_t remove_idx = idx_it->second;
+    const std::size_t last_idx = index_to_id_.size() - 1;
+
+    if (remove_idx != last_idx) {
+        // Swap vector data with the last element
+        const std::uint64_t last_id = index_to_id_[last_idx];
+        std::copy(
+            vector_data_.begin() + last_idx * dimension_,
+            vector_data_.begin() + (last_idx + 1) * dimension_,
+            vector_data_.begin() + remove_idx * dimension_
+        );
+
+        // Update index mappings for the swapped element
+        index_to_id_[remove_idx] = last_id;
+        id_to_index_[last_id] = remove_idx;
+    }
+
+    // Remove the last element
+    vector_data_.resize(vector_data_.size() - dimension_);
+    index_to_id_.pop_back();
+    id_to_index_.erase(id);
 
     // Update entry point if needed
     if (id == entry_point_) {
@@ -601,21 +636,23 @@ ErrorCode HNSWIndex::remove(std::uint64_t id) {
 // ============================================================================
 
 bool HNSWIndex::contains(std::uint64_t id) const {
-    SHARED_LOCK(mutex_); 
-    return vectors_.find(id) != vectors_.end();
+    SHARED_LOCK(mutex_);
+    return id_to_index_.find(id) != id_to_index_.end();
 }
 
 std::size_t HNSWIndex::memory_usage() const {
-    SHARED_LOCK(mutex_); 
+    SHARED_LOCK(mutex_);
 
     std::size_t total = 0;
 
-    // Vector storage: vectors_ map
-    for (const auto& [id, vec] : vectors_) {
-        total += sizeof(id);                    // Key
-        total += sizeof(float) * vec.size();    // Vector data
-        total += sizeof(vec);                   // Vector object overhead
-    }
+    // Contiguous vector storage
+    total += vector_data_.capacity() * sizeof(float);
+
+    // ID-to-index mapping
+    total += id_to_index_.size() * (sizeof(std::uint64_t) + sizeof(std::size_t));
+
+    // Index-to-ID mapping
+    total += index_to_id_.capacity() * sizeof(std::uint64_t);
 
     // Graph storage: graph_ map
     for (const auto& [id, node] : graph_) {
@@ -627,8 +664,11 @@ std::size_t HNSWIndex::memory_usage() const {
         }
     }
 
+    // Visited table
+    total += visited_table_.size() * sizeof(uint8_t);
+
     // Don't include fixed object overhead (sizeof(*this))
-    // Only count dynamic allocations (vectors and graph nodes)
+    // Only count dynamic allocations
 
     return total;
 }
@@ -723,7 +763,7 @@ ErrorCode HNSWIndex::compact_index() {
     UNIQUE_LOCK(mutex_);
 
     // If index is empty, nothing to compact
-    if (graph_.empty() && vectors_.empty()) {
+    if (graph_.empty() && id_to_index_.empty()) {
         return ErrorCode::Ok;
     }
 
@@ -754,23 +794,42 @@ ErrorCode HNSWIndex::compact_index() {
         }
     }
 
-    // Step 2: Ensure consistency between graph_ and vectors_
-    // Remove vectors that don't have corresponding graph nodes
+    // Step 2: Ensure consistency between graph_ and vector storage
+    // Find vectors that don't have corresponding graph nodes
     std::vector<std::uint64_t> vectors_to_remove;
-    for (const auto& [vec_id, vec] : vectors_) {
+    for (const auto& [vec_id, idx] : id_to_index_) {
         if (graph_.find(vec_id) == graph_.end()) {
             vectors_to_remove.push_back(vec_id);
         }
     }
+    // Remove orphaned vectors using swap-with-last strategy
     for (auto vec_id : vectors_to_remove) {
-        vectors_.erase(vec_id);
+        auto idx_it = id_to_index_.find(vec_id);
+        if (idx_it == id_to_index_.end()) continue;
+
+        const std::size_t remove_idx = idx_it->second;
+        const std::size_t last_idx = index_to_id_.size() - 1;
+
+        if (remove_idx != last_idx) {
+            const std::uint64_t last_id = index_to_id_[last_idx];
+            std::copy(
+                vector_data_.begin() + last_idx * dimension_,
+                vector_data_.begin() + (last_idx + 1) * dimension_,
+                vector_data_.begin() + remove_idx * dimension_
+            );
+            index_to_id_[remove_idx] = last_id;
+            id_to_index_[last_id] = remove_idx;
+        }
+        vector_data_.resize(vector_data_.size() - dimension_);
+        index_to_id_.pop_back();
+        id_to_index_.erase(vec_id);
         orphaned_vectors_removed++;
     }
 
     // Remove graph nodes that don't have corresponding vectors
     std::vector<std::uint64_t> nodes_to_remove;
     for (const auto& [node_id, node] : graph_) {
-        if (vectors_.find(node_id) == vectors_.end()) {
+        if (id_to_index_.find(node_id) == id_to_index_.end()) {
             nodes_to_remove.push_back(node_id);
         }
     }
@@ -841,12 +900,12 @@ ErrorCode HNSWIndex::compact_index() {
 // ============================================================================
 
 ErrorCode HNSWIndex::serialize(std::ostream& out) const {
-    SHARED_LOCK(mutex_); 
+    SHARED_LOCK(mutex_);
 
     try {
         // Write magic number and version for file format verification
         constexpr uint32_t kMagicNumber = 0x484E5357; // "HNSW" in hex
-        constexpr uint32_t kVersion = 1;
+        constexpr uint32_t kVersion = 2;  // Version 2 for new contiguous storage format
 
         out.write(reinterpret_cast<const char*>(&kMagicNumber), sizeof(kMagicNumber));
         out.write(reinterpret_cast<const char*>(&kVersion), sizeof(kVersion));
@@ -867,17 +926,19 @@ ErrorCode HNSWIndex::serialize(std::ostream& out) const {
         out.write(reinterpret_cast<const char*>(&entry_point_layer_), sizeof(entry_point_layer_));
 
         // Write number of vectors
-        size_t num_vectors = vectors_.size();
+        size_t num_vectors = index_to_id_.size();
         out.write(reinterpret_cast<const char*>(&num_vectors), sizeof(num_vectors));
 
-        // Write each vector and its graph structure
-        for (const auto& [id, vector] : vectors_) {
+        // Write each vector and its graph structure (in index order)
+        for (size_t idx = 0; idx < num_vectors; ++idx) {
+            const uint64_t id = index_to_id_[idx];
+
             // Write vector ID
             out.write(reinterpret_cast<const char*>(&id), sizeof(id));
 
             // Write vector data
-            out.write(reinterpret_cast<const char*>(vector.data()),
-                     vector.size() * sizeof(float));
+            out.write(reinterpret_cast<const char*>(vector_data_.data() + idx * dimension_),
+                     dimension_ * sizeof(float));
 
             // Write node information
             auto node_it = graph_.find(id);
@@ -926,7 +987,7 @@ ErrorCode HNSWIndex::deserialize(std::istream& in) {
         // Read and verify version
         uint32_t version;
         in.read(reinterpret_cast<char*>(&version), sizeof(version));
-        if (version != 1) {
+        if (version != 1 && version != 2) {
             return ErrorCode::IOError; // Unsupported version
         }
 
@@ -958,8 +1019,14 @@ ErrorCode HNSWIndex::deserialize(std::istream& in) {
         in.read(reinterpret_cast<char*>(&num_vectors), sizeof(num_vectors));
 
         // Clear existing data
-        vectors_.clear();
+        vector_data_.clear();
+        id_to_index_.clear();
+        index_to_id_.clear();
         graph_.clear();
+
+        // Pre-allocate storage
+        vector_data_.reserve(num_vectors * dimension_);
+        index_to_id_.reserve(num_vectors);
 
         // Read each vector and its graph structure
         for (size_t i = 0; i < num_vectors; ++i) {
@@ -967,11 +1034,15 @@ ErrorCode HNSWIndex::deserialize(std::istream& in) {
             uint64_t id;
             in.read(reinterpret_cast<char*>(&id), sizeof(id));
 
-            // Read vector data
-            std::vector<float> vector(dimension);
-            in.read(reinterpret_cast<char*>(vector.data()),
-                   vector.size() * sizeof(float));
-            vectors_[id] = std::move(vector);
+            // Read vector data directly into contiguous storage
+            size_t current_size = vector_data_.size();
+            vector_data_.resize(current_size + dimension_);
+            in.read(reinterpret_cast<char*>(vector_data_.data() + current_size),
+                   dimension_ * sizeof(float));
+
+            // Update mappings
+            id_to_index_[id] = i;
+            index_to_id_.push_back(id);
 
             // Read node information
             size_t max_layer;
@@ -997,7 +1068,9 @@ ErrorCode HNSWIndex::deserialize(std::istream& in) {
 
         if (!in.good()) {
             // Restore to empty state on error
-            vectors_.clear();
+            vector_data_.clear();
+            id_to_index_.clear();
+            index_to_id_.clear();
             graph_.clear();
             entry_point_ = kInvalidId;
             entry_point_layer_ = 0;
@@ -1008,7 +1081,9 @@ ErrorCode HNSWIndex::deserialize(std::istream& in) {
 
     } catch (const std::exception&) {
         // Restore to empty state on exception
-        vectors_.clear();
+        vector_data_.clear();
+        id_to_index_.clear();
+        index_to_id_.clear();
         graph_.clear();
         entry_point_ = kInvalidId;
         entry_point_layer_ = 0;
