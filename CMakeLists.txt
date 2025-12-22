@@ -55,57 +55,6 @@ include_directories(${CMAKE_SOURCE_DIR}/src/include)
 # Find required packages
 find_package(Threads REQUIRED)
 
-# MPS library (Message Processing System)
-# Check multiple locations in order of priority:
-# 1. MPS_PATH environment variable or CMake variable
-# 2. MPS_DIR environment variable or CMake variable
-# 3. external/mps directory in project root
-
-set(MPS_FOUND FALSE)
-
-# Check MPS_PATH first (environment or CMake variable)
-if(DEFINED ENV{MPS_PATH} AND EXISTS "$ENV{MPS_PATH}/src")
-    set(MPS_DIR "$ENV{MPS_PATH}")
-    set(MPS_FOUND TRUE)
-    message(STATUS "Using MPS from MPS_PATH: ${MPS_DIR}")
-elseif(DEFINED MPS_PATH AND EXISTS "${MPS_PATH}/src")
-    set(MPS_DIR "${MPS_PATH}")
-    set(MPS_FOUND TRUE)
-    message(STATUS "Using MPS from MPS_PATH: ${MPS_DIR}")
-# Check MPS_DIR (environment or CMake variable)
-elseif(DEFINED ENV{MPS_DIR} AND EXISTS "$ENV{MPS_DIR}/src")
-    set(MPS_DIR "$ENV{MPS_DIR}")
-    set(MPS_FOUND TRUE)
-    message(STATUS "Using MPS from MPS_DIR: ${MPS_DIR}")
-elseif(DEFINED MPS_DIR AND EXISTS "${MPS_DIR}/src")
-    set(MPS_FOUND TRUE)
-    message(STATUS "Using MPS from MPS_DIR: ${MPS_DIR}")
-# Check external/mps directory
-elseif(EXISTS "${CMAKE_SOURCE_DIR}/external/mps/src")
-    set(MPS_DIR "${CMAKE_SOURCE_DIR}/external/mps")
-    set(MPS_FOUND TRUE)
-    message(STATUS "Using MPS from external/mps")
-endif()
-
-if(MPS_FOUND)
-    include_directories(${MPS_DIR}/src)
-
-    # Build MPS as a static library
-    add_library(mps_static STATIC ${MPS_DIR}/src/mps.cpp)
-    target_include_directories(mps_static PUBLIC ${MPS_DIR}/src)
-    target_link_libraries(mps_static PUBLIC Threads::Threads)
-    set_target_properties(mps_static PROPERTIES POSITION_INDEPENDENT_CODE ON)
-else()
-    message(FATAL_ERROR
-        "MPS library not found!\n"
-        "Please either:\n"
-        "   1. Set MPS_PATH environment variable: export MPS_PATH=/path/to/mps\n"
-        "   2. Set MPS_DIR environment variable: export MPS_DIR=/path/to/mps\n"
-        "   3. Run ./setup.sh to automatically clone MPS to external/mps\n"
-        "   4. Manually clone MPS: git clone https://github.com/Alexk-195/mps.git external/mps"
-    )
-endif()
-
 # Lynx static library
 add_library(lynx_static STATIC
         src/lib/lynx.cpp
@@ -125,7 +74,6 @@ target_include_directories(lynx_static PUBLIC
 
 target_link_libraries(lynx_static PUBLIC
         Threads::Threads
-        mps_static
 )
 
 set_target_properties(lynx_static PROPERTIES
@@ -152,7 +100,6 @@ target_include_directories(lynx PUBLIC
 
 target_link_libraries(lynx PUBLIC
         Threads::Threads
-        mps_static
 )
 
 set_target_properties(lynx PROPERTIES
