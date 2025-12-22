@@ -21,21 +21,6 @@ OBJ_DIR := $(BUILD_DIR)/obj
 LIB_OUT_DIR := $(BUILD_DIR)/lib
 EXTERNAL_DIR := external
 
-# MPS library
-ifdef MPS_DIR
-    MPS_INC_DIR := $(MPS_DIR)/src
-    MPS_SRC_DIR := $(MPS_DIR)/src
-else ifneq (,$(wildcard $(EXTERNAL_DIR)/mps))
-    # Use external/mps if it exists
-    MPS_INC_DIR := $(EXTERNAL_DIR)/mps/src
-    MPS_SRC_DIR := $(EXTERNAL_DIR)/mps/src
-endif
-
-# Add MPS include path if available
-ifdef MPS_INC_DIR
-    CXXFLAGS += -I$(MPS_INC_DIR)
-endif
-
 # Include paths
 CXXFLAGS += -I$(INC_DIR)
 
@@ -71,17 +56,6 @@ EXECUTABLE := $(BIN_DIR)/lynx_db
 EXECUTABLE_MINIMAL := $(BIN_DIR)/lynx_minimal
 EXECUTABLE_COMPARE := $(BIN_DIR)/compare_indices
 
-# MPS library sources
-ifdef MPS_SRC_DIR
-    MPS_SRC := $(MPS_SRC_DIR)/mps.cpp
-    MPS_OBJ := $(OBJ_DIR)/mps/mps.o
-    MPS_LIB := $(LIB_OUT_DIR)/libmps.a
-else
-    MPS_SRC :=
-    MPS_OBJ :=
-    MPS_LIB :=
-endif
-
 # Default target
 .PHONY: all
 all: release
@@ -100,7 +74,7 @@ debug: $(EXECUTABLE) $(EXECUTABLE_MINIMAL) $(EXECUTABLE_COMPARE) $(LIB_STATIC) $
 	@echo "Build complete (debug)"
 
 # Create directories
-$(BIN_DIR) $(OBJ_DIR)/lib $(OBJ_DIR)/mps $(LIB_OUT_DIR):
+$(BIN_DIR) $(OBJ_DIR)/lib $(LIB_OUT_DIR):
 	@mkdir -p $@
 
 # Compile library objects
@@ -136,19 +110,6 @@ $(LIB_SHARED): $(LIB_OBJS) | $(LIB_OUT_DIR)
 	@$(CXX) -shared -o $@ $^ $(LDFLAGS)
 
 # Executables
-ifdef MPS_LIB
-$(EXECUTABLE): $(MAIN_OBJ) $(LIB_STATIC) $(MPS_LIB) | $(BIN_DIR)
-	@echo "Linking $@"
-	@$(CXX) $(CXXFLAGS) -o $@ $< -L$(LIB_OUT_DIR) -l$(LIB_NAME) -lmps $(LDFLAGS)
-
-$(EXECUTABLE_MINIMAL): $(MAIN_MINIMAL_OBJ) $(LIB_STATIC) $(MPS_LIB) | $(BIN_DIR)
-	@echo "Linking $@"
-	@$(CXX) $(CXXFLAGS) -o $@ $< -L$(LIB_OUT_DIR) -l$(LIB_NAME) -lmps $(LDFLAGS)
-
-$(EXECUTABLE_COMPARE): $(COMPARE_OBJ) $(LIB_STATIC) $(MPS_LIB) | $(BIN_DIR)
-	@echo "Linking $@"
-	@$(CXX) $(CXXFLAGS) -o $@ $< -L$(LIB_OUT_DIR) -l$(LIB_NAME) -lmps $(LDFLAGS)
-else
 $(EXECUTABLE): $(MAIN_OBJ) $(LIB_STATIC) | $(BIN_DIR)
 	@echo "Linking $@"
 	@$(CXX) $(CXXFLAGS) -o $@ $< -L$(LIB_OUT_DIR) -l$(LIB_NAME) $(LDFLAGS)
@@ -160,7 +121,6 @@ $(EXECUTABLE_MINIMAL): $(MAIN_MINIMAL_OBJ) $(LIB_STATIC) | $(BIN_DIR)
 $(EXECUTABLE_COMPARE): $(COMPARE_OBJ) $(LIB_STATIC) | $(BIN_DIR)
 	@echo "Linking $@"
 	@$(CXX) $(CXXFLAGS) -o $@ $< -L$(LIB_OUT_DIR) -l$(LIB_NAME) $(LDFLAGS)
-endif
 
 # Clean
 .PHONY: clean
@@ -186,17 +146,6 @@ run-minimal: $(EXECUTABLE_MINIMAL)
 .PHONY: run-compare
 run-compare: $(EXECUTABLE_COMPARE)
 	@LD_LIBRARY_PATH=$(LIB_OUT_DIR):$$LD_LIBRARY_PATH $(EXECUTABLE_COMPARE)
-
-# Build MPS library
-ifdef MPS_DIR
-$(MPS_OBJ): $(MPS_SRC) | $(OBJ_DIR)/mps
-	@echo "Building MPS library"
-	@$(CXX) $(CXXFLAGS) -c $< -o $@
-
-$(MPS_LIB): $(MPS_OBJ) | $(LIB_OUT_DIR)
-	@echo "Creating MPS static library"
-	@ar rcs $@ $^
-endif
 
 # Install
 .PHONY: install
@@ -228,7 +177,6 @@ info:
 	@echo "CXXFLAGS:   $(CXXFLAGS)"
 	@echo "LDFLAGS:    $(LDFLAGS)"
 	@echo "BUILD_TYPE: $(BUILD_TYPE)"
-	@echo "MPS_DIR:    $(MPS_DIR)"
 	@echo ""
 	@echo "Targets:"
 	@echo "  make              - Build release"

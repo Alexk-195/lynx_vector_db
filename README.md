@@ -17,7 +17,6 @@ A fast and light weight vector database implemented in modern C++20 with support
 - **Thread-Safe Operations**:
   - **Concurrent reads**: Multiple threads can search simultaneously
   - **Exclusive writes**: Inserts/removes are properly serialized
-  - **Advanced option**: `VectorDatabase_MPS` for extreme concurrency (100+ queries)
 - **Modern C++20**: Concepts, spans, smart pointers, RAII
 - **Flexible Distance Metrics**: L2 (Euclidean), Cosine, Dot Product
 - **Persistence**: Save and load database to/from disk
@@ -32,8 +31,6 @@ A fast and light weight vector database implemented in modern C++20 with support
 
 The following dependencies are **automatically handled** by the build scripts:
 
-- **MPS library** ([github.com/Alexk-195/mps](https://github.com/Alexk-195/mps))
-  - Checked in order: `MPS_PATH` env var → `MPS_DIR` env var → `external/mps` → auto-clone
 - **Google Test v1.15.2** ([github.com/google/googletest](https://github.com/google/googletest))
   - Automatically cloned to `external/googletest` or fetched by CMake
 
@@ -52,23 +49,6 @@ cd lynx_vector_db
 mkdir build && cd build
 cmake ..
 cmake --build .
-```
-
-### Custom Dependency Locations
-
-If you have MPS installed elsewhere, set the environment variable:
-
-```bash
-# Option 1: Use MPS_PATH
-export MPS_PATH=/path/to/mps
-./setup.sh
-
-# Option 2: Use MPS_DIR (legacy)
-export MPS_DIR=/path/to/mps
-./setup.sh
-
-# Option 3: Let setup.sh auto-clone to external/mps (no env var needed)
-./setup.sh
 ```
 
 ### Build Options - setup.sh (Makefile)
@@ -100,11 +80,6 @@ make clean        # Clean build
 make run          # Build and run
 make info         # Show build configuration
 
-# Note: MPS_DIR is automatically set by setup.sh
-# If using make directly, set MPS_PATH or MPS_DIR manually
-export MPS_PATH=/path/to/mps
-make
-
 # Note: To run tests, use ./setup.sh test or CMake (see Testing section below)
 ```
 
@@ -114,11 +89,6 @@ make
 # Configure (dependencies auto-detected)
 mkdir build && cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release
-
-# With custom MPS location (if needed)
-cmake .. -DMPS_PATH=/path/to/mps
-# OR
-cmake .. -DMPS_DIR=/path/to/mps
 
 # Build
 cmake --build . --parallel
@@ -248,40 +218,6 @@ cd build
 ./bin/lynx_tests --gtest_list_tests                    # List all tests
 ./bin/lynx_tests --gtest_filter="ThreadingTest.*" --gtest_repeat=10
 ```
-
-### Choosing a Database Implementation
-
-Lynx provides two implementations of `IVectorDatabase`:
-
-| Implementation | Threading Model | Best For | Complexity |
-|----------------|----------------|----------|------------|
-| **VectorDatabase** (Default) | `std::shared_mutex` | Most use cases, embedded systems, < 50 concurrent queries | Low |
-| **VectorDatabase_MPS** (Advanced) | Message passing (MPS) | Very high concurrency (100+ queries), non-blocking maintenance, strict latency SLAs | High |
-
-**Quick Start**:
-```cpp
-// Default (recommended for most use cases)
-Config config;
-config.index_type = IndexType::HNSW;
-auto db = std::make_shared<VectorDatabase>(config);
-
-// Advanced (for extreme performance requirements)
-auto db = std::make_shared<VectorDatabase_MPS>(config);
-```
-
-**When to use VectorDatabase_MPS**:
-- ✅ 100+ concurrent queries
-- ✅ Non-blocking index maintenance required
-- ✅ Multi-core system (8+ cores)
-- ✅ Production systems with high load
-
-**When to use VectorDatabase** (default):
-- ✅ Low to medium concurrency (< 50 queries)
-- ✅ Small to medium datasets (< 1M vectors)
-- ✅ Embedded systems
-- ✅ Development and prototyping
-
-See [doc/MPS_ARCHITECTURE.md](doc/MPS_ARCHITECTURE.md) for detailed comparison and migration guide.
 
 ### Choosing an Index Type
 
@@ -545,23 +481,13 @@ t1.join(); t2.join(); t3.join();
 ```
 
 **Performance characteristics**:
-- Low to medium concurrency (< 50 queries): Excellent performance
-- High concurrency (100+ queries): Consider `VectorDatabase_MPS` (see below)
+- Low to medium concurrency: Excellent performance with `std::shared_mutex`
 - Embedded systems: Low overhead, simple threading model
-
-### Advanced: VectorDatabase_MPS
-
-For extreme performance requirements, Lynx provides `VectorDatabase_MPS`:
-- Message-passing architecture with dedicated thread pools
-- Non-blocking index optimization
-- Best for: 100+ concurrent queries, strict latency SLAs
-
-See [doc/MPS_ARCHITECTURE.md](doc/MPS_ARCHITECTURE.md) for detailed comparison and when to use it.
+- High concurrency: Scales well for most use cases
 
 ## Documentation
 
 - [doc/MIGRATION_GUIDE.md](doc/MIGRATION_GUIDE.md) - Migration guide for unified VectorDatabase
-- [doc/MPS_ARCHITECTURE.md](doc/MPS_ARCHITECTURE.md) - MPS infrastructure and when to use it
 - [doc/research.md](doc/research.md) - ANN algorithm research
 - [tests/README.md](tests/README.md) - Infos about unit testing
 - [tickets/README.md](tickets/README.md) - File-based ticketing system

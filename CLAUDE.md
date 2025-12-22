@@ -3,8 +3,7 @@
 ## Project Overview
 
 Lynx is a high-performance vector database implemented in modern C++20 with a unified architecture:
-- **Default**: `VectorDatabase` with `std::shared_mutex` for thread safety (simple, sufficient for most use cases)
-- **Advanced**: `VectorDatabase_MPS` using message-passing for extreme concurrency (100+ queries)
+- **Default**: `VectorDatabase` with `std::shared_mutex` for thread safety
 - **Indices**: Pluggable index implementations (Flat, HNSW, IVF) through a single database class
 
 ## Required Reading
@@ -59,22 +58,6 @@ The default `VectorDatabase` uses:
 - Concurrent reads (multiple searches simultaneously)
 - Exclusive writes (inserts/removes serialized)
 - Works with all index types (Flat, HNSW, IVF)
-
-### Advanced: MPS Integration (Optional)
-
-For extreme performance (100+ concurrent queries), `VectorDatabase_MPS` is available:
-- Message-passing architecture with dedicated thread pools
-- Non-blocking index optimization
-- Key MPS concepts:
-  - `mps::pool` - Thread + message queue
-  - `mps::worker` - Processes messages via `process()` method
-  - `mps::message` - Base class for all messages
-
-**When to use**:
-- Default `VectorDatabase` for most use cases
-- `VectorDatabase_MPS` only when profiling shows lock contention or need non-blocking maintenance
-
-See `doc/MPS_ARCHITECTURE.md` for details.
 
 ## Testing
 
