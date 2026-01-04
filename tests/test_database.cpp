@@ -516,13 +516,16 @@ TEST(VectorDatabaseTest, StatsTrackMemoryUsage) {
     config.dimension = 100;
     auto db = lynx::IVectorDatabase::create(config);
 
+    // Get initial memory usage (may include index overhead like HNSW's visited_table_)
     auto stats1 = db->stats();
-    EXPECT_EQ(stats1.memory_usage_bytes, 0);
+    std::size_t initial_memory = stats1.memory_usage_bytes;
 
+    // Insert a vector
     db->insert({1, std::vector<float>(100, 1.0f), std::nullopt});
 
+    // Memory should increase after insertion
     auto stats2 = db->stats();
-    EXPECT_GT(stats2.memory_usage_bytes, 0);
+    EXPECT_GT(stats2.memory_usage_bytes, initial_memory);
 }
 
 // ============================================================================
