@@ -275,48 +275,6 @@ Lynx provides comprehensive validation tools through `setup.sh` for ensuring cod
 | **clang-tidy** | `./setup.sh clang-tidy` | Static code analysis, best practices | Code review, quality improvements |
 | **Benchmarks** | `./setup.sh benchmark` | Performance testing | After optimizations, regression testing |
 
-### Validation Tool Details
-
-**Code Coverage** (`./setup.sh coverage`):
-- Generates HTML coverage report in `build-coverage/coverage_report/`
-- Target: >85% overall, >95% on critical paths
-- Results saved to `tickets/2072_coverage_report.txt`
-
-**ThreadSanitizer** (`./setup.sh tsan`):
-- Detects data races, deadlocks, and thread safety issues
-- Essential for multi-threaded code validation
-- Results saved to `tickets/2072_tsan_results.txt`
-- ⚠️ Note: Slower execution, ~2-5x overhead
-
-**AddressSanitizer** (`./setup.sh asan`):
-- Finds buffer overflows, use-after-free, memory corruption
-- Fast execution, low overhead (~2x)
-- Results saved to `tickets/2072_asan_results.txt`
-- Recommended for regular development use
-
-**UndefinedBehaviorSanitizer** (`./setup.sh ubsan`):
-- Combines AddressSanitizer + undefined behavior detection
-- Catches integer overflows, null pointer dereferences, etc.
-- Results saved to `tickets/2072_ubsan_results.txt`
-- Most comprehensive sanitizer check
-
-**Valgrind** (`./setup.sh valgrind`):
-- Definitive memory leak detection
-- Slower execution (~10-50x overhead)
-- Results saved to `tickets/2072_valgrind_results.txt`
-- Requires: `sudo apt-get install valgrind` (Ubuntu/Debian)
-
-**clang-tidy** (`./setup.sh clang-tidy`):
-- Static analysis for code quality
-- Enforces modern C++ best practices
-- Results saved to `tickets/2072_clang_tidy_results.txt`
-- Requires: `sudo apt-get install clang-tidy` (Ubuntu/Debian)
-
-**Benchmarks** (`./setup.sh benchmark`):
-- Runs performance benchmark tests only
-- Measures search latency, memory usage, throughput
-- Results saved to `tickets/2072_benchmark_results.txt`
-- Uses Release build for accurate performance metrics
 
 ### Recommended Validation Workflow
 
@@ -351,17 +309,6 @@ Based on **Ticket #2070** quality assurance standards:
 - ✅ Valgrind: Zero memory leaks in application code
 - ✅ clang-tidy: No critical warnings
 - ✅ Benchmarks: No performance regression
-
-### Output Files
-
-All validation tools save their results to the `tickets/` directory:
-- `tickets/2072_coverage_report.txt` - Coverage analysis
-- `tickets/2072_tsan_results.txt` - ThreadSanitizer output
-- `tickets/2072_asan_results.txt` - AddressSanitizer output
-- `tickets/2072_ubsan_results.txt` - UBSanitizer output
-- `tickets/2072_valgrind_results.txt` - Valgrind output
-- `tickets/2072_clang_tidy_results.txt` - Static analysis
-- `tickets/2072_benchmark_results.txt` - Performance benchmarks
 
 ## Project Structure
 
